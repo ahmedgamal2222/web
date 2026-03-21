@@ -1,0 +1,10 @@
+{
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://hadmaj-api.info1703.workers.dev"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_URL": "https://hadmaj-api.info1703.workers.dev"
+    }
+  }
+}
