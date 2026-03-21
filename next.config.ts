@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
 
   // تحسينات الصور
   images: {
-    domains: ['127.0.0.1', 'localhost'],
+    domains: ['127.0.0.1', 'localhost', 'hadmaj-api.info1703.workers.dev'],
   },
 
   // زيادة حجم الـ body
