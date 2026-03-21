@@ -1,0 +1,7 @@
+name = "hadmaj-web"
+compatibility_date = "2026-03-17"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_PUBLIC_API_URL = "https://hadmaj-api.info1703.workers.dev"
