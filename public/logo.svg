@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="100" viewBox="0 0 320 100">
+  <defs>
+    <!-- خلفية -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#281C59"/>
+      <stop offset="100%" stop-color="#1a1035"/>
+    </linearGradient>
+    <!-- تدرج النجمة -->
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EDF7BD"/>
+      <stop offset="50%" stop-color="#85C79A"/>
+      <stop offset="100%" stop-color="#4E8D9C"/>
+    </linearGradient>
+    <!-- تدرج النص -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EDF7BD"/>
+      <stop offset="50%" stop-color="#85C79A"/>
+      <stop offset="100%" stop-color="#4E8D9C"/>
+    </linearGradient>
+    <!-- توهج -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- توهج خفيف للنجمة -->
+    <filter id="starGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- الخلفية -->
+  <rect width="320" height="100" rx="16" fill="url(#bgGrad)"/>
+
+  <!-- حلقة خارجية -->
+  <circle cx="50" cy="50" r="36" stroke="url(#starGrad)" stroke-width="1" fill="none" opacity="0.35"/>
+  <!-- حلقة متوسطة -->
+  <circle cx="50" cy="50" r="26" stroke="url(#starGrad)" stroke-width="0.7" fill="none" opacity="0.25"/>
+
+  <!-- نقاط صغيرة (نجوم خلفية) -->
+  <circle cx="22" cy="20" r="1" fill="#EDF7BD" opacity="0.5"/>
+  <circle cx="78" cy="18" r="0.8" fill="#85C79A" opacity="0.5"/>
+  <circle cx="15" cy="65" r="0.7" fill="#4E8D9C" opacity="0.5"/>
+  <circle cx="82" cy="72" r="1" fill="#EDF7BD" opacity="0.4"/>
+  <circle cx="35" cy="85" r="0.6" fill="#85C79A" opacity="0.4"/>
+  <circle cx="68" cy="82" r="0.8" fill="#4E8D9C" opacity="0.4"/>
+
+  <!-- النجمة المركزية - بتوهج -->
+  <path d="M50 14 L53.5 33 L72 37 L60 49 L63.5 68 L50 59 L36.5 68 L40 49 L28 37 L46.5 33 Z"
+        fill="url(#starGrad)"
+        filter="url(#starGlow)"
+        opacity="0.95"/>
+
+  <!-- المستطيل الفاصل -->
+  <rect x="96" y="28" width="1.5" height="44" rx="1" fill="url(#starGrad)" opacity="0.5"/>
+
+  <!-- النص العربي: المجرة الحضارية -->
+  <text
+    x="210"
+    y="56"
+    text-anchor="middle"
+    font-family="'Segoe UI', Tahoma, Arial, sans-serif"
+    font-size="22"
+    font-weight="800"
+    fill="url(#textGrad)"
+    filter="url(#glow)"
+  >المجرة الحضارية</text>
+
+  <!-- النص اللاتيني -->
+  <text
+    x="210"
+    y="72"
+    text-anchor="middle"
+    font-family="'Segoe UI', Tahoma, Arial, sans-serif"
+    font-size="9"
+    font-weight="600"
+    fill="#85C79A"
+    letter-spacing="3"
+    opacity="0.75"
+  >CIVILIZATION GALAXY</text>
+</svg>
