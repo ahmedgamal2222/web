@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -73,16 +75,16 @@ export default function AdminDashboard() {
 
       const [institutionsRes, requestsRes, usersRes, screensRes, agreementsRes, servicesRes,
              recentReqRes, recentUsersRes, recentSvcRes] = await Promise.all([
-        fetch('/api/institutions?limit=1', { headers: authHeaders }),
-        fetch('/api/institution-requests?status=pending&limit=1', { headers: authHeaders }),
-        fetch('/api/users?limit=1', { headers: authHeaders }),
-        fetch('/api/screens/stats', { headers: authHeaders }),
-        fetch('/api/agreements?limit=1', { headers: authHeaders }),
-        fetch('/api/services?limit=1', { headers: authHeaders }),
+        fetch(`${API_BASE}/api/institutions?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/institution-requests?status=pending&limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/users?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/screens/stats`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/agreements?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/services?limit=1`, { headers: authHeaders }),
         // بيانات حقيقية للبطاقات
-        fetch('/api/institution-requests?status=pending&limit=3', { headers: authHeaders }),
-        fetch('/api/users?limit=3', { headers: authHeaders }),
-        fetch('/api/services?limit=3', { headers: authHeaders }),
+        fetch(`${API_BASE}/api/institution-requests?status=pending&limit=3`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/users?limit=3`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/services?limit=3`, { headers: authHeaders }),
       ]);
 
       const institutions = await institutionsRes.json();
@@ -313,7 +315,7 @@ function LiveStreamSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/lectures?limit=10')
+    fetch(`${API_BASE}/api/lectures?limit=10`)
       .then(r => r.json())
       .then(d => { setLectures(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -45,7 +47,7 @@ export default function ReviewPage() {
 
     try {
       const sessionId = localStorage.getItem('sessionId');
-      const response = await fetch(`/api/services/requests/${requestId}/review`, {
+      const response = await fetch(`${API_BASE}/api/services/requests/${requestId}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

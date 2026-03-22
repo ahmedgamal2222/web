@@ -3,6 +3,8 @@
 import { useEffect, useState,useMemo } from 'react';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -61,7 +63,7 @@ export default function ServicesPage() {
 
       console.log('🔍 Fetching services with params:', params.toString());
       
-      const response = await fetch(`/api/services?${params}`, {
+      const response = await fetch(`${API_BASE}/api/services?${params}`, {
         headers: {
           'Content-Type': 'application/json',
           'X-Session-ID': localStorage.getItem('sessionId') || '',

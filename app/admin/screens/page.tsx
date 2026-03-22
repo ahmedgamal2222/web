@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -61,7 +63,7 @@ export default function ScreensManagementPage() {
       setLoading(true);
       
       // جلب جميع المؤسسات مع معلومات الشاشات
-      const response = await fetch('/api/institutions?limit=1000');
+      const response = await fetch(`${API_BASE}/api/institutions?limit=1000`);
       const data = await response.json();
       
       const institutions = data.data || [];
@@ -116,7 +118,7 @@ export default function ScreensManagementPage() {
     if (!confirm('هل أنت متأكد من إعادة تعيين كلمة مرور الشاشة؟')) return;
 
     try {
-      const response = await fetch(`/api/institutions/${institutionId}/reset-screen-password`, {
+      const response = await fetch(`${API_BASE}/api/institutions/${institutionId}/reset-screen-password`, {
         method: 'POST',
       });
       
@@ -131,7 +133,7 @@ export default function ScreensManagementPage() {
 
   const handleToggleScreen = async (institutionId: number, currentStatus: boolean) => {
     try {
-      const response = await fetch('/api/screen/activate', {
+      const response = await fetch(`${API_BASE}/api/screen/activate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ institution_id: institutionId, active: !currentStatus }),

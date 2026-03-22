@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
-import { fetchGalaxyData, fetchInstitutionAgreements } from '@/lib/api';
+import { fetchGalaxyData, fetchInstitutionAgreements, API_BASE } from '@/lib/api';
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -1212,7 +1212,7 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', {
+      await fetch(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
         headers: {
           'X-Session-ID': localStorage.getItem('sessionId') || '',

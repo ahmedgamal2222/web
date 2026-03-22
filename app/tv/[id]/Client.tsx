@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { fetchInstitution, fetchEvents, fetchNews, fetchLectures } from '@/lib/api';
+import { fetchInstitution, fetchEvents, fetchNews, fetchLectures, API_BASE } from '@/lib/api';
 
 export default function CulturalScreenPage() {
   const institutionId = typeof window !== 'undefined'
@@ -25,7 +25,7 @@ export default function CulturalScreenPage() {
     e.preventDefault();
     
     try {
-      const response = await fetch(`/api/institutions/${institutionId}/verify-screen`, {
+      const response = await fetch(`${API_BASE}/api/institutions/${institutionId}/verify-screen`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -36,7 +36,7 @@ export default function CulturalScreenPage() {
       if (response.ok) {
         setAuthenticated(true);
         // تفعيل الشاشة
-        await fetch(`/api/institutions/${institutionId}/screen-active`, {
+        await fetch(`${API_BASE}/api/institutions/${institutionId}/screen-active`, {
           method: 'POST'
         });
       } else {
@@ -91,7 +91,7 @@ export default function CulturalScreenPage() {
 
     const fetchAds = async () => {
       try {
-        const response = await fetch('/api/ads');
+        const response = await fetch(`${API_BASE}/api/ads`);
         const ads = await response.json();
         
         if (ads.length > 0) {

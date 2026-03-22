@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -57,11 +59,11 @@ export default function NewsPage() {
       setLoading(true);
       
       if (activeTab === 'news') {
-        const response = await fetch(`/api/news?limit=20&search=${filters.search}&category=${filters.category}`);
+        const response = await fetch(`${API_BASE}/api/news?limit=20&search=${filters.search}&category=${filters.category}`);
         const data = await response.json();
         setNews(data.data || []);
       } else {
-        const response = await fetch(`/api/events?limit=20&search=${filters.search}&type=${filters.category}`);
+        const response = await fetch(`${API_BASE}/api/events?limit=20&search=${filters.search}&type=${filters.category}`);
         const data = await response.json();
         setEvents(data.data || []);
       }

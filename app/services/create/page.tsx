@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -46,7 +48,7 @@ export default function CreateServicePage() {
 
       try {
         // التحقق من صحة الجلسة مع الخادم
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch(`${API_BASE}/api/auth/me`, {
           headers: {
             'X-Session-ID': sessionId,
           },
@@ -113,7 +115,7 @@ export default function CreateServicePage() {
     try {
       const sessionId = localStorage.getItem('sessionId');
       
-      const response = await fetch('/api/services', {
+      const response = await fetch(`${API_BASE}/api/services`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

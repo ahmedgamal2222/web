@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -77,7 +79,7 @@ export default function ServiceDetailsPage() {
   const fetchService = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/services/${serviceId}`);
+      const response = await fetch(`${API_BASE}/api/services/${serviceId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -101,7 +103,7 @@ export default function ServiceDetailsPage() {
     setSubmitting(true);
 
     try {
-      const response = await fetch(`/api/services/${serviceId}/request`, {
+      const response = await fetch(`${API_BASE}/api/services/${serviceId}/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchLectures, createLecture, controlLectureStream, getCfUploadUrl, checkLectureRecording } from '@/lib/api';
+import { fetchLectures, createLecture, controlLectureStream, getCfUploadUrl, checkLectureRecording, API_BASE } from '@/lib/api';
 import Link from 'next/link';
 
 const C = {
@@ -79,7 +79,7 @@ export default function AdminLecturesPage() {
     try {
       const [lecs, instRes] = await Promise.all([
         fetchLectures(),
-        fetch('/api/institutions?limit=200').then(r => r.json()),
+        fetch(`${API_BASE}/api/institutions?limit=200`).then(r => r.json()),
       ]);
       setLectures(lecs as Lecture[]);
       setInstitutions(instRes?.data || []);

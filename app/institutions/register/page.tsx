@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fetchInstitutions } from '@/lib/api';
+import { fetchInstitutions, API_BASE } from '@/lib/api';
 
 const COLORS = {
   lightMint: '#EDF7BD',
@@ -62,7 +62,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,7 +80,7 @@ export default function RegisterPage() {
 
       if (data.success) {
         // تسجيل الدخول تلقائياً
-        const loginResponse = await fetch('/api/auth/login', {
+        const loginResponse = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

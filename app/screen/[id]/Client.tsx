@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording } from '@/lib/api';
+import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, API_BASE } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
 
@@ -56,7 +56,7 @@ export default function ScreenPage() {
 
     const deactivate = () => {
       // keepalive يضمن إرسال الطلب حتى عند إغلاق الصفحة
-      fetch('/api/screen/activate', {
+      fetch(`${API_BASE}/api/screen/activate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ institution_id: Number(institutionId), active: false }),
@@ -139,7 +139,7 @@ export default function ScreenPage() {
         if (institution?.country) params.set('target_country', institution.country);
         if (institution?.city)    params.set('target_city',    institution.city);
 
-        const response = await fetch(`/api/ads?${params}`);
+        const response = await fetch(`${API_BASE}/api/ads?${params}`);
         const json = await response.json();
         const ads: any[] = json?.data ?? [];
 

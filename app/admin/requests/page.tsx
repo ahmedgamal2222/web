@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
 // ─── brand palette (matches admin dashboard) ────────────────────────────────
 const C = {
   lightMint: '#EDF7BD',
@@ -287,7 +289,7 @@ export default function AdminRequestsPage() {
     setError(null);
     try {
       const sid = localStorage.getItem('sessionId') || '';
-      const res = await fetch('/api/institution-requests', {
+      const res = await fetch(`${API_BASE}/api/institution-requests`, {
         headers: { 'X-Session-ID': sid },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -309,7 +311,7 @@ export default function AdminRequestsPage() {
     reason?: string,
   ) {
     const sid = localStorage.getItem('sessionId') || '';
-    const res = await fetch(`/api/institution-requests/${id}/review`, {
+    const res = await fetch(`${API_BASE}/api/institution-requests/${id}/review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
       body: JSON.stringify({
