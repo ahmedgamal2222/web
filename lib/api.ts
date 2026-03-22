@@ -286,6 +286,7 @@ export async function fetchProviderRequests(params?: {
     total: number;
     page: number;
     limit: number;
+    error?: string;
   }>(url.toString());
 
   if (!res.success) {

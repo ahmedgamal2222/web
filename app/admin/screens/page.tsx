@@ -69,7 +69,7 @@ export default function ScreensManagementPage() {
       const institutions = data.data || [];
       
       // تحويل البيانات إلى صيغة الشاشات
-      const screensData = institutions.map((inst: any) => ({
+      const screensData: Screen[] = institutions.map((inst: any) => ({
         id: inst.id,
         institution_id: inst.id,
         institution_name: inst.name,
@@ -358,7 +358,7 @@ export default function ScreensManagementPage() {
                       </button>
 
                       <Link
-                        href={`/screen/${screen.institution_id}`}
+                        href={`screen/${screen.institution_id}`}
                         target="_blank"
                         style={{
                           padding: '6px 12px',

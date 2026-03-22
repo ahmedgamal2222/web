@@ -80,7 +80,7 @@ export default function ServicesPage() {
 
         // استخراج التصنيفات الفريدة من النتائج
         if (result.data && result.data.length > 0) {
-          const cats = [...new Set(result.data.map((s: Service) => s.category))];
+          const cats = [...new Set(result.data.map((s: Service) => s.category))] as string[];
           setCategories(cats);
         }
       } else {
@@ -157,7 +157,7 @@ export default function ServicesPage() {
             type="text"
             placeholder="🔍 ابحث عن خدمة..."
             value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+            onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
             style={{
               width: '100%',
               padding: '15px 20px',
@@ -186,7 +186,7 @@ export default function ServicesPage() {
         }}>
           <select
             value={filters.category}
-            onChange={(e) => setFilters({ ...filters, category: e.target.value, page: 1 })}
+            onChange={(e) => { setFilters({ ...filters, category: e.target.value }); setPage(1); }}
             style={filterSelectStyle}
           >
             <option value="all">📁 جميع التصنيفات</option>
@@ -199,7 +199,7 @@ export default function ServicesPage() {
             type="number"
             placeholder="أقل سعر"
             value={filters.minPrice}
-            onChange={(e) => setFilters({ ...filters, minPrice: e.target.value, page: 1 })}
+            onChange={(e) => { setFilters({ ...filters, minPrice: e.target.value }); setPage(1); }}
             style={filterInputStyle}
           />
 
@@ -207,7 +207,7 @@ export default function ServicesPage() {
             type="number"
             placeholder="أعلى سعر"
             value={filters.maxPrice}
-            onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value, page: 1 })}
+            onChange={(e) => { setFilters({ ...filters, maxPrice: e.target.value }); setPage(1); }}
             style={filterInputStyle}
           />
 

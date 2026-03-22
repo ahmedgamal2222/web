@@ -48,41 +48,57 @@ const TYPE_COLORS: Record<string, string> = {
 // ============================================================
 function GalaxyLogo() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <div style={{ position: 'relative', width: 44, height: 44 }}>
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', userSelect: 'none' }}>
+      <div style={{ position: 'relative', width: 54, height: 54, flexShrink: 0 }}>
+        <svg width="54" height="54" viewBox="0 0 54 54" fill="none">
           <defs>
-            <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={COLORS.lightMint} />
-              <stop offset="50%" stopColor={COLORS.softGreen} />
-              <stop offset="100%" stopColor={COLORS.teal} />
-            </linearGradient>
+            <radialGradient id="rg_core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stopColor="#EDF7BD" />
+              <stop offset="42%"  stopColor="#85C79A" />
+              <stop offset="100%" stopColor="#4E8D9C" />
+            </radialGradient>
+            <radialGradient id="rg_halo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stopColor="#4E8D9C" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#4E8D9C" stopOpacity="0" />
+            </radialGradient>
+            <filter id="f_glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="2.8" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
           </defs>
-          <circle cx="22" cy="22" r="20" stroke="url(#starGradient)" strokeWidth="1.5" fill="none" opacity="0.6" />
-          <path 
-            d="M22 4 L24.5 14.5 L35 17 L27 24 L29.5 35 L22 28.5 L14.5 35 L17 24 L9 17 L19.5 14.5 Z" 
-            fill="url(#starGradient)" 
+          {/* Ambient halo */}
+          <circle cx="27" cy="27" r="26" fill="url(#rg_halo)" />
+          {/* Outer orbital ring */}
+          <ellipse cx="27" cy="27" rx="24.5" ry="9.5"
+            stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3"
+            fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
+          {/* Inner orbital ring */}
+          <ellipse cx="27" cy="27" rx="18" ry="6.5"
+            stroke="#85C79A" strokeWidth="0.65" strokeDasharray="2 4"
+            fill="none" opacity="0.45" transform="rotate(40 27 27)" />
+          {/* Star core */}
+          <path
+            d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z"
+            fill="url(#rg_core)" filter="url(#f_glow)"
           />
+          {/* Bright nucleus */}
+          <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
+          <circle cx="25.2" cy="25.2" r="1.2" fill="white" opacity="0.5" />
         </svg>
       </div>
       <div>
         <div style={{
-          fontSize: '1.35rem',
-          fontWeight: 800,
-          background: `linear-gradient(135deg, ${COLORS.lightMint}, ${COLORS.softGreen}, ${COLORS.teal})`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          lineHeight: 1.2,
+          fontSize: '1.55rem', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.03em',
+          background: 'linear-gradient(130deg, #EDF7BD 0%, #85C79A 48%, #4E8D9C 100%)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
           المجرة الحضارية
         </div>
-        <div style={{ 
-          fontSize: '0.7rem', 
-          color: '#666', 
-          letterSpacing: '0.08em', 
-          marginTop: 2,
+        <div style={{
+          fontSize: '0.58rem', color: '#4E8D9C', letterSpacing: '0.3em',
+          marginTop: 5, fontWeight: 700, textTransform: 'uppercase' as const, opacity: 0.9,
         }}>
-          CIVILIZATION GALAXY
+          Civilization Galaxy
         </div>
       </div>
     </div>
@@ -103,11 +119,12 @@ function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          padding: '6px 12px 6px 6px',
-          background: 'rgba(255,255,255,0.05)',
-          border: `1px solid ${COLORS.teal}`,
+          padding: '6px 14px 6px 8px',
+          background: 'rgba(78,141,156,0.1)',
+          border: '1px solid rgba(78,141,156,0.35)',
           borderRadius: 40,
           cursor: 'pointer',
+          transition: 'all 0.22s',
         }}
       >
         <div style={{
@@ -136,14 +153,16 @@ function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
           position: 'absolute',
           top: '100%',
           left: 0,
-          marginTop: 8,
-          width: 200,
-          background: 'rgba(8,10,20,0.98)',
-          border: `1px solid ${COLORS.teal}`,
-          borderRadius: 12,
+          marginTop: 10,
+          width: 210,
+          background: 'rgba(5, 4, 20, 0.97)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(78,141,156,0.28)',
+          borderRadius: 16,
           overflow: 'hidden',
           zIndex: 50,
-          backdropFilter: 'blur(10px)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(237,247,189,0.06)',
         }}>
           {/* {user.role === 'admin' && (
             <Link href="/admin" style={dropdownItemStyle}>
@@ -204,15 +223,17 @@ function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
 const dropdownItemStyle = {
   display: 'flex',
   alignItems: 'center',
-  gap: 8,
-  padding: '10px 16px',
-  color: '#ddd',
+  gap: 10,
+  padding: '11px 18px',
+  color: '#c8d8e8',
   textDecoration: 'none',
-  fontSize: '0.9rem',
+  fontSize: '0.88rem',
+  fontWeight: 500,
   transition: 'all 0.2s',
   cursor: 'pointer',
   width: '100%',
   boxSizing: 'border-box' as const,
+  letterSpacing: '0.01em',
 };
 
 // ============================================================
@@ -235,17 +256,17 @@ function TopBar({
     <header style={{
       position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 28px',
-      height: 72,
-      background: 'linear-gradient(180deg, rgba(2,2,5,0.95) 0%, rgba(2,2,5,0.7) 50%, rgba(2,2,5,0) 100%)',
-      backdropFilter: 'blur(8px)',
-      borderBottom: `1px solid ${COLORS.teal}40`,
+      padding: '0 32px',
+      height: 76,
+      background: 'linear-gradient(180deg, rgba(5,4,20,0.97) 0%, rgba(5,4,20,0.85) 65%, rgba(5,4,20,0) 100%)',
+      backdropFilter: 'blur(22px)',
+      WebkitBackdropFilter: 'blur(22px)',
+      borderBottom: '1px solid rgba(78,141,156,0.2)',
+      boxShadow: '0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(133,199,154,0.08)',
     }}>
       <GalaxyLogo />
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {/* روابط سريعة */}
-       
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
         {/* Institutions toggle */}
         <button
@@ -253,29 +274,33 @@ function TopBar({
           aria-pressed={listOpen}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 18px',
-            background: listOpen 
-              ? `linear-gradient(135deg, ${COLORS.teal}40, ${COLORS.softGreen}20)` 
-              : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${listOpen ? COLORS.teal : 'rgba(255,255,255,0.1)'}`,
+            padding: '8px 20px',
+            background: listOpen
+              ? 'linear-gradient(135deg, rgba(78,141,156,0.3), rgba(133,199,154,0.15))'
+              : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${listOpen ? 'rgba(133,199,154,0.6)' : 'rgba(255,255,255,0.1)'}`,
             borderRadius: 40,
-            color: listOpen ? COLORS.teal : '#ddd',
-            fontSize: '0.9rem',
+            color: listOpen ? '#85C79A' : '#bbb',
+            fontSize: '0.88rem',
             cursor: 'pointer',
-            fontWeight: 500,
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+            boxShadow: listOpen ? '0 0 18px rgba(133,199,154,0.2)' : 'none',
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <circle cx="12" cy="12" r="10" />
             <circle cx="12" cy="12" r="3" />
           </svg>
           <span>المؤسسات</span>
           <span style={{
-            background: listOpen ? COLORS.teal : 'rgba(255,255,255,0.1)',
-            color: listOpen ? COLORS.darkNavy : '#ddd',
-            padding: '2px 8px',
+            background: listOpen ? 'rgba(133,199,154,0.25)' : 'rgba(255,255,255,0.08)',
+            color: listOpen ? '#85C79A' : '#aaa',
+            padding: '2px 9px',
             borderRadius: 20,
-            fontSize: '0.75rem',
+            fontSize: '0.72rem',
+            fontWeight: 700,
           }}>
             {starCount}
           </span>
@@ -288,36 +313,39 @@ function TopBar({
             <Link
               href="/login"
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
+                display: 'flex', alignItems: 'center', gap: 7,
                 padding: '8px 20px',
-                background: `linear-gradient(135deg, ${COLORS.teal}20, ${COLORS.softGreen}20)`,
-                border: `1px solid ${COLORS.teal}`,
+                background: 'rgba(78,141,156,0.12)',
+                border: '1px solid rgba(78,141,156,0.5)',
                 borderRadius: 40,
-                color: '#fff',
-                fontSize: '0.9rem',
+                color: '#4E8D9C',
+                fontSize: '0.88rem',
                 textDecoration: 'none',
                 fontWeight: 600,
+                transition: 'all 0.25s',
+                letterSpacing: '0.02em',
               }}
             >
-              <span>🔐</span>
               دخول
             </Link>
             
             <Link
               href="/register"
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 20px',
-                background: COLORS.softGreen,
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 22px',
+                background: 'linear-gradient(135deg, #85C79A, #4E8D9C)',
                 border: 'none',
                 borderRadius: 40,
-                color: COLORS.darkNavy,
-                fontSize: '0.9rem',
+                color: '#281C59',
+                fontSize: '0.88rem',
                 textDecoration: 'none',
-                fontWeight: 600,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: '0 4px 16px rgba(133,199,154,0.3)',
+                transition: 'all 0.25s',
               }}
             >
-              <span>✨</span>
               تسجيل
             </Link>
           </div>
@@ -372,13 +400,12 @@ function QuickActions({ user }: { user: any }) {
   return (
     <div style={{
       position: 'absolute',
-      top: 90,
-      right: 28,
+      top: 88,
+      left: 28,
       zIndex: 39,
       display: 'flex',
       flexDirection: 'column',
-      gap: 8,
-      maxWidth: 200,
+      gap: 5,
     }}>
       {actions.map((action, index) => (
         <Link
@@ -388,29 +415,36 @@ function QuickActions({ user }: { user: any }) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            padding: '10px 16px',
-            background: 'rgba(8,10,20,0.9)',
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${action.color}`,
-            borderRadius: 40,
-            color: '#fff',
+            padding: '9px 18px',
+            background: 'rgba(5, 4, 20, 0.88)',
+            backdropFilter: 'blur(18px)',
+            WebkitBackdropFilter: 'blur(18px)',
+            border: `1px solid ${action.color}35`,
+            borderRadius: 14,
+            color: '#c8d8e8',
             textDecoration: 'none',
-            fontSize: '0.9rem',
-            transition: 'all 0.3s',
-            boxShadow: `0 4px 12px ${action.color}20`,
+            fontSize: '0.84rem',
+            fontWeight: 500,
+            transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
+            boxShadow: `0 4px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)`,
+            letterSpacing: '0.01em',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = action.color;
-            e.currentTarget.style.color = COLORS.darkNavy;
-            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.background = `${action.color}18`;
+            e.currentTarget.style.borderColor = `${action.color}80`;
+            e.currentTarget.style.color = '#fff';
+            e.currentTarget.style.transform = 'translateX(4px)';
+            e.currentTarget.style.boxShadow = `0 6px 22px ${action.color}25, inset 0 1px 0 rgba(255,255,255,0.07)`;
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.background = 'rgba(8,10,20,0.9)';
-            e.currentTarget.style.color = '#fff';
+            e.currentTarget.style.background = 'rgba(5,4,20,0.88)';
+            e.currentTarget.style.borderColor = `${action.color}35`;
+            e.currentTarget.style.color = '#c8d8e8';
             e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)`;
           }}
         >
-          <span style={{ fontSize: '1.1rem' }}>{action.icon}</span>
+          <span style={{ fontSize: '1rem', width: 18, textAlign: 'center', flexShrink: 0 }}>{action.icon}</span>
           <span>{action.label}</span>
         </Link>
       ))}
@@ -433,28 +467,34 @@ function StatsBar({ data }: { data: GalaxyData }) {
   
   return (
     <div style={{
-      position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 40, display: 'flex', gap: 2,
-      background: 'rgba(6, 8, 18, 0.8)',
-      backdropFilter: 'blur(12px)',
-      border: `1px solid ${COLORS.teal}40`,
-      borderRadius: 60,
-      padding: '4px',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+      position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 40, display: 'flex', gap: 10, alignItems: 'stretch',
     }}>
-      {stats.map((s, i) => (
+      {stats.map((s) => (
         <div key={s.label} style={{
-          padding: '10px 28px',
-          textAlign: 'center',
-          background: i === 0 ? `${COLORS.teal}20` : 'transparent',
-          borderRadius: 60,
-          borderRight: i < stats.length - 1 ? `1px solid ${COLORS.teal}30` : 'none',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '12px 26px',
+          background: 'rgba(6, 7, 22, 0.88)',
+          backdropFilter: 'blur(22px)',
+          WebkitBackdropFilter: 'blur(22px)',
+          border: `1px solid ${s.color}30`,
+          borderRadius: 18,
+          boxShadow: `0 0 24px ${s.color}12, 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)`,
+          minWidth: 96,
+          transition: 'all 0.3s ease',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-            <span style={{ fontSize: '1.2rem' }}>{s.icon}</span>
-            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: s.color }}>{s.value}</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 5 }}>
+            <span style={{ fontSize: '1rem', opacity: 0.8 }}>{s.icon}</span>
+            <span style={{
+              fontSize: '1.55rem', fontWeight: 800, color: s.color,
+              textShadow: `0 0 14px ${s.color}70`,
+              lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+            }}>{s.value}</span>
           </div>
-          <div style={{ fontSize: '0.7rem', color: '#aaa', marginTop: 2 }}>{s.label}</div>
+          <div style={{
+            fontSize: '0.62rem', color: '#6a7f90',
+            letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+          }}>{s.label}</div>
         </div>
       ))}
     </div>
@@ -738,7 +778,7 @@ function InstitutionsPanel({
       if (!star.agreements || star.agreements.length === 0) {
         setLoadingAgreements(true);
         try {
-          const response = await fetchInstitutionAgreements(star.id);
+          const response = await fetchInstitutionAgreements(star.id) as any;
           // تحديث بيانات النجمة بالاتفاقيات الجديدة
           star.agreements = response.data;
           // تحديث الحالة لإعادة الرسم
@@ -771,32 +811,35 @@ function InstitutionsPanel({
 
       <aside style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 46,
-        width: 500,
+        width: 480,
         transform: open ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1)',
-        background: 'rgba(8, 10, 20, 0.98)',
-        borderLeft: `1px solid ${COLORS.teal}`,
+        transition: 'transform 0.45s cubic-bezier(0.4,0,0.2,1)',
+        background: 'rgba(5, 6, 22, 0.97)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        borderLeft: '1px solid rgba(78,141,156,0.25)',
         display: 'flex', flexDirection: 'column',
         direction: 'rtl',
-        boxShadow: '-5px 0 30px rgba(0,0,0,0.5)',
+        boxShadow: '-12px 0 70px rgba(0,0,0,0.75), inset 1px 0 0 rgba(133,199,154,0.07)',
       }}>
         {/* Header */}
         <div style={{
-          padding: '20px 24px',
-          borderBottom: `1px solid ${COLORS.teal}30`,
+          padding: '22px 26px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: `linear-gradient(135deg, ${COLORS.teal}10, transparent)`,
+          background: 'linear-gradient(135deg, rgba(78,141,156,0.13) 0%, rgba(40,28,89,0.12) 100%)',
+          borderBottom: '1px solid rgba(78,141,156,0.18)',
+          boxShadow: '0 1px 0 rgba(133,199,154,0.06)',
         }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff' }}>
-              {showAgreements && selectedStar ? 
-                `اتفاقيات ${selectedStar.name_ar || selectedStar.name}` : 
+            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#EDF7BD', letterSpacing: '-0.01em' }}>
+              {showAgreements && selectedStar ?
+                `اتفاقيات ${selectedStar.name_ar || selectedStar.name}` :
                 'جميع المؤسسات'
               }
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: 4 }}>
-              {showAgreements && selectedStar ? 
-                `${selectedStar.agreements?.length || 0} اتفاقية` : 
+            <div style={{ fontSize: '0.75rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
+              {showAgreements && selectedStar ?
+                `${selectedStar.agreements?.length || 0} اتفاقية` :
                 `${filtered.length} من أصل ${stars.length} مؤسسة`
               }
             </div>
@@ -901,21 +944,22 @@ function InstitutionsPanel({
                 onChange={e => setSearch(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
-                  background: 'rgba(0,0,0,0.3)',
-                  border: `1px solid ${COLORS.teal}`,
-                  borderRadius: 30,
-                  color: '#fff',
-                  fontSize: '0.9rem',
+                  padding: '12px 20px',
+                  background: 'rgba(5,4,20,0.6)',
+                  border: '1px solid rgba(78,141,156,0.35)',
+                  borderRadius: 14,
+                  color: '#e8f4f8',
+                  fontSize: '0.88rem',
                   outline: 'none',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.22s',
+                  letterSpacing: '0.01em',
                 }}
                 onFocus={e => {
-                  e.currentTarget.style.borderColor = COLORS.softGreen;
-                  e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.softGreen}`;
+                  e.currentTarget.style.borderColor = 'rgba(133,199,154,0.7)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(133,199,154,0.12)';
                 }}
                 onBlur={e => {
-                  e.currentTarget.style.borderColor = COLORS.teal;
+                  e.currentTarget.style.borderColor = 'rgba(78,141,156,0.35)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />
@@ -1008,23 +1052,24 @@ function InstitutionsPanel({
                   key={star.id}
                   onClick={() => handleStarClick(star)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    width: '100%', textAlign: 'right', padding: '12px 15px',
-                    marginBottom: 8, borderRadius: 12,
+                    display: 'flex', alignItems: 'center', gap: 13,
+                    width: '100%', textAlign: 'right', padding: '13px 16px',
+                    marginBottom: 7, borderRadius: 14,
                     cursor: 'pointer',
-                    background: selectedStar?.id === star.id 
-                      ? `${COLORS.teal}20` 
+                    background: selectedStar?.id === star.id
+                      ? 'rgba(78,141,156,0.14)'
                       : 'rgba(255,255,255,0.02)',
-                    border: star.screen_active 
-                      ? `1px solid ${COLORS.softGreen}` 
-                      : `1px solid ${COLORS.teal}20`,
-                    transition: 'all 0.2s',
+                    border: star.screen_active
+                      ? '1px solid rgba(133,199,154,0.4)'
+                      : '1px solid rgba(78,141,156,0.14)',
+                    transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+                    boxShadow: selectedStar?.id === star.id ? '0 0 20px rgba(78,141,156,0.1)' : 'none',
                   }}
                   onMouseEnter={e => {
                     if (selectedStar?.id !== star.id) {
-                      e.currentTarget.style.background = `${COLORS.teal}10`;
+                      e.currentTarget.style.background = 'rgba(78,141,156,0.09)';
                     }
-                    e.currentTarget.style.transform = 'translateX(-2px)';
+                    e.currentTarget.style.transform = 'translateX(-3px)';
                   }}
                   onMouseLeave={e => {
                     if (selectedStar?.id !== star.id) {
@@ -1231,21 +1276,71 @@ export default function HomePage() {
     return (
       <div style={{
         position: 'fixed', inset: 0,
-        background: COLORS.darkNavy,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'radial-gradient(ellipse at 50% 40%, #0d0b2a 0%, #05041a 55%, #020210 100%)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 0,
       }}>
-        <div style={{ textAlign: 'center' }}>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes spinR { to { transform: rotate(-360deg); } }
+          @keyframes pulseGlow {
+            0%,100% { opacity: 0.45; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.08); }
+          }
+          @keyframes fadeDots {
+            0%,100% { opacity: 0.3; } 50% { opacity: 1; }
+          }
+        `}</style>
+
+        {/* Orbital rings loader */}
+        <div style={{ position: 'relative', width: 130, height: 130, marginBottom: 36 }}>
           <div style={{
-            width: 80, height: 80,
-            border: `5px solid ${COLORS.lightMint}`,
-            borderTopColor: COLORS.softGreen,
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            border: '1.5px solid rgba(78,141,156,0.35)',
+            animation: 'spin 9s linear infinite',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 12, borderRadius: '50%',
+            border: '1.5px solid rgba(133,199,154,0.3)',
+            animation: 'spinR 6s linear infinite',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 25, borderRadius: '50%',
+            border: '1px solid rgba(237,247,189,0.22)',
+            animation: 'spin 3.5s linear infinite',
+          }}/>
+          {/* Orbiting dot */}
+          <div style={{
+            position: 'absolute', top: 0, left: '50%',
+            width: 7, height: 7, marginLeft: -3.5, marginTop: -3.5,
             borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            marginBottom: 20,
-          }} />
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-          <h2 style={{ color: '#fff' }}>جاري تحميل المجرة الحضارية...</h2>
+            background: '#85C79A',
+            boxShadow: '0 0 10px #85C79A',
+            transformOrigin: '3.5px calc(65px + 3.5px)',
+            animation: 'spin 9s linear infinite',
+          }}/>
+          {/* Core glow */}
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(237,247,189,0.85) 0%, rgba(133,199,154,0.45) 50%, rgba(78,141,156,0.15) 100%)',
+              animation: 'pulseGlow 2.4s ease-in-out infinite',
+              boxShadow: '0 0 30px rgba(78,141,156,0.7), 0 0 60px rgba(78,141,156,0.3)',
+            }}/>
+          </div>
         </div>
+
+        <GalaxyLogo />
+
+        <p style={{
+          color: '#4E8D9C', marginTop: 28, fontSize: '0.82rem',
+          letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600,
+          animation: 'fadeDots 2s ease-in-out infinite',
+        }}>
+          جاري إطلاق المجرة الحضارية
+        </p>
       </div>
     );
   }
@@ -1254,21 +1349,29 @@ export default function HomePage() {
     return (
       <div style={{
         position: 'fixed', inset: 0,
-        background: COLORS.darkNavy,
+        background: 'radial-gradient(ellipse at 50% 40%, #0d0b2a 0%, #05041a 60%, #020210 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <div style={{
-          textAlign: 'center', padding: 40,
-          background: 'rgba(255,255,255,0.1)', borderRadius: 20,
+          textAlign: 'center', padding: '48px 56px',
+          background: 'rgba(6,7,22,0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: 24,
+          border: '1px solid rgba(78,141,156,0.22)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
+          maxWidth: 380,
         }}>
-          <span style={{ fontSize: '3rem' }}>⚠️</span>
-          <h3 style={{ color: '#fff', margin: '20px 0' }}>{error}</h3>
+          <div style={{ fontSize: '3rem', marginBottom: 8 }}>⚠️</div>
+          <h3 style={{ color: '#EDF7BD', margin: '16px 0 8px', fontWeight: 700, fontSize: '1.1rem' }}>{error}</h3>
+          <p style={{ color: '#5a7080', fontSize: '0.85rem', marginBottom: 28 }}>تحقق من اتصالك بالإنترنت وحاول مجدداً</p>
           <button onClick={() => window.location.reload()}
             style={{
-              background: COLORS.softGreen,
-              border: 'none', padding: '10px 30px',
-              borderRadius: 40, color: COLORS.darkNavy,
-              fontSize: '1rem', cursor: 'pointer',
+              background: 'linear-gradient(135deg, #85C79A, #4E8D9C)',
+              border: 'none', padding: '11px 36px',
+              borderRadius: 40, color: '#281C59',
+              fontSize: '0.95rem', cursor: 'pointer', fontWeight: 700,
+              boxShadow: '0 6px 20px rgba(133,199,154,0.3)',
             }}>
             إعادة المحاولة
           </button>
@@ -1282,7 +1385,8 @@ export default function HomePage() {
       width: '100vw', height: '100vh',
       overflow: 'hidden', position: 'relative',
       direction: 'rtl',
-      background: COLORS.darkNavy,
+      background: '#05041a',
+      fontFamily: "'Segoe UI', 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif",
     }}>
       {galaxyData && (
         <GalaxyCanvas
