@@ -1,9 +1,11 @@
 import ClientPage from './Client';
 
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
-  return [];
+  return [{ requestId: 'default' }];
 }
 
-export default function Page(props: any) {
-  return <ClientPage {...props} />;
+export default function Page() {
+  return <ClientPage />;
 }
