@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   fetchAgreements,
@@ -185,8 +185,9 @@ function printAgreement(ag: Agreement) {
 // الصفحة الرئيسية
 // ════════════════════════════════════════════════════════════
 export default function InstitutionAgreementsPage() {
-  const params = useParams();
-  const institutionId = Number(params.id);
+  const institutionId = typeof window !== 'undefined'
+    ? Number(window.location.pathname.split('/').filter(Boolean)[1])
+    : 0;
   const router = useRouter();
 
   const [institutionName, setInstitutionName] = useState('');

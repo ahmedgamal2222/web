@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
 import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
 
 export default function ScreenPage() {
-  const params = useParams();
-  const institutionId = params.id as string;
+  const institutionId = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
 
   const [institution, setInstitution] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);

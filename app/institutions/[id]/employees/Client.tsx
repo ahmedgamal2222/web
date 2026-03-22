@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchInstitution, getAuthHeaders } from '@/lib/api';
 import { Institution } from '@/lib/types';
@@ -61,7 +61,9 @@ function getInitials(name: string) {
 }
 
 export default function InstitutionEmployeesPage() {
-  const { id } = useParams<{ id: string }>();
+  const id = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
   const router = useRouter();
 
   const [institution, setInstitution] = useState<Institution | null>(null);

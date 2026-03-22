@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -49,7 +49,9 @@ interface Review {
 }
 
 export default function ServiceDetailsPage() {
-  const params = useParams();
+  const serviceId = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
   const router = useRouter();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,12 +72,12 @@ export default function ServiceDetailsPage() {
     }
 
     fetchService();
-  }, [params.id]);
+  }, [serviceId]);
 
   const fetchService = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/services/${params.id}`);
+      const response = await fetch(`/api/services/${serviceId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -99,7 +101,7 @@ export default function ServiceDetailsPage() {
     setSubmitting(true);
 
     try {
-      const response = await fetch(`/api/services/${params.id}/request`, {
+      const response = await fetch(`/api/services/${serviceId}/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

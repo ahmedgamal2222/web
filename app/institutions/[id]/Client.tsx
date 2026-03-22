@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { Institution, Agreement } from '@/lib/types';
 import { fetchInstitution } from '@/lib/api';
 import Link from 'next/link';
@@ -341,8 +340,9 @@ function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string
 
 // ── Main Client Component ────────────────────────────────────
 export default function InstitutionClient() {
-  const params = useParams();
-  const id = params.id as string;
+  const id = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
 
   const [institution, setInstitution] = useState<Institution | null>(null);
   const [agreements, setAgreements] = useState<Agreement[]>([]);

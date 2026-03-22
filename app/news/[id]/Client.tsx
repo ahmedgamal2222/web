@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchNews, createNews } from '@/lib/api';
 
@@ -209,7 +209,9 @@ const iStyle: React.CSSProperties = {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function NewsDetailPage() {
-  const { id } = useParams();
+  const id = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
   const router = useRouter();
   const [item, setItem] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);

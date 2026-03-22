@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
 import { fetchInstitution, fetchEvents, fetchNews, fetchLectures } from '@/lib/api';
 
 export default function CulturalScreenPage() {
-  const params = useParams();
-  const institutionId = params.id as string;
+  const institutionId = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
   
   const [institution, setInstitution] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);

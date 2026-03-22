@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const COLORS = {
@@ -139,7 +139,9 @@ function getEventStatus(start: string, end?: string) {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function EventDetailPage() {
-  const { id } = useParams();
+  const id = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
+    : 'default';
   const router = useRouter();
   const [item, setItem] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);

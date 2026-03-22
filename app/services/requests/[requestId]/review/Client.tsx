@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const COLORS = {
@@ -13,8 +13,9 @@ const COLORS = {
 
 export default function ReviewPage() {
   const router = useRouter();
-  const params = useParams();
-  const requestId = params.requestId as string;
+  const requestId = typeof window !== 'undefined'
+    ? (window.location.pathname.split('/').filter(Boolean)[2] ?? 'default')
+    : 'default';
 
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState('');
