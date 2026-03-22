@@ -1,12 +1,28 @@
 # Cloudflare Pages rewrites for Next.js dynamic routes (static export)
 # More specific routes must come before less specific ones
+# Each route needs both variants: with and without trailing slash
+# (next.config has trailingSlash:true so browsers always end up on the /slug/ form)
 
-/institutions/:id/agreements   /institutions/default/agreements/   200
-/institutions/:id/employees    /institutions/default/employees/    200
-/institutions/:id              /institutions/default/              200
-/services/requests/:id/review  /services/requests/default/review/  200
-/services/:id                  /services/default/                  200
-/events/:id                    /events/default/                    200
-/news/:id                      /news/default/                      200
-/screen/:id                    /screen/default/                    200
-/tv/:id                        /tv/default/                        200
+/institutions/:id/agreements/  /institutions/default/agreements/  200
+/institutions/:id/agreements   /institutions/default/agreements/  200
+/institutions/:id/employees/   /institutions/default/employees/   200
+/institutions/:id/employees    /institutions/default/employees/   200
+/institutions/:id/             /institutions/default/             200
+/institutions/:id              /institutions/default/             200
+
+/services/requests/:id/review/ /services/requests/default/review/ 200
+/services/requests/:id/review  /services/requests/default/review/ 200
+/services/:id/                 /services/default/                 200
+/services/:id                  /services/default/                 200
+
+/events/:id/                   /events/default/                   200
+/events/:id                    /events/default/                   200
+
+/news/:id/                     /news/default/                     200
+/news/:id                      /news/default/                     200
+
+/screen/:id/                   /screen/default/                   200
+/screen/:id                    /screen/default/                   200
+
+/tv/:id/                       /tv/default/                       200
+/tv/:id                        /tv/default/                       200
