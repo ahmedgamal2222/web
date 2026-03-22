@@ -1,12 +1,8 @@
-import ClientPage from './Client';
+'use client';
 
-export async function generateStaticParams() {
-  return [];
-}
-
-export default function Page(props: any) {
-  return <ClientPage {...props} />;
-}
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 
 const COLORS = {
   lightMint: '#EDF7BD',
