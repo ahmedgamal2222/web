@@ -16,11 +16,6 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true,
   },
-
-  // زيادة حجم الـ body
-  serverActions: {
-    bodySizeLimit: '10mb',
-  },
 };
 
 export default nextConfig;
