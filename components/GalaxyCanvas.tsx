@@ -131,9 +131,13 @@ export default function GalaxyCanvas({
     if (!containerRef.current) return;
     const container = containerRef.current;
 
+    // Device detection for responsive behaviour
+    const isMobile = container.clientWidth < 768;
+    const isTouch  = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
     // 1. Scene Setup
     const scene  = new THREE.Scene();
-    scene.fog    = new THREE.FogExp2(0x020205, 0.0012);
+    scene.fog    = new THREE.FogExp2(0x00010a, 0.0008);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -141,13 +145,19 @@ export default function GalaxyCanvas({
       0.1,
       2000,
     );
-    camera.position.set(0, 90, 130);
+    camera.position.set(0, isMobile ? 115 : 90, isMobile ? 165 : 130);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x020205);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+    renderer.setClearColor(0x00010a);
     container.appendChild(renderer.domElement);
+    renderer.domElement.style.touchAction = 'none'; // prevent page scroll on touch
+
+    // Suppress Three.js / OrbitControls known bug: releasePointerCapture with stale pointer id
+    const _domEl = renderer.domElement;
+    const _origRelease = _domEl.releasePointerCapture.bind(_domEl);
+    _domEl.releasePointerCapture = (id: number) => { try { _origRelease(id); } catch (_) { /* ignore */ } };
 
     const controls        = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -170,6 +180,66 @@ export default function GalaxyCanvas({
 
     const masterGroup = new THREE.Group();
     scene.add(masterGroup);
+
+    // 1.5 Deep Space Stars — fixed, randomly scattered across the universe sphere
+    const DS_COUNT = isMobile ? 6000 : 12000;
+    const dsGeo    = new THREE.BufferGeometry();
+    const dsPos    = new Float32Array(DS_COUNT * 3);
+    const dsCol    = new Float32Array(DS_COUNT * 3);
+    const dsSz     = new Float32Array(DS_COUNT);
+    const dsOp     = new Float32Array(DS_COUNT);
+    const dsTmp    = new THREE.Color();
+
+    for (let i = 0; i < DS_COUNT; i++) {
+      const theta = Math.random() * 2 * Math.PI;
+      const phi   = Math.acos(2 * Math.random() - 1);
+      const r     = 350 + Math.random() * 550;
+      dsPos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+      dsPos[i * 3 + 1] = r * Math.cos(phi);
+      dsPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      const w = Math.random();
+      dsTmp.set(w > 0.78 ? '#ffeedd' : w > 0.55 ? '#ddeeff' : '#ffffff');
+      dsCol[i * 3]     = dsTmp.r;
+      dsCol[i * 3 + 1] = dsTmp.g;
+      dsCol[i * 3 + 2] = dsTmp.b;
+      dsSz[i] = 0.4 + Math.random() * 1.1;
+      dsOp[i] = 0.25 + Math.random() * 0.45;
+    }
+    dsGeo.setAttribute('position',    new THREE.BufferAttribute(dsPos, 3));
+    dsGeo.setAttribute('customColor', new THREE.BufferAttribute(dsCol, 3));
+    dsGeo.setAttribute('size',        new THREE.BufferAttribute(dsSz,  1));
+    dsGeo.setAttribute('opacity',     new THREE.BufferAttribute(dsOp,  1));
+    const dsMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        attribute float size;
+        attribute vec3  customColor;
+        attribute float opacity;
+        varying vec3  vColor;
+        varying float vOpacity;
+        void main() {
+          vColor   = customColor;
+          vOpacity = opacity;
+          vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPos.z);
+          gl_Position  = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        varying vec3  vColor;
+        varying float vOpacity;
+        void main() {
+          float dist = length(gl_PointCoord.xy - vec2(0.5));
+          if (dist > 0.5) discard;
+          float alpha = (0.5 - dist) * 2.0 * vOpacity;
+          vec3  col   = mix(vColor, vec3(1.0), max(0.0, (0.15 - dist) * 5.0));
+          gl_FragColor = vec4(col, alpha);
+        }
+      `,
+      blending:    THREE.AdditiveBlending,
+      depthTest:   false,
+      transparent: true,
+    });
+    scene.add(new THREE.Points(dsGeo, dsMat));
 
     // 2. Background Star Shader
     const bgMaterial = new THREE.ShaderMaterial({
@@ -204,15 +274,16 @@ export default function GalaxyCanvas({
       transparent: true,
     });
 
-    // 3. Background Stars
+    // 3. Background Stars (reduced on mobile for performance)
+    const effectiveCount = isMobile ? Math.min(backgroundStarsCount, 20000) : backgroundStarsCount;
     const bgGeo = new THREE.BufferGeometry();
-    const bgPos = new Float32Array(backgroundStarsCount * 3);
-    const bgCol = new Float32Array(backgroundStarsCount * 3);
-    const bgSz  = new Float32Array(backgroundStarsCount);
-    const bgOp  = new Float32Array(backgroundStarsCount);
+    const bgPos = new Float32Array(effectiveCount * 3);
+    const bgCol = new Float32Array(effectiveCount * 3);
+    const bgSz  = new Float32Array(effectiveCount);
+    const bgOp  = new Float32Array(effectiveCount);
     const c     = new THREE.Color();
 
-    for (let i = 0; i < backgroundStarsCount; i++) {
+    for (let i = 0; i < effectiveCount; i++) {
       const w = Math.random();
       const p = generateStarPlacement(i, w);
 
@@ -220,9 +291,9 @@ export default function GalaxyCanvas({
       bgPos[i * 3 + 1] = p.y * SCALE;
       bgPos[i * 3 + 2] = p.z * SCALE;
 
-      if      (p.region === 'bulge') c.set(w > 0.5 ? '#FFD2A1' : '#FF9B4E');
-      else if (p.region === 'arm')   c.set(w > 0.5 ? '#9BB0FF' : '#CAD7FF');
-      else                           c.set('#FFFFFF');
+      if      (p.region === 'bulge') c.set(w > 0.5 ? '#ffe8c0' : '#ff9940');
+      else if (p.region === 'arm')   c.set(w > 0.6 ? '#00eeff' : w > 0.3 ? '#aa44ff' : '#4488ff');
+      else                           c.set(w > 0.5 ? '#c8e8ff' : '#667acc');
 
       bgCol[i * 3]     = c.r;
       bgCol[i * 3 + 1] = c.g;
@@ -251,11 +322,11 @@ export default function GalaxyCanvas({
       dustPos[i * 3 + 2] = p.z * SCALE + (Math.random() - 0.5) * 10;
 
       const rnd = Math.random();
-      c.setHex(rnd < 0.6 ? 0x11111a : rnd < 0.8 ? 0x0a1530 : 0x2a0a15);
+      c.setHex(rnd < 0.35 ? 0x0a0535 : rnd < 0.60 ? 0x05082a : rnd < 0.80 ? 0x150535 : 0x002535);
       dustCol[i * 3]     = c.r;
       dustCol[i * 3 + 1] = c.g;
       dustCol[i * 3 + 2] = c.b;
-      dustSz[i]          = 30 + Math.random() * 50;
+      dustSz[i]          = 40 + Math.random() * 70;
     }
 
     dustGeo.setAttribute('position',    new THREE.BufferAttribute(dustPos, 3));
@@ -279,7 +350,7 @@ export default function GalaxyCanvas({
         void main() {
           float dist = length(gl_PointCoord.xy - vec2(0.5));
           if (dist > 0.5) discard;
-          float alpha = smoothstep(0.5, 0.0, dist) * 0.10;
+          float alpha = smoothstep(0.5, 0.0, dist) * 0.22;
           gl_FragColor = vec4(vColor, alpha);
         }
       `,
@@ -383,14 +454,13 @@ export default function GalaxyCanvas({
       if (dist > 0.5) discard;
       
       float pulse = 0.60 + 0.40 * sin(uTime * 2.0);
-      
-      // توهج بسيط - يزيد كلما اقتربنا من المركز
-      float glow = (0.5 - dist) * 2.0 * pulse;
-      
-      float alpha = glow * 0.8;
+      float glow  = (0.5 - dist) * 2.0 * pulse;
+      float alpha = glow * 0.85;
       if (alpha < 0.01) discard;
-      
-      gl_FragColor = vec4(vColor, alpha);
+      // Cyan tech tint — mix institution color toward #00eeff
+      vec3 cyanTint = vec3(0.0, 0.93, 1.0);
+      vec3 finalCol = mix(vColor, cyanTint, 0.45);
+      gl_FragColor  = vec4(finalCol, alpha);
     }
   `,
   blending:    THREE.AdditiveBlending,
@@ -420,105 +490,152 @@ export default function GalaxyCanvas({
       }
     }
 
-    const coreLight = new THREE.PointLight(0xffeedd, 1.5, 180 * SCALE);
+    const coreLight = new THREE.PointLight(0xd0e8ff, 18, 20 * SCALE);
     scene.add(coreLight);
+
+    // Galactic nucleus — natural white bulge, no yellow, no over-glow
+    // Outer diffuse halo
+    const haloCanvas = document.createElement('canvas');
+    haloCanvas.width = haloCanvas.height = 256;
+    const haloCx  = haloCanvas.getContext('2d')!;
+    const haloGrd = haloCx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    haloGrd.addColorStop(0,    'rgba(210, 228, 255, 0.28)');
+    haloGrd.addColorStop(0.40, 'rgba(160, 195, 255, 0.10)');
+    haloGrd.addColorStop(1,    'rgba(0,   0,   0,   0)');
+    haloCx.fillStyle = haloGrd;
+    haloCx.fillRect(0, 0, 256, 256);
+    const haloTex = new THREE.CanvasTexture(haloCanvas);
+    const haloMat = new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.5 });
+    const haloSprite = new THREE.Sprite(haloMat);
+    haloSprite.scale.set(10 * SCALE, 10 * SCALE, 1);
+    masterGroup.add(haloSprite);
+    // Tight bright nucleus centre
+    const coreCvs = document.createElement('canvas');
+    coreCvs.width = coreCvs.height = 128;
+    const coreCx  = coreCvs.getContext('2d')!;
+    const coreGrd = coreCx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    coreGrd.addColorStop(0,    'rgba(255, 255, 255, 0.90)');
+    coreGrd.addColorStop(0.12, 'rgba(200, 220, 255, 0.55)');
+    coreGrd.addColorStop(0.35, 'rgba(150, 180, 255, 0.12)');
+    coreGrd.addColorStop(1,    'rgba(0,   0,   0,   0)');
+    coreCx.fillStyle = coreGrd;
+    coreCx.fillRect(0, 0, 128, 128);
+    const coreSpriteTex = new THREE.CanvasTexture(coreCvs);
+    const coreSpriteMat = new THREE.SpriteMaterial({
+      map: coreSpriteTex, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.72,
+    });
+    const coreSprite = new THREE.Sprite(coreSpriteMat);
+    coreSprite.scale.set(3.5 * SCALE, 3.5 * SCALE, 1);
+    masterGroup.add(coreSprite);
 // 5.1 روابط الاتفاقيات (خطوط رمادية خفيفة)
-if (data.links && data.links.length > 0) {
-  console.log(`🎨 رسم ${data.links.length} رابط`);
-  
-  const linksPositions: number[] = [];
-  
-  // تجميع مواقع النجوم في Map للوصول السريع
-  const starPositions = new Map();
-  data.stars.forEach(star => {
-    const p = generateInstitutionPlacement(star.id - 1, data.stars.length); // استخدام نفس خوارزمية التموضع
-    starPositions.set(star.id, {
-      x: p.x * SCALE,
-      y: p.y * SCALE,
-      z: p.z * SCALE
-    });
-  });
-
-  // بناء خطوط الروابط
-  data.links.forEach(link => {
-    const fromPos = starPositions.get(link.from);
-    const toPos = starPositions.get(link.to);
-    
-    if (fromPos && toPos) {
-      linksPositions.push(
-        fromPos.x, fromPos.y, fromPos.z,
-        toPos.x, toPos.y, toPos.z
-      );
+    let linksMesh: THREE.LineSegments | null = null;
+    let linksMaterial: THREE.LineBasicMaterial | null = null;
+    if (data.links && data.links.length > 0) {
+      const linksPositions: number[] = [];
+      const starPositions = new Map<number, { x: number; y: number; z: number }>();
+      data.stars.forEach(star => {
+        const p = generateInstitutionPlacement(star.id - 1, data.stars.length);
+        starPositions.set(star.id, { x: p.x * SCALE, y: p.y * SCALE, z: p.z * SCALE });
+      });
+      data.links.forEach(link => {
+        const from = starPositions.get(link.from);
+        const to   = starPositions.get(link.to);
+        if (from && to) {
+          linksPositions.push(from.x, from.y, from.z, to.x, to.y, to.z);
+        }
+      });
+      if (linksPositions.length > 0) {
+        const linksGeometry = new THREE.BufferGeometry();
+        linksGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linksPositions, 3));
+        // Thin elegant silver lines — subtle interstellar connection
+        linksMaterial = new THREE.LineBasicMaterial({
+          color:       0x99bbdd,
+          opacity:     0.12,
+          transparent: true,
+          blending:    THREE.AdditiveBlending,
+          depthWrite:  false,
+        });
+        linksMesh = new THREE.LineSegments(linksGeometry, linksMaterial);
+        masterGroup.add(linksMesh);
+      }
     }
-  });
-
-  if (linksPositions.length > 0) {
-    const linksGeometry = new THREE.BufferGeometry();
-    linksGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linksPositions, 3));
-
-    // رابط رمادي خفيف
-    const linksMaterial = new THREE.LineBasicMaterial({ 
-      color: 0xaaaaaa,  // رمادي فاتح
-      opacity: 0.25,     // شفافية خفيفة
-      transparent: true
-    });
-
-    const linksMesh = new THREE.LineSegments(linksGeometry, linksMaterial);
-    masterGroup.add(linksMesh);
-    console.log('✅ تمت إضافة الروابط');
-  }
-}
     // 6. Raycasting / Interaction
     const raycaster   = new THREE.Raycaster();
-    raycaster.params.Points!.threshold = 4;
+    raycaster.params.Points!.threshold = isTouch ? 8 : 4; // wider target on touch
     const mouse        = new THREE.Vector2();
     let hoveredIdx: number | null = null;
     let pointerDownAt  = { x: 0, y: 0 };
 
-    const onPointerMove = (e: MouseEvent) => {
+    // Shared hover logic — used by mouse-move (desktop) and pointer-down (touch)
+    const updateHover = (clientX: number, clientY: number) => {
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x    =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-      mouse.y    = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-
+      mouse.x =  ((clientX - rect.left) / rect.width)  * 2 - 1;
+      mouse.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObject(coreSystem);
-
       if (hits.length > 0) {
-        document.body.style.cursor = 'pointer';
         const idx = hits[0].index!;
         if (idx !== hoveredIdx) {
           hoveredIdx = idx;
-          const s    = data.stars[idx];
+          const s = data.stars[idx];
           if (tooltipRef.current) {
             tooltipRef.current.style.display = 'block';
-            const nameEl  = document.createElement('strong');
+            const nameEl = document.createElement('strong');
             nameEl.style.color   = s.color || '#fff';
             nameEl.textContent   = s.name_ar || s.name;
-            const typeEl  = document.createElement('span');
+            const typeEl = document.createElement('span');
             typeEl.style.cssText = 'display:block;font-size:0.78rem;color:#aaa;margin-top:4px';
             typeEl.textContent   = `النوع: ${s.type}`;
             tooltipRef.current.replaceChildren(nameEl, typeEl);
           }
         }
+        return true;
+      }
+      hoveredIdx = null;
+      if (tooltipRef.current) tooltipRef.current.style.display = 'none';
+      return false;
+    };
+
+    // Position tooltip: follows cursor on desktop, pinned to bottom-center on mobile
+    const positionTooltip = (clientX: number, clientY: number) => {
+      if (!tooltipRef.current) return;
+      if (isMobile) {
+        tooltipRef.current.style.left      = '50%';
+        tooltipRef.current.style.transform = 'translateX(-50%)';
+        tooltipRef.current.style.bottom    = '110px';
+        tooltipRef.current.style.top       = 'auto';
+      } else {
+        tooltipRef.current.style.left      = `${clientX + 15}px`;
+        tooltipRef.current.style.top       = `${clientY + 15}px`;
+        tooltipRef.current.style.bottom    = 'auto';
+        tooltipRef.current.style.transform = '';
+      }
+    };
+
+    const onPointerMove = (e: MouseEvent) => {
+      // Touch devices: no hover on move — handled via tap in onPointerDown
+      if ((e as PointerEvent).pointerType === 'touch') return;
+      if (updateHover(e.clientX, e.clientY)) {
+        document.body.style.cursor = 'pointer';
+        positionTooltip(e.clientX, e.clientY);
       } else {
         document.body.style.cursor = 'default';
-        hoveredIdx = null;
-        if (tooltipRef.current) tooltipRef.current.style.display = 'none';
-      }
-
-      if (tooltipRef.current && hoveredIdx !== null) {
-        tooltipRef.current.style.left = `${e.clientX + 15}px`;
-        tooltipRef.current.style.top  = `${e.clientY + 15}px`;
       }
     };
 
     const onPointerDown = (e: MouseEvent) => {
       pointerDownAt = { x: e.clientX, y: e.clientY };
+      // On touch: show tooltip immediately on tap
+      if ((e as PointerEvent).pointerType === 'touch') {
+        updateHover(e.clientX, e.clientY);
+        positionTooltip(e.clientX, e.clientY);
+      }
     };
 
     const onPointerUp = (e: MouseEvent) => {
       const d = Math.hypot(e.clientX - pointerDownAt.x, e.clientY - pointerDownAt.y);
-      if (d < 5 && hoveredIdx !== null) onStarClickRef.current?.(data.stars[hoveredIdx]);
+      // Allow up to 10px drift (fingers are less precise than mouse)
+      if (d < 10 && hoveredIdx !== null) onStarClickRef.current?.(data.stars[hoveredIdx]);
     };
 
     window.addEventListener('pointermove', onPointerMove);
@@ -543,6 +660,10 @@ if (data.links && data.links.length > 0) {
       coreMat.uniforms.uTime.value = t;
       glowMat.uniforms.uTime.value = t;
 
+      // Subtle link shimmer
+      if (linksMesh && linksMaterial) {
+        linksMaterial.opacity = 0.08 + 0.06 * Math.sin(t * 0.9);
+      }
       const sz = coreGeo.attributes.size.array as Float32Array;
       for (let i = 0; i < N; i++) {
         const base = (data.stars[i].size || 5) * 3.5;
@@ -576,6 +697,10 @@ if (data.links && data.links.length > 0) {
       dustMat.dispose();
       coreMat.dispose();
       glowMat.dispose();
+      haloMat.dispose(); haloTex.dispose();
+      coreSpriteMat.dispose(); coreSpriteTex.dispose();
+      dsGeo.dispose(); dsMat.dispose();
+      if (linksMaterial) linksMaterial.dispose();
       renderer.dispose();
 
       if (container.contains(renderer.domElement)) {

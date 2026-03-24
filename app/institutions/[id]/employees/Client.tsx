@@ -97,7 +97,12 @@ export default function InstitutionEmployeesPage() {
       router.push(`/login?redirect=/institutions/${id}/employees`);
       return;
     }
-    const u = JSON.parse(userStr);
+    let u: any = null;
+    try { u = JSON.parse(userStr); } catch { /* corrupted */ }
+    if (!u || typeof u !== 'object') {
+      router.push(`/login?redirect=/institutions/${id}/employees`);
+      return;
+    }
     setCurrentUser(u);
 
     const manage =
@@ -122,7 +127,8 @@ export default function InstitutionEmployeesPage() {
 
       if (empRes.ok) {
         const data = await empRes.json();
-        setEmployees(data.data || data || []);
+        const raw = data.data ?? data.employees ?? data ?? [];
+        setEmployees(Array.isArray(raw) ? raw.filter(Boolean) : []);
       } else {
         const err = await empRes.json().catch(() => ({}));
         setError(err.error || 'فشل جلب بيانات الموظفين');
@@ -315,6 +321,7 @@ export default function InstitutionEmployeesPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
           {filtered.map(emp => {
+            if (!emp || emp.id == null) return null;
             const roleMeta   = ROLE_META[emp.role]   || ROLE_META.explorer;
             const statusMeta = STATUS_META[emp.status] || STATUS_META.inactive;
             return (

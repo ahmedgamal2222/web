@@ -72,47 +72,28 @@ export default function LoginPage() {
 };
 
   return (
-    <div style={{
-      minHeight: '100vh',
+    <div className="auth-wrapper" style={{
       background: `linear-gradient(135deg, ${COLORS.darkNavy} 0%, ${COLORS.teal} 100%)`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
       direction: 'rtl',
     }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 30,
-        padding: '50px',
-        width: '100%',
-        maxWidth: 450,
-        boxShadow: `0 20px 40px ${COLORS.darkNavy}60`,
-      }}>
+      <div className="auth-card" style={{ maxWidth: 460 }}>
         {/* الشعار */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(24px, 5vw, 40px)' }}>
           <div style={{
-            width: 80,
-            height: 80,
+            width: 72, height: 72,
             background: `linear-gradient(135deg, ${COLORS.lightMint}, ${COLORS.softGreen})`,
             borderRadius: '50%',
-            margin: '0 auto 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '2rem',
-            color: COLORS.darkNavy,
+            margin: '0 auto 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.8rem', color: COLORS.darkNavy,
+            boxShadow: `0 8px 24px ${COLORS.teal}40`,
           }}>
             ✦
           </div>
-          <h1 style={{
-            fontSize: '2rem',
-            color: COLORS.darkNavy,
-            margin: 0,
-          }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', color: COLORS.darkNavy, margin: 0, fontWeight: 800 }}>
             المجرة الحضارية
           </h1>
-          <p style={{ color: COLORS.teal, marginTop: 10 }}>
+          <p style={{ color: COLORS.teal, marginTop: 8, fontSize: '0.95rem' }}>
             تسجيل الدخول إلى حسابك
           </p>
         </div>
@@ -121,68 +102,46 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           {error && (
             <div style={{
-              background: '#ff505020',
-              border: '1px solid #ff5050',
-              borderRadius: 10,
-              padding: '12px',
-              marginBottom: 20,
-              color: '#ff5050',
-              textAlign: 'center',
+              background: '#ff505015', border: '1px solid #ff5050',
+              borderRadius: 10, padding: '12px', marginBottom: 20,
+              color: '#ff5050', textAlign: 'center', fontSize: '0.9rem',
             }}>
               {error}
             </div>
           )}
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{
-              display: 'block',
-              marginBottom: 8,
-              color: COLORS.darkNavy,
-              fontWeight: 600,
-            }}>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: 'block', marginBottom: 7, color: COLORS.darkNavy, fontWeight: 600, fontSize: '0.92rem' }}>
               البريد الإلكتروني
             </label>
             <input
-              type="email"
-              value={email}
+              type="email" value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: `2px solid ${COLORS.teal}40`,
-                borderRadius: 12,
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'all 0.3s',
+                width: '100%', padding: '12px 16px',
+                border: `2px solid ${COLORS.teal}40`, borderRadius: 12,
+                fontSize: '1rem', outline: 'none', transition: 'all 0.3s',
+                color: COLORS.darkNavy,
               }}
               onFocus={e => e.currentTarget.style.borderColor = COLORS.teal}
               onBlur={e => e.currentTarget.style.borderColor = `${COLORS.teal}40`}
             />
           </div>
 
-          <div style={{ marginBottom: 30 }}>
-            <label style={{
-              display: 'block',
-              marginBottom: 8,
-              color: COLORS.darkNavy,
-              fontWeight: 600,
-            }}>
+          <div style={{ marginBottom: 26 }}>
+            <label style={{ display: 'block', marginBottom: 7, color: COLORS.darkNavy, fontWeight: 600, fontSize: '0.92rem' }}>
               كلمة المرور
             </label>
             <input
-              type="password"
-              value={password}
+              type="password" value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: `2px solid ${COLORS.teal}40`,
-                borderRadius: 12,
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'all 0.3s',
+                width: '100%', padding: '12px 16px',
+                border: `2px solid ${COLORS.teal}40`, borderRadius: 12,
+                fontSize: '1rem', outline: 'none', transition: 'all 0.3s',
+                color: COLORS.darkNavy,
               }}
               onFocus={e => e.currentTarget.style.borderColor = COLORS.teal}
               onBlur={e => e.currentTarget.style.borderColor = `${COLORS.teal}40`}
@@ -190,39 +149,26 @@ export default function LoginPage() {
           </div>
 
           <button
-            type="submit"
-            disabled={loading}
+            type="submit" disabled={loading}
             style={{
-              width: '100%',
-              padding: '14px',
-              background: COLORS.teal,
-              color: 'white',
-              border: 'none',
-              borderRadius: 40,
-              fontSize: '1.1rem',
-              fontWeight: 600,
+              width: '100%', padding: '13px',
+              background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
+              color: 'white', border: 'none', borderRadius: 40,
+              fontSize: '1.05rem', fontWeight: 700,
               cursor: loading ? 'default' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              transition: 'all 0.3s',
-              marginBottom: 20,
-            }}
-            onMouseEnter={e => {
-              if (!loading) e.currentTarget.style.background = COLORS.darkNavy;
-            }}
-            onMouseLeave={e => {
-              if (!loading) e.currentTarget.style.background = COLORS.teal;
+              opacity: loading ? 0.75 : 1, transition: 'all 0.3s',
+              marginBottom: 18, boxShadow: `0 6px 20px ${COLORS.teal}50`,
             }}
           >
             {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
           </button>
 
-          <div style={{ textAlign: 'center' }}>
-            <Link href="/register" style={{
-              color: COLORS.teal,
-              textDecoration: 'none',
-              fontWeight: 600,
-            }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link href="/register" style={{ color: COLORS.teal, textDecoration: 'none', fontWeight: 600, fontSize: '0.92rem' }}>
               ليس لديك حساب؟ سجل الآن
+            </Link>
+            <Link href="/" style={{ color: '#999', textDecoration: 'none', fontSize: '0.82rem' }}>
+              ← العودة للرئيسية
             </Link>
           </div>
         </form>

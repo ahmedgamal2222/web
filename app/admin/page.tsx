@@ -152,23 +152,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="admin-page">
       {/* الهيدر */}
-      <div style={{
-        background: COLORS.darkNavy,
-        borderRadius: 20,
-        padding: '30px',
-        marginBottom: 30,
-        color: 'white',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
+      <div className="admin-header">
         <div>
           <h1 style={{ fontSize: '2rem', marginBottom: 10 }}>
             ✦ لوحة تحكم الأدمن
@@ -206,12 +192,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* بطاقات الإحصائيات */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: 20,
-        marginBottom: 30,
-      }}>
+      <div className="stat-grid">
         <StatCard
           title="المؤسسات"
           value={stats.total_institutions}
@@ -264,11 +245,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* أقسام سريعة */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-        gap: 20,
-      }}>
+      <div className="sections-grid">
         {/* طلبات المؤسسات */}
         <QuickSection
           title="طلبات إنشاء مؤسسات"

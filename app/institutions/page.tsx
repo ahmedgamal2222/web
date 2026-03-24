@@ -34,12 +34,7 @@ const TYPE_STYLES: Record<string, { label: string; color: string }> = {
 // ============================================================
 function PageHeader() {
   return (
-    <div style={{
-      background: `linear-gradient(135deg, ${COLORS.darkNavy} 0%, ${COLORS.teal} 100%)`,
-      padding: '60px 40px 100px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <div className="institutions-hero" style={{ position: 'relative', overflow: 'hidden' }}>
       {/* خلفية بنقوش */}
       <div style={{
         position: 'absolute',
@@ -84,9 +79,7 @@ function PageHeader() {
         </div>
 
         {/* عنوان الصفحة */}
-        <h1 style={{
-          fontSize: '3rem',
-          fontWeight: 800,
+        <h1 className="text-hero" style={{
           color: COLORS.lightMint,
           marginBottom: 20,
           textShadow: `3px 3px 0 ${COLORS.darkNavy}`,

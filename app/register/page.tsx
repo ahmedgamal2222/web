@@ -107,72 +107,60 @@ export default function RegisterPage() {
     }
   };
 
+  // Shared input style
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '12px 16px',
+    border: `2px solid ${COLORS.teal}40`, borderRadius: 12,
+    fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s',
+    color: COLORS.darkNavy, background: 'white',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block', marginBottom: 7,
+    color: COLORS.darkNavy, fontWeight: 600, fontSize: '0.92rem',
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
+    <div className="auth-wrapper" style={{
       background: `linear-gradient(135deg, ${COLORS.darkNavy} 0%, ${COLORS.teal} 100%)`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      direction: 'rtl',
+      direction: 'rtl', paddingTop: '30px', paddingBottom: '30px',
     }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 30,
-        padding: '50px',
-        width: '100%',
-        maxWidth: 600,
-        boxShadow: `0 20px 40px ${COLORS.darkNavy}60`,
-      }}>
+      <div className="auth-card" style={{ maxWidth: 560 }}>
         {/* الشعار */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(20px, 4vw, 36px)' }}>
           <div style={{
-            width: 80,
-            height: 80,
+            width: 68, height: 68,
             background: `linear-gradient(135deg, ${COLORS.lightMint}, ${COLORS.softGreen})`,
-            borderRadius: '50%',
-            margin: '0 auto 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '2rem',
-            color: COLORS.darkNavy,
+            borderRadius: '50%', margin: '0 auto 14px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.7rem', color: COLORS.darkNavy,
+            boxShadow: `0 8px 24px ${COLORS.teal}40`,
           }}>
             ✦
           </div>
-          <h1 style={{
-            fontSize: '2rem',
-            color: COLORS.darkNavy,
-            margin: 0,
-          }}>
+          <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', color: COLORS.darkNavy, margin: 0, fontWeight: 800 }}>
             إنشاء حساب جديد
           </h1>
         </div>
 
         {/* مؤشر الخطوات */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 10,
-          marginBottom: 30,
-        }}>
-          {[1, 2].map((s) => (
-            <div
-              key={s}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: step >= s ? COLORS.teal : `${COLORS.teal}20`,
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginBottom: 28 }}>
+          {[1, 2].map((s, idx) => (
+            <div key={s} style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: '50%',
+                background: step >= s ? `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})` : `${COLORS.teal}18`,
                 color: step >= s ? 'white' : COLORS.teal,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 600,
-              }}
-            >
-              {s}
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: '0.95rem',
+                boxShadow: step >= s ? `0 4px 12px ${COLORS.teal}50` : 'none',
+                transition: 'all 0.3s',
+              }}>
+                {s}
+              </div>
+              {idx < 1 && (
+                <div style={{ width: 48, height: 2, background: step >= 2 ? COLORS.teal : `${COLORS.teal}20` }} />
+              )}
             </div>
           ))}
         </div>
@@ -180,332 +168,106 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           {error && (
             <div style={{
-              background: '#ff505020',
-              border: '1px solid #ff5050',
-              borderRadius: 10,
-              padding: '12px',
-              marginBottom: 20,
-              color: '#ff5050',
-              textAlign: 'center',
+              background: '#ff505015', border: '1px solid #ff5050',
+              borderRadius: 10, padding: '12px', marginBottom: 20,
+              color: '#ff5050', textAlign: 'center', fontSize: '0.9rem',
             }}>
               {error}
             </div>
           )}
 
-          {/* الخطوة 1: المعلومات الأساسية */}
+          {/* الخطوة 1 */}
           {step === 1 && (
-            <div>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
-                }}>
-                  الاسم (بالعربية) *
-                </label>
-                <input
-                  type="text"
-                  name="name_ar"
-                  value={formData.name_ar}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>الاسم بالعربية *</label>
+                <input type="text" name="name_ar" value={formData.name_ar} onChange={handleChange} required style={inputStyle} />
               </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
-                }}>
-                  الاسم (بالإنجليزية) *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
+              <div>
+                <label style={labelStyle}>الاسم بالإنجليزية *</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required style={inputStyle} />
               </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
-                }}>
-                  البريد الإلكتروني *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
+              <div>
+                <label style={labelStyle}>البريد الإلكتروني *</label>
+                <input type="email" name="email" value={formData.email} onChange={handleChange} required style={inputStyle} />
               </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
-                }}>
-                  رقم الهاتف
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
+              <div>
+                <label style={labelStyle}>رقم الهاتف</label>
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} style={inputStyle} />
               </div>
-
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  background: COLORS.teal,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 40,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = COLORS.darkNavy}
-                onMouseLeave={e => e.currentTarget.style.background = COLORS.teal}
-              >
-                التالي
+              <button type="button" onClick={() => setStep(2)} style={{
+                width: '100%', padding: '13px',
+                background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
+                color: 'white', border: 'none', borderRadius: 40,
+                fontSize: '1.05rem', fontWeight: 700, cursor: 'pointer',
+                boxShadow: `0 6px 20px ${COLORS.teal}50`, marginTop: 6,
+              }}>
+                التالي ←
               </button>
             </div>
           )}
 
-          {/* الخطوة 2: كلمة المرور ونوع الحساب */}
+          {/* الخطوة 2 */}
           {step === 2 && (
-            <div>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
-                }}>
-                  نوع الحساب *
-                </label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                    background: 'white',
-                  }}
-                >
-                  <option value="explorer">مستكشف - متصفح عادي</option>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>نوع الحساب *</label>
+                <select name="role" value={formData.role} onChange={handleChange} required style={inputStyle}>
+                  <option value="explorer">مستكشف — متصفح عادي</option>
                   <option value="employee">موظف في مؤسسة</option>
                   <option value="institution_admin">مسؤول مؤسسة</option>
                 </select>
               </div>
 
               {(formData.role === 'employee' || formData.role === 'institution_admin') && (
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: 8,
-                    color: COLORS.darkNavy,
-                    fontWeight: 600,
-                  }}>
-                    اختر المؤسسة *
-                  </label>
-                  <select
-                    name="institution_id"
-                    value={formData.institution_id}
-                    onChange={handleChange}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      border: `2px solid ${COLORS.teal}40`,
-                      borderRadius: 12,
-                      fontSize: '1rem',
-                      outline: 'none',
-                      background: 'white',
-                    }}
-                  >
+                <div>
+                  <label style={labelStyle}>المؤسسة *</label>
+                  <select name="institution_id" value={formData.institution_id} onChange={handleChange} required style={inputStyle}>
                     <option value="">-- اختر مؤسسة --</option>
                     {institutions.map(inst => (
-                      <option key={inst.id} value={inst.id}>
-                        {inst.name_ar || inst.name}
-                      </option>
+                      <option key={inst.id} value={inst.id}>{inst.name_ar || inst.name}</option>
                     ))}
                   </select>
                 </div>
               )}
 
-              <div style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
-                }}>
-                  كلمة المرور *
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={8}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
+              <div>
+                <label style={labelStyle}>كلمة المرور *</label>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} required minLength={8} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>تأكيد كلمة المرور *</label>
+                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required style={inputStyle} />
               </div>
 
-              <div style={{ marginBottom: 30 }}>
-                <label style={{
-                  display: 'block',
-                  marginBottom: 8,
-                  color: COLORS.darkNavy,
-                  fontWeight: 600,
+              <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                <button type="button" onClick={() => setStep(1)} style={{
+                  flex: 1, padding: '13px', background: 'transparent',
+                  color: COLORS.teal, border: `2px solid ${COLORS.teal}`,
+                  borderRadius: 40, fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
                 }}>
-                  تأكيد كلمة المرور *
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: `2px solid ${COLORS.teal}40`,
-                    borderRadius: 12,
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  style={{
-                    flex: 1,
-                    padding: '14px',
-                    background: 'transparent',
-                    color: COLORS.teal,
-                    border: `2px solid ${COLORS.teal}`,
-                    borderRadius: 40,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = COLORS.teal;
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = COLORS.teal;
-                  }}
-                >
-                  السابق
+                  ← السابق
                 </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    flex: 2,
-                    padding: '14px',
-                    background: COLORS.teal,
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 40,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    cursor: loading ? 'default' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    transition: 'all 0.3s',
-                  }}
-                  onMouseEnter={e => {
-                    if (!loading) e.currentTarget.style.background = COLORS.darkNavy;
-                  }}
-                  onMouseLeave={e => {
-                    if (!loading) e.currentTarget.style.background = COLORS.teal;
-                  }}
-                >
-                  {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
+                <button type="submit" disabled={loading} style={{
+                  flex: 2, padding: '13px',
+                  background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
+                  color: 'white', border: 'none', borderRadius: 40,
+                  fontSize: '1rem', fontWeight: 700,
+                  cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.75 : 1,
+                  boxShadow: `0 6px 20px ${COLORS.teal}50`,
+                }}>
+                  {loading ? 'جاري الإنشاء...' : 'إنشاء حساب ✓'}
                 </button>
               </div>
             </div>
           )}
 
-          <div style={{ textAlign: 'center', marginTop: 20 }}>
-            <Link href="/login" style={{
-              color: COLORS.teal,
-              textDecoration: 'none',
-              fontWeight: 600,
-            }}>
-              لديك حساب بالفعل؟ سجل دخولك
+          <div style={{ textAlign: 'center', marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Link href="/login" style={{ color: COLORS.teal, textDecoration: 'none', fontWeight: 600, fontSize: '0.92rem' }}>
+              لديك حساب؟ سجل دخولك
+            </Link>
+            <Link href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: '0.82rem' }}>
+              ← العودة للرئيسية
             </Link>
           </div>
         </form>

@@ -197,19 +197,16 @@ export default function InstitutionRequestPage() {
     <div style={{
       minHeight: '100vh',
       background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      padding: '40px 20px',
+      padding: 'clamp(16px, 4vw, 40px)',
       direction: 'rtl',
     }}>
-      <div style={{
-        maxWidth: 800,
-        margin: '0 auto',
-      }}>
+      <div style={{ maxWidth: 800, margin: '0 auto' }}>
         {/* الهيدر */}
         <div style={{
           background: COLORS.darkNavy,
-          borderRadius: 30,
-          padding: '40px',
-          marginBottom: 30,
+          borderRadius: 'clamp(16px, 2.5vw, 28px)',
+          padding: 'clamp(20px, 4vw, 40px)',
+          marginBottom: 24,
           color: 'white',
           position: 'relative',
           overflow: 'hidden',
@@ -235,8 +232,8 @@ export default function InstitutionRequestPage() {
         {/* النموذج */}
         <form onSubmit={handleSubmit} style={{
           background: 'white',
-          borderRadius: 30,
-          padding: '40px',
+          borderRadius: 'clamp(16px, 2.5vw, 28px)',
+          padding: 'clamp(20px, 4vw, 40px)',
           boxShadow: `0 10px 30px ${COLORS.darkNavy}20`,
         }}>
           {error && (

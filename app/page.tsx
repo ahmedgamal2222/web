@@ -48,7 +48,7 @@ const TYPE_COLORS: Record<string, string> = {
 // ============================================================
 function GalaxyLogo() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', userSelect: 'none' }}>
+    <div className="galaxy-logo" style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', userSelect: 'none' }}>
       <div style={{ position: 'relative', width: 54, height: 54, flexShrink: 0 }}>
         <svg width="54" height="54" viewBox="0 0 54 54" fill="none">
           <defs>
@@ -87,14 +87,14 @@ function GalaxyLogo() {
         </svg>
       </div>
       <div>
-        <div style={{
+        <div className="logo-title" style={{
           fontSize: '1.55rem', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.03em',
           background: 'linear-gradient(130deg, #EDF7BD 0%, #85C79A 48%, #4E8D9C 100%)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
           المجرة الحضارية
         </div>
-        <div style={{
+        <div className="logo-subtitle" style={{
           fontSize: '0.58rem', color: '#4E8D9C', letterSpacing: '0.3em',
           marginTop: 5, fontWeight: 700, textTransform: 'uppercase' as const, opacity: 0.9,
         }}>
@@ -140,7 +140,7 @@ function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
         }}>
           {(user.name_ar || user.name).charAt(0)}
         </div>
-        <span style={{ color: '#fff', fontSize: '0.9rem' }}>
+        <span className="user-name" style={{ color: '#fff', fontSize: '0.9rem' }}>
           {user.name_ar || user.name}
         </span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: COLORS.teal }}>
@@ -149,7 +149,7 @@ function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
       </button>
 
       {isOpen && (
-        <div style={{
+        <div className="user-dropdown" style={{
           position: 'absolute',
           top: '100%',
           left: 0,
@@ -253,7 +253,7 @@ function TopBar({
   onLogout: () => void;
 }) {
   return (
-    <header style={{
+    <header className="topbar" style={{
       position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 32px',
@@ -266,7 +266,7 @@ function TopBar({
     }}>
       <GalaxyLogo />
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
         {/* Institutions toggle */}
         <button
@@ -293,7 +293,7 @@ function TopBar({
             <circle cx="12" cy="12" r="10" />
             <circle cx="12" cy="12" r="3" />
           </svg>
-          <span>المؤسسات</span>
+          <span className="inst-btn-label">المؤسسات</span>
           <span style={{
             background: listOpen ? 'rgba(133,199,154,0.25)' : 'rgba(255,255,255,0.08)',
             color: listOpen ? '#85C79A' : '#aaa',
@@ -398,7 +398,7 @@ function QuickActions({ user }: { user: any }) {
   }
 
   return (
-    <div style={{
+    <div className="quick-actions" style={{
       position: 'absolute',
       top: 88,
       left: 28,
@@ -411,6 +411,7 @@ function QuickActions({ user }: { user: any }) {
         <Link
           key={index}
           href={action.href}
+          className="quick-action-item"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -444,8 +445,8 @@ function QuickActions({ user }: { user: any }) {
             e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)`;
           }}
         >
-          <span style={{ fontSize: '1rem', width: 18, textAlign: 'center', flexShrink: 0 }}>{action.icon}</span>
-          <span>{action.label}</span>
+          <span className="quick-action-icon" style={{ fontSize: '1rem', width: 18, textAlign: 'center', flexShrink: 0 }}>{action.icon}</span>
+          <span className="quick-action-label">{action.label}</span>
         </Link>
       ))}
     </div>
@@ -466,12 +467,12 @@ function StatsBar({ data }: { data: GalaxyData }) {
   ];
   
   return (
-    <div style={{
+    <div className="stats-bar" style={{
       position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
       zIndex: 40, display: 'flex', gap: 10, alignItems: 'stretch',
     }}>
       {stats.map((s) => (
-        <div key={s.label} style={{
+        <div key={s.label} className="stat-card" style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: '12px 26px',
           background: 'rgba(6, 7, 22, 0.88)',
@@ -484,14 +485,14 @@ function StatsBar({ data }: { data: GalaxyData }) {
           transition: 'all 0.3s ease',
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 5 }}>
-            <span style={{ fontSize: '1rem', opacity: 0.8 }}>{s.icon}</span>
-            <span style={{
+            <span className="stat-icon" style={{ fontSize: '1rem', opacity: 0.8 }}>{s.icon}</span>
+            <span className="stat-value" style={{
               fontSize: '1.55rem', fontWeight: 800, color: s.color,
               textShadow: `0 0 14px ${s.color}70`,
               lineHeight: 1, fontVariantNumeric: 'tabular-nums',
             }}>{s.value}</span>
           </div>
-          <div style={{
+          <div className="stat-label" style={{
             fontSize: '0.62rem', color: '#6a7f90',
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
           }}>{s.label}</div>
@@ -809,7 +810,7 @@ function InstitutionsPanel({
         />
       )}
 
-      <aside style={{
+      <aside className="inst-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 46,
         width: 480,
         transform: open ? 'translateX(0)' : 'translateX(100%)',
@@ -1388,6 +1389,78 @@ export default function HomePage() {
       background: '#05041a',
       fontFamily: "'Segoe UI', 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif",
     }}>
+      <style>{`
+        /* ===== RESPONSIVE: GALAXY HOME PAGE ===== */
+
+        /* --- Logo --- */
+        @media (max-width: 480px) {
+          .galaxy-logo { gap: 8px !important; }
+          .galaxy-logo svg { width: 36px !important; height: 36px !important; }
+          .logo-title { font-size: 1.05rem !important; }
+          .logo-subtitle { display: none !important; }
+        }
+
+        /* --- TopBar --- */
+        @media (max-width: 640px) {
+          .topbar { padding: 0 12px !important; height: 60px !important; }
+          .topbar-right { gap: 5px !important; }
+          .inst-btn-label { display: none !important; }
+          .user-name { display: none !important; }
+        }
+
+        /* --- Quick Actions: icon-only circular dock on mobile --- */
+        @media (max-width: 768px) {
+          .quick-actions {
+            top: auto !important;
+            bottom: 88px !important;
+            left: 10px !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+          }
+          .quick-action-item {
+            padding: 11px !important;
+            border-radius: 50% !important;
+            width: 42px !important;
+            height: 42px !important;
+            justify-content: center !important;
+            gap: 0 !important;
+            box-sizing: border-box !important;
+          }
+          .quick-action-label { display: none !important; }
+          .quick-action-icon { width: auto !important; font-size: 1.1rem !important; }
+        }
+
+        /* --- Stats Bar: compact + horizontal scroll on mobile --- */
+        @media (max-width: 640px) {
+          .stats-bar {
+            bottom: 10px !important;
+            gap: 5px !important;
+            max-width: calc(100vw - 70px) !important;
+            overflow-x: auto !important;
+            scrollbar-width: none !important;
+          }
+          .stats-bar::-webkit-scrollbar { display: none; }
+          .stat-card {
+            padding: 8px 12px !important;
+            min-width: 64px !important;
+            border-radius: 12px !important;
+            flex-shrink: 0 !important;
+          }
+          .stat-value { font-size: 1.1rem !important; }
+          .stat-icon { font-size: 0.8rem !important; }
+          .stat-label { display: none !important; }
+        }
+
+        /* --- Institutions Panel: full-width on mobile --- */
+        @media (max-width: 768px) {
+          .inst-panel { width: 100vw !important; }
+        }
+
+        /* --- User menu dropdown: align right on mobile --- */
+        @media (max-width: 480px) {
+          .user-dropdown { left: auto !important; right: 0 !important; }
+        }
+      `}</style>
       {galaxyData && (
         <GalaxyCanvas
           data={galaxyData}
