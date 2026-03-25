@@ -485,21 +485,6 @@ export default function ScreenPage() {
           0%   { transform: translateX(100vw); }
           100% { transform: translateX(-100%); }
         }
-        /* ربع الإعلانات */
-        .ad-content {
-          width: 100%; height: 100%;
-          display: flex; flex-direction: column;
-          justify-content: center; align-items: center;
-          color: white; text-align: center;
-          padding: 20px; box-sizing: border-box;
-          direction: rtl;
-        }
-        .ad-image {
-          max-width: 80%; max-height: 55%;
-          object-fit: contain; margin-bottom: 20px;
-          border-radius: 8px;
-        }
-        .ad-title { font-size: 1.4rem; color: #FFD700; margin-bottom: 10px; }
         /* الشريط العلوي */
         .institution-info {
           position: fixed;
@@ -571,65 +556,124 @@ export default function ScreenPage() {
           height: 100%; color: rgba(255,255,255,0.5);
           font-size: 0.95rem; gap: 8px;
         }
-        /* ربع الإعلانات - قائمة */
-        .ads-list {
-          height: calc(100% - 50px);
-          overflow-y: auto;
-          padding: 48px 10px 10px 10px;
+        /* ربع الإعلانات — عرض واحد متكامل */
+        .ad-full {
+          position: relative;
+          width: 100%; height: 100%;
+          overflow: hidden;
+          animation: adFadeIn 0.8s ease;
+        }
+        @keyframes adFadeIn {
+          from { opacity: 0; transform: scale(1.03); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        .ad-bg-image {
+          position: absolute; inset: 0;
+          background-size: cover;
+          background-position: center;
+          transform: scale(1.05);
+          animation: adZoom 12s ease-in-out forwards;
+        }
+        @keyframes adZoom {
+          from { transform: scale(1.05); }
+          to   { transform: scale(1); }
+        }
+        .ad-bg-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(0,0,0,0.92) 0%,
+            rgba(0,0,0,0.45) 50%,
+            rgba(0,0,0,0.15) 100%
+          );
+        }
+        .ad-full-content {
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          padding: 28px 24px 24px;
+          direction: rtl;
           display: flex;
           flex-direction: column;
           gap: 8px;
-          direction: rtl;
         }
-        .ads-list::-webkit-scrollbar { width: 4px; }
-        .ads-list::-webkit-scrollbar-thumb { background: #FFD70040; border-radius: 4px; }
-        .ad-list-item {
+        .ad-no-image {
+          position: static;
+          width: 100%; height: 100%;
+          box-sizing: border-box;
           display: flex;
-          gap: 10px;
-          align-items: flex-start;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,215,0,0.15);
-          border-radius: 10px;
-          padding: 10px;
-          transition: border-color 0.3s;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 32px 24px;
+          background: radial-gradient(ellipse at center, #1a1a3a 0%, #0a0a1a 100%);
+          gap: 12px;
         }
-        .ad-list-item.ad-active {
-          border-color: rgba(255,215,0,0.6);
-          background: rgba(255,215,0,0.06);
+        .ad-has-image { /* content over image */ }
+        .ad-badge-pill {
+          display: inline-flex;
+          align-self: flex-start;
+          background: rgba(255,215,0,0.9);
+          color: #0a0a1a;
+          padding: 4px 14px;
+          border-radius: 30px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
         }
-        .ad-list-image {
-          width: 70px;
-          height: 55px;
-          object-fit: cover;
-          border-radius: 6px;
-          flex-shrink: 0;
-        }
-        .ad-list-body {
-          flex: 1;
-          min-width: 0;
-          color: white;
-        }
-        .ad-list-title {
-          font-size: 0.88rem;
-          font-weight: bold;
+        .ad-no-image .ad-badge-pill { align-self: center; }
+        .ad-star-deco {
+          font-size: 3rem;
           color: #FFD700;
-          margin-bottom: 3px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          animation: adStarPulse 3s ease-in-out infinite;
         }
-        .ad-list-content {
-          font-size: 0.75rem;
-          opacity: 0.7;
+        @keyframes adStarPulse {
+          0%,100% { opacity: 0.8; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+        .ad-full-title {
+          margin: 0;
+          font-size: 1.35rem;
+          font-weight: 800;
+          color: white;
+          line-height: 1.35;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+        }
+        .ad-no-image .ad-full-title {
+          color: #FFD700;
+          text-shadow: 0 0 20px rgba(255,215,0,0.4);
+        }
+        .ad-full-body {
+          margin: 0;
+          font-size: 0.88rem;
+          color: rgba(255,255,255,0.82);
+          line-height: 1.55;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.6);
           display: -webkit-box;
-          -webkit-line-clamp: 2;
+          -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        .ad-list-source {
-          font-size: 0.68rem;
-          opacity: 0.45;
+        .ad-no-image .ad-full-body { color: rgba(255,255,255,0.7); text-shadow: none; }
+        .ad-full-source {
+          font-size: 0.72rem;
+          color: rgba(255,215,0,0.7);
           margin-top: 4px;
+          border-top: 1px solid rgba(255,215,0,0.2);
+          padding-top: 8px;
+        }
+        .ad-full-placeholder {
+          width: 100%; height: 100%;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          background: radial-gradient(ellipse at center, #1a1a3a 0%, #0a0a1a 100%);
+          gap: 12px;
+          direction: rtl;
+          color: white;
+        }
+        .ad-placeholder-star {
+          font-size: 3.5rem;
+          animation: adStarPulse 3s ease-in-out infinite;
         }
         /* عناصر الخبر في التدفق المدمج */
         .feed-item {
@@ -809,35 +853,53 @@ export default function ScreenPage() {
         )}
       </div>
 
-      {/* الربع 4: إعلانات (جميع الإعلانات) */}
+      {/* الربع 4: إعلانات — عرض إعلان واحد في كل مرة */}
       <div className="quadrant">
-        <div className="q-header">✦ إعلانات ✦</div>
-        <div className="ads-list">
-          {allAds.length > 0 ? allAds.map((ad: any, i: number) => (
-            <div key={i} className={`ad-list-item${currentAd?.id === ad.id ? ' ad-active' : ''}`}>
-              {ad.image_url && (
-                <img src={ad.image_url} alt={ad.title} className="ad-list-image" />
-              )}
-              <div className="ad-list-body">
-                <div className="ad-list-title">{ad.title}</div>
-                {ad.content && (
-                  <div className="ad-list-content">{ad.content}</div>
+        {currentAd ? (
+          <div key={currentAd.id} className="ad-full">
+            {currentAd.image_url ? (
+              <>
+                <div
+                  className="ad-bg-image"
+                  style={{ backgroundImage: `url(${currentAd.image_url})` }}
+                />
+                <div className="ad-bg-overlay" />
+                <div className="ad-full-content ad-has-image">
+                  <div className="ad-badge-pill">📢 إعلان</div>
+                  <h2 className="ad-full-title">{currentAd.title}</h2>
+                  {currentAd.content && (
+                    <p className="ad-full-body">{currentAd.content}</p>
+                  )}
+                  {(currentAd.institution_name_ar || currentAd.institution_name) && (
+                    <div className="ad-full-source">
+                      🏛️ {currentAd.institution_name_ar || currentAd.institution_name}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="ad-full-content ad-no-image">
+                <div className="ad-badge-pill">📢 إعلان</div>
+                <div className="ad-star-deco">✦</div>
+                <h2 className="ad-full-title">{currentAd.title}</h2>
+                {currentAd.content && (
+                  <p className="ad-full-body">{currentAd.content}</p>
                 )}
-                {ad.institution_name_ar || ad.institution_name ? (
-                  <div className="ad-list-source">
-                    {ad.institution_name_ar || ad.institution_name}
+                {(currentAd.institution_name_ar || currentAd.institution_name) && (
+                  <div className="ad-full-source">
+                    🏛️ {currentAd.institution_name_ar || currentAd.institution_name}
                   </div>
-                ) : null}
+                )}
               </div>
-            </div>
-          )) : (
-            <div className="ad-content">
-              <div style={{ fontSize: '3rem', marginBottom: 16 }}>✨</div>
-              <p style={{ margin: 0, fontSize: '1.2rem' }}>المجرة الحضارية</p>
-              <p style={{ margin: '8px 0 0', fontSize: '0.9rem', opacity: 0.6 }}>"معاً نزداد توهجاً"</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="ad-full-placeholder">
+            <div className="ad-placeholder-star">✨</div>
+            <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700, color: '#FFD700' }}>المجرة الحضارية</p>
+            <p style={{ margin: '8px 0 0', fontSize: '0.9rem', opacity: 0.5 }}>"معاً نزداد توهجاً"</p>
+          </div>
+        )}
       </div>
     </div>
   );

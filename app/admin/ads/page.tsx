@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { uploadImage } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
@@ -52,6 +53,29 @@ export default function AdminAdsPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'expired' | 'upcoming'>('all');
   const [search, setSearch] = useState('');
   const [institutions, setInstitutions] = useState<any[]>([]);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageProgress, setImageProgress] = useState(0);
+  const [imagePreview, setImagePreview] = useState('');
+
+  const handleImageFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) { setErr('يرجى اختيار ملف صورة صالح'); return; }
+    if (file.size > 10 * 1024 * 1024) { setErr('حجم الصورة يجب أن يكون أقل من 10 ميجا'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    setImageUploading(true);
+    setImageProgress(0);
+    setErr('');
+    try {
+      const result = await uploadImage(file, setImageProgress);
+      setForm(prev => ({ ...prev, image_url: result.url }));
+    } catch (e: any) {
+      setErr('فشل رفع الصورة: ' + e.message);
+      setImagePreview('');
+    } finally {
+      setImageUploading(false);
+    }
+  };
 
   const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
   const authH = { 'X-Session-ID': sid };
@@ -98,6 +122,7 @@ export default function AdminAdsPage() {
       if (!data.success) throw new Error(data.message || 'فشل إنشاء الإعلان');
       setShowCreate(false);
       setForm(emptyForm);
+      setImagePreview('');
       setSuccessMsg('✓ تم إنشاء الإعلان بنجاح');
       setTimeout(() => setSuccessMsg(''), 3000);
       loadAll();
@@ -293,8 +318,37 @@ export default function AdminAdsPage() {
                 <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={3} placeholder="تفاصيل الإعلان..." style={{ ...fStyle, resize: 'vertical' }} />
               </F>
 
-              <F label="رابط الصورة">
-                <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." style={fStyle} />
+              <F label="صورة الإعلان">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {(imagePreview || form.image_url) && (
+                    <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 160 }}>
+                      <img src={imagePreview || form.image_url} alt="معاينة" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button type="button" onClick={() => { setImagePreview(''); setForm(f => ({ ...f, image_url: '' })); }}
+                        style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: 20, width: 26, height: 26, cursor: 'pointer', fontSize: '0.8rem' }}>✕</button>
+                    </div>
+                  )}
+                  {imageUploading && (
+                    <div style={{ background: `${C.teal}10`, borderRadius: 8, padding: '8px 12px', border: `1px solid ${C.teal}30` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: C.teal, marginBottom: 6 }}>
+                        <span>جاري رفع الصورة...</span><span>{imageProgress}%</span>
+                      </div>
+                      <div style={{ height: 4, background: `${C.teal}20`, borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${imageProgress}%`, background: C.teal, borderRadius: 4, transition: 'width 0.3s' }} />
+                      </div>
+                    </div>
+                  )}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: `${C.teal}08`, border: `1.5px dashed ${C.teal}60`, borderRadius: 10, cursor: 'pointer', fontSize: '0.88rem', color: C.teal }}>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleImageFile(e.target.files[0])} />
+                    <span style={{ fontSize: '1.2rem' }}>🖼️</span>
+                    <span>{imageUploading ? 'جاري الرفع...' : 'اختر صورة من الجهاز'}</span>
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 1, background: `${C.teal}20` }}/>
+                    <span style={{ fontSize: '0.72rem', color: '#999' }}>أو</span>
+                    <div style={{ flex: 1, height: 1, background: `${C.teal}20` }}/>
+                  </div>
+                  <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="الصق رابط صورة https://..." style={fStyle} />
+                </div>
               </F>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
