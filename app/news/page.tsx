@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { uploadImage } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
@@ -83,10 +84,17 @@ export default function NewsPage() {
     search: '',
   });
   const [user, setUser] = useState<any>(null);
+  const [coins, setCoins] = useState(0);
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adSuccess, setAdSuccess] = useState(false);
 
   useEffect(() => {
     const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-    if (userStr) setUser(JSON.parse(userStr));
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      setUser(u);
+      setCoins(u.coins ?? 500);
+    }
   }, []);
 
   useEffect(() => {
@@ -118,6 +126,20 @@ export default function NewsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAdSuccess = () => {
+    setShowAdModal(false);
+    setAdSuccess(true);
+    setCoins(c => c - 20);
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      u.coins = (u.coins ?? 500) - 20;
+      localStorage.setItem('user', JSON.stringify(u));
+    }
+    setTimeout(() => setAdSuccess(false), 5000);
+    fetchData();
   };
 
   const formatDate = (dateString: string) => {
@@ -164,7 +186,7 @@ export default function NewsPage() {
           { key: 'events', label: '📅 الفعاليات' },
           { key: 'agreements', label: '🔗 الاتفاقيات' },
           { key: 'ads', label: '📢 الإعلانات' },
-        ] as const).map(tab => (
+        ] as const).filter(tab => !(tab.key === 'ads' && user?.role === 'admin')).map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
@@ -317,11 +339,74 @@ export default function NewsPage() {
 
           {/* الإعلانات */}
           {activeTab === 'ads' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-              {allAds.length === 0 ? <EmptyState label="إعلانات" /> : allAds.map(ad => (
-                <AdCard key={ad.id} ad={ad} />
-              ))}
-            </div>
+            <>
+              {/* نجاح إنشاء الإعلان */}
+              {adSuccess && (
+                <div style={{
+                  background: `${COLORS.softGreen}20`,
+                  border: `1px solid ${COLORS.softGreen}`,
+                  borderRadius: 16,
+                  padding: '14px 20px',
+                  marginBottom: 20,
+                  color: COLORS.darkNavy,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  ✅ تم نشر الإعلان بنجاح! سيظهر على الشاشات الحضارية قريباً.
+                </div>
+              )}
+
+              {/* زر إنشاء إعلان — لأصحاب المؤسسات فقط */}
+              {user?.institution_id && user?.role !== 'admin' && (
+                <div style={{ marginBottom: 20 }}>
+                  <button
+                    onClick={() => setShowAdModal(true)}
+                    style={{
+                      background: COLORS.teal,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 40,
+                      padding: '13px 28px',
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      boxShadow: `0 6px 20px ${COLORS.teal}40`,
+                    }}
+                  >
+                    📢 إنشاء إعلان جديد
+                    <span style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      borderRadius: 30,
+                      padding: '3px 12px',
+                      fontSize: '0.85rem',
+                    }}>
+                      {coins} كوين
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+                {allAds.length === 0 ? <EmptyState label="إعلانات" /> : allAds.map(ad => (
+                  <AdCard key={ad.id} ad={ad} />
+                ))}
+              </div>
+
+              {/* مودال إنشاء إعلان */}
+              {showAdModal && user?.institution_id && (
+                <AdCreateModal
+                  institutionId={user.institution_id}
+                  coins={coins}
+                  onClose={() => setShowAdModal(false)}
+                  onSuccess={handleAdSuccess}
+                />
+              )}
+            </>
           )}
         </>
       )}
@@ -689,6 +774,246 @@ function AdCard({ ad }: { ad: AdItem }) {
           <div style={{ fontSize: '0.73rem', color: COLORS.teal, background: `${COLORS.teal}10`, padding: '3px 10px', borderRadius: 20, display: 'inline-block' }}>
             {ad.target_type === 'country' ? `🏳️ ${ad.target_value}` : `🏙️ ${ad.target_value}`}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Ad Create Modal
+// ============================================================
+const AD_COST = 20;
+
+function AdCreateModal({
+  institutionId,
+  coins,
+  onClose,
+  onSuccess,
+}: {
+  institutionId: number;
+  coins: number;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [form, setForm] = useState({
+    title: '',
+    content: '',
+    image_url: '',
+    start_date: '',
+    end_date: '',
+    target_type: 'all' as 'all' | 'country' | 'city',
+    target_value: '',
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState('');
+
+  const API_BASE_MODAL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const canAfford = coins >= AD_COST;
+
+  const set = (f: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm(p => ({ ...p, [f]: e.target.value }));
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!canAfford) return;
+    if (!form.title || !form.start_date || !form.end_date) { setErr('يرجى ملء الحقول المطلوبة'); return; }
+    setSubmitting(true); setErr('');
+    try {
+      let imageUrl = form.image_url;
+      if (imageFile) {
+        setUploadProgress(1);
+        const uploaded = await uploadImage(imageFile, (p: number) => setUploadProgress(p));
+        imageUrl = uploaded.url;
+        setUploadProgress(100);
+      }
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE_MODAL}/api/ads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ ...form, image_url: imageUrl, institution_id: institutionId }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'فشل إنشاء الإعلان');
+      onSuccess();
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSubmitting(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const iSt: React.CSSProperties = {
+    width: '100%', padding: '10px 13px',
+    background: 'white',
+    border: `1px solid ${COLORS.teal}40`,
+    borderRadius: 10, color: COLORS.darkNavy, fontSize: '0.9rem',
+    outline: 'none', boxSizing: 'border-box',
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 1000, padding: 20, direction: 'rtl',
+    }}
+    onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{
+        background: 'white', borderRadius: 24, padding: 32,
+        width: '100%', maxWidth: 540,
+        boxShadow: `0 20px 60px ${COLORS.darkNavy}30`,
+        maxHeight: '90vh', overflowY: 'auto',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h2 style={{ margin: 0, fontSize: '1.3rem', color: COLORS.darkNavy }}>📢 إنشاء إعلان جديد</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#888' }}>✕</button>
+        </div>
+
+        {/* Coins balance */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: `${COLORS.teal}10`, borderRadius: 12, padding: '12px 16px', marginBottom: 20,
+        }}>
+          <span style={{ color: '#666', fontSize: '0.9rem' }}>رصيدك الحالي</span>
+          <span style={{ color: coins >= AD_COST ? COLORS.teal : '#e53935', fontWeight: 700, fontSize: '1rem' }}>
+            {coins} كوين
+          </span>
+        </div>
+
+        {!canAfford ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
+            <p style={{ color: '#e53935', marginBottom: 20 }}>
+              رصيدك غير كافٍ ({coins} / {AD_COST} كوين مطلوب)
+            </p>
+            <a
+              href="https://paypal.me/hadmaj?amount=30"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block', background: '#0070ba', color: 'white',
+                padding: '12px 28px', borderRadius: 30, textDecoration: 'none',
+                fontWeight: 700, fontSize: '1rem',
+              }}
+            >
+              💳 تجديد الاشتراك — 30$ عبر PayPal
+            </a>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {err && (
+              <div style={{ background: '#fdecea', border: '1px solid #e53935', borderRadius: 8, padding: '10px 14px', color: '#c62828', fontSize: '0.85rem' }}>
+                {err}
+              </div>
+            )}
+
+            {/* Title */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>عنوان الإعلان *</label>
+              <input type="text" value={form.title} onChange={set('title')} required placeholder="اكتب عنوان الإعلان" style={iSt} />
+            </div>
+
+            {/* Content */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>نص الإعلان</label>
+              <textarea value={form.content} onChange={set('content')} placeholder="تفاصيل الإعلان..." rows={3} style={{ ...iSt, resize: 'vertical' }} />
+            </div>
+
+            {/* Image upload */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>صورة الإعلان</label>
+              {imagePreview && (
+                <div style={{ height: 140, background: `url(${imagePreview}) center/cover`, borderRadius: 10, marginBottom: 6 }} />
+              )}
+              <input type="file" accept="image/*" onChange={handleFile} style={{ fontSize: '0.85rem' }} />
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div style={{ background: '#e0e0e0', borderRadius: 10, height: 6, overflow: 'hidden' }}>
+                  <div style={{ background: COLORS.teal, height: '100%', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
+                </div>
+              )}
+              {!imageFile && (
+                <>
+                  <label style={{ fontSize: '0.75rem', color: '#999', marginTop: 2 }}>أو ادخل رابط الصورة مباشرة</label>
+                  <input type="url" value={form.image_url} onChange={set('image_url')} placeholder="https://..." style={iSt} />
+                </>
+              )}
+            </div>
+
+            {/* Dates */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>تاريخ البداية *</label>
+                <input type="date" value={form.start_date} onChange={set('start_date')} required style={iSt} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>تاريخ النهاية *</label>
+                <input type="date" value={form.end_date} onChange={set('end_date')} required style={iSt} />
+              </div>
+            </div>
+
+            {/* Targeting */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>نطاق الاستهداف</label>
+              <select value={form.target_type} onChange={set('target_type')} style={iSt}>
+                <option value="all">🌍 الكل</option>
+                <option value="country">🏳️ دولة محددة</option>
+                <option value="city">🏙️ مدينة محددة</option>
+              </select>
+            </div>
+
+            {form.target_type !== 'all' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>
+                  {form.target_type === 'country' ? 'اسم الدولة' : 'اسم المدينة'}
+                </label>
+                <input
+                  type="text"
+                  value={form.target_value}
+                  onChange={set('target_value')}
+                  placeholder={form.target_type === 'country' ? 'مثال: Saudi Arabia' : 'مثال: Riyadh'}
+                  style={iSt}
+                />
+              </div>
+            )}
+
+            {/* Cost summary */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: '#fffde7', borderRadius: 10, padding: '10px 14px',
+              border: '1px solid #ffe082',
+            }}>
+              <span style={{ fontSize: '0.85rem', color: '#666' }}>تكلفة الإعلان</span>
+              <span style={{ color: '#f9a825', fontWeight: 700 }}>{AD_COST} كوين → يتبقى {coins - AD_COST} كوين</span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                padding: '13px',
+                background: submitting ? COLORS.teal + '80' : COLORS.teal,
+                color: 'white', border: 'none', borderRadius: 40,
+                fontSize: '1rem', fontWeight: 700,
+                cursor: submitting ? 'default' : 'pointer',
+                boxShadow: `0 6px 20px ${COLORS.teal}40`,
+              }}
+            >
+              {submitting ? 'جاري النشر...' : `✦ نشر الإعلان (${AD_COST} كوين)`}
+            </button>
+          </form>
         )}
       </div>
     </div>
