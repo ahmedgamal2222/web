@@ -358,7 +358,7 @@ export default function ScreensManagementPage() {
                       </button>
 
                       <Link
-                        href={`/screen/${screen.institution_id}`}
+                        href={`/screen/${screen.institution_id}?admin=true`}
                         target="_blank"
                         style={{
                           padding: '6px 12px',

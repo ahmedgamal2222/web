@@ -25,6 +25,29 @@ export default function ScreenPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout>();
 
+  // تخطي المصادقة للأدمن تلقائياً
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') !== 'true') return;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return;
+      const userData = JSON.parse(userStr);
+      if (userData.role !== 'admin') return;
+    } catch {
+      return;
+    }
+    // الأدمن: تحميل المؤسسة وتفعيل الشاشة مباشرة
+    fetchInstitution(institutionId)
+      .then((inst) => {
+        setInstitution(inst);
+        return screenActivate(Number(institutionId), true);
+      })
+      .then(() => setAuthenticated(true))
+      .catch(() => setAuthenticated(true));
+  }, [institutionId]);
+
   // التحقق من كلمة المرور
   const handleAuthenticate = async (e: React.FormEvent) => {
     e.preventDefault();
