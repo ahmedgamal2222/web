@@ -41,6 +41,35 @@ interface EventItem {
   institution_name_ar: string;
 }
 
+interface AgreementItem {
+  id: number;
+  title?: string;
+  type?: string;
+  status?: string;
+  created_at: string;
+  signed_at?: string;
+  start_date?: string;
+  end_date?: string;
+  institution_name?: string;
+  institution_name_ar?: string;
+  partner_name?: string;
+  partner_name_ar?: string;
+}
+
+interface AdItem {
+  id: number;
+  institution_id: number;
+  institution_name?: string;
+  institution_name_ar?: string;
+  title: string;
+  content?: string;
+  image_url?: string;
+  start_date: string;
+  end_date: string;
+  target_type?: 'all' | 'country' | 'city';
+  target_value?: string;
+}
+
 // ─── Ad Modal ──────────────────────────────────────────────────────────────────
 function AdModal({ institutionId, coins, onClose, onSuccess }: {
   institutionId: number; coins: number; onClose: () => void; onSuccess: () => void;
@@ -144,9 +173,11 @@ const iStyle: React.CSSProperties = {
 };
 
 export default function NewsPage() {
-  const [activeTab, setActiveTab] = useState<'news' | 'events'>('news');
+  const [activeTab, setActiveTab] = useState<'news' | 'events' | 'agreements' | 'ads'>('news');
   const [news, setNews] = useState<NewsItem[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [agreements, setAgreements] = useState<AgreementItem[]>([]);
+  const [allAds, setAllAds] = useState<AdItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     category: 'all',
@@ -205,17 +236,23 @@ export default function NewsPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
       if (activeTab === 'news') {
         const response = await fetch(`${API_BASE}/api/news?limit=20&search=${filters.search}&category=${filters.category}`);
         const data = await response.json();
         setNews(data.data || []);
-      } else {
+      } else if (activeTab === 'events') {
         const response = await fetch(`${API_BASE}/api/events?limit=20&search=${filters.search}&type=${filters.category}`);
         const data = await response.json();
         setEvents(data.data || []);
+      } else if (activeTab === 'agreements') {
+        const response = await fetch(`${API_BASE}/api/agreements?limit=50`);
+        const data = await response.json();
+        setAgreements(data.data || []);
+      } else if (activeTab === 'ads') {
+        const response = await fetch(`${API_BASE}/api/ads?limit=100`);
+        const data = await response.json();
+        setAllAds(data.data || []);
       }
-
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -251,10 +288,10 @@ export default function NewsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <h1 style={{ fontSize: '2.5rem', marginBottom: 15 }}>
-              ❆ الأخبار والفعاليات
+              ❆ الأخبار والفعاليات والاتفاقيات
             </h1>
             <p style={{ maxWidth: 600, opacity: 0.9 }}>
-              تابع آخر أخبار وفعاليات المؤسسات في المجرة الحضارية
+              تابع آخر أخبار وفعاليات واتفاقيات وإعلانات المؤسسات في المجرة الحضارية
             </p>
           </div>
           {user?.institution_id && (
@@ -272,49 +309,37 @@ export default function NewsPage() {
       </div>
 
       {/* أزرار التبويب */}
-      <div style={{
-        display: 'flex',
-        gap: 10,
-        marginBottom: 30,
-      }}>
-        <button
-          onClick={() => setActiveTab('news')}
-          style={{
-            flex: 1,
-            padding: '15px',
-            borderRadius: 40,
-            border: 'none',
-            background: activeTab === 'news' ? COLORS.teal : 'white',
-            color: activeTab === 'news' ? 'white' : COLORS.teal,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-          }}
-        >
-          📰 الأخبار
-        </button>
-        <button
-          onClick={() => setActiveTab('events')}
-          style={{
-            flex: 1,
-            padding: '15px',
-            borderRadius: 40,
-            border: 'none',
-            background: activeTab === 'events' ? COLORS.teal : 'white',
-            color: activeTab === 'events' ? 'white' : COLORS.teal,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-          }}
-        >
-          📅 الفعاليات
-        </button>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 30, flexWrap: 'wrap' }}>
+        {([
+          { key: 'news', label: '📰 الأخبار' },
+          { key: 'events', label: '📅 الفعاليات' },
+          { key: 'agreements', label: '🔗 الاتفاقيات' },
+          { key: 'ads', label: '📢 الإعلانات' },
+        ] as const).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            style={{
+              flex: 1,
+              padding: '15px',
+              borderRadius: 40,
+              border: 'none',
+              background: activeTab === tab.key ? COLORS.teal : 'white',
+              color: activeTab === tab.key ? 'white' : COLORS.teal,
+              fontSize: '1rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
+              minWidth: 120,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* إعلانات مؤسستي */}
-      {user?.institution_id && institutionAds.length > 0 && (
+      {/* إعلانات مؤسستي — تظهر فقط في تبويب الإعلانات */}
+      {activeTab === 'ads' && user?.institution_id && institutionAds.length > 0 && (
         <div style={{
           background: COLORS.darkNavy,
           borderRadius: 20,
@@ -364,7 +389,8 @@ export default function NewsPage() {
         </div>
       )}
 
-      {/* شريط البحث والفلترة */}
+      {/* شريط البحث والفلترة — يخفي لتبويبي الاتفاقيات والإعلانات */}
+      {(activeTab === 'news' || activeTab === 'events') && (
       <div style={{
         background: 'white',
         borderRadius: 20,
@@ -455,46 +481,57 @@ export default function NewsPage() {
           </Link>
         </div>
       </div>
+      )}
 
       {/* المحتوى */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 50 }}>جاري التحميل...</div>
       ) : (
         <>
-          {activeTab === 'news' ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-              gap: 20,
-            }}>
-              {news.map(item => (
+          {/* الأخبار */}
+          {activeTab === 'news' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+              {news.length === 0 ? <EmptyState label="أخبار" /> : news.map(item => (
                 <NewsCard key={item.id} news={item} formatDate={formatDate} />
               ))}
             </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-              gap: 20,
-            }}>
-              {events.map(item => (
+          )}
+
+          {/* الفعاليات */}
+          {activeTab === 'events' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+              {events.length === 0 ? <EmptyState label="فعاليات" /> : events.map(item => (
                 <EventCard key={item.id} event={item} formatDate={formatDate} />
               ))}
             </div>
           )}
 
-          {((activeTab === 'news' && news.length === 0) || 
-            (activeTab === 'events' && events.length === 0)) && (
-            <div style={{
-              textAlign: 'center',
-              padding: '80px 20px',
-              background: 'white',
-              borderRadius: 30,
-            }}>
-              <span style={{ fontSize: '4rem' }}>📭</span>
-              <h3>لا توجد {activeTab === 'news' ? 'أخبار' : 'فعاليات'}</h3>
-              <p>حاول تغيير معايير البحث</p>
+          {/* الاتفاقيات */}
+          {activeTab === 'agreements' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+              {agreements.length === 0 ? <EmptyState label="اتفاقيات" /> : agreements.map(ag => (
+                <AgreementCard key={ag.id} ag={ag} />
+              ))}
             </div>
+          )}
+
+          {/* الإعلانات */}
+          {activeTab === 'ads' && (
+            <>
+              {user?.institution_id && (
+                <div style={{ marginBottom: 20 }}>
+                  <button onClick={() => setShowAdModal(true)} style={{ background: COLORS.teal, border: 'none', borderRadius: 12, padding: '12px 28px', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem' }}>
+                    📢 إنشاء إعلان جديد
+                    <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 20, padding: '2px 8px', fontSize: '0.75rem', marginRight: 8 }}>{coins} كوين</span>
+                  </button>
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+                {allAds.length === 0 ? <EmptyState label="إعلانات" /> : allAds.map(ad => (
+                  <AdCard key={ad.id} ad={ad} />
+                ))}
+              </div>
+            </>
           )}
         </>
       )}
@@ -754,5 +791,137 @@ function EventCard({ event, formatDate }: any) {
         </div>
       </div>
     </Link>
+  );
+}
+
+// ============================================================
+// بطاقة الاتفاقية
+// ============================================================
+function AgreementCard({ ag }: { ag: AgreementItem }) {
+  const statusColors: Record<string, string> = {
+    active: COLORS.softGreen,
+    pending: '#FFC107',
+    expired: '#9E9E9E',
+    signed: COLORS.teal,
+  };
+  const statusLabels: Record<string, string> = {
+    active: '✅ نشطة',
+    pending: '⏳ قيد الانتظار',
+    expired: '❌ منتهية',
+    signed: '✍️ موقّعة',
+  };
+  const sc = statusColors[ag.status || 'pending'] || '#9E9E9E';
+  const sl = statusLabels[ag.status || 'pending'] || ag.status || '';
+  const dateField = ag.signed_at || ag.start_date || ag.created_at;
+
+  return (
+    <div style={{
+      background: 'white',
+      borderRadius: 20,
+      padding: '22px',
+      boxShadow: `0 5px 15px ${COLORS.darkNavy}15`,
+      border: `1px solid ${sc}30`,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+        <h3 style={{ margin: 0, color: COLORS.darkNavy, fontSize: '1rem', flex: 1, lineHeight: 1.4 }}>
+          🔗 {ag.title || `اتفاقية #${ag.id}`}
+        </h3>
+        <span style={{ background: sc + '20', color: sc, padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, flexShrink: 0 }}>
+          {sl}
+        </span>
+      </div>
+      {ag.type && (
+        <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+          {ag.type}
+        </span>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: '0.82rem', color: '#666' }}>
+        {(ag.institution_name_ar || ag.institution_name) ? (
+          <div style={{ display: 'flex', gap: 6 }}><span>🏛️</span><span>{ag.institution_name_ar || ag.institution_name}</span></div>
+        ) : null}
+        {(ag.partner_name_ar || ag.partner_name) ? (
+          <div style={{ display: 'flex', gap: 6 }}><span>🤝</span><span>{ag.partner_name_ar || ag.partner_name}</span></div>
+        ) : null}
+        <div style={{ display: 'flex', gap: 6, color: COLORS.teal, marginTop: 4 }}>
+          <span>📅</span>
+          <span>{new Date(dateField).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        </div>
+        {ag.end_date && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <span>🏁</span>
+            <span>تنتهي: {new Date(ag.end_date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// بطاقة الإعلان
+// ============================================================
+function AdCard({ ad }: { ad: AdItem }) {
+  const now = new Date();
+  const start = new Date(ad.start_date);
+  const end = new Date(ad.end_date);
+  const isActive = now >= start && now <= end;
+  const isExpired = now > end;
+  const statusColor = isActive ? COLORS.softGreen : isExpired ? '#9E9E9E' : '#FFC107';
+  const statusLabel = isActive ? '✅ نشط' : isExpired ? '❌ منتهي' : '⏳ قادم';
+
+  return (
+    <div style={{
+      background: 'white',
+      borderRadius: 20,
+      overflow: 'hidden',
+      boxShadow: `0 5px 15px ${COLORS.darkNavy}15`,
+      border: `1px solid ${statusColor}30`,
+    }}>
+      {ad.image_url && (
+        <div style={{ height: 160, background: `url(${ad.image_url}) center/cover no-repeat` }} />
+      )}
+      <div style={{ padding: '18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+          <h3 style={{ margin: 0, color: COLORS.darkNavy, fontSize: '1rem', flex: 1 }}>{ad.title}</h3>
+          <span style={{ background: statusColor + '20', color: statusColor, padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, flexShrink: 0, marginRight: 8 }}>
+            {statusLabel}
+          </span>
+        </div>
+        {ad.content && (
+          <p style={{ margin: '0 0 10px', fontSize: '0.85rem', color: '#666', lineHeight: 1.5 }}>
+            {ad.content.substring(0, 100)}{ad.content.length > 100 ? '...' : ''}
+          </p>
+        )}
+        {(ad.institution_name_ar || ad.institution_name) && (
+          <div style={{ fontSize: '0.78rem', color: COLORS.teal, marginBottom: 6, display: 'flex', gap: 5 }}>
+            <span>🏛️</span><span>{ad.institution_name_ar || ad.institution_name}</span>
+          </div>
+        )}
+        <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 6 }}>
+          📅 {new Date(ad.start_date).toLocaleDateString('ar-EG')} ← {new Date(ad.end_date).toLocaleDateString('ar-EG')}
+        </div>
+        {ad.target_type && ad.target_type !== 'all' && (
+          <div style={{ fontSize: '0.73rem', color: COLORS.teal, background: `${COLORS.teal}10`, padding: '3px 10px', borderRadius: 20, display: 'inline-block' }}>
+            {ad.target_type === 'country' ? `🏳️ ${ad.target_value}` : `🏙️ ${ad.target_value}`}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Empty State
+// ============================================================
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: 30, gridColumn: '1/-1' }}>
+      <span style={{ fontSize: '4rem' }}>📭</span>
+      <h3 style={{ color: COLORS.darkNavy }}>لا توجد {label}</h3>
+      <p style={{ color: '#888' }}>لا يوجد محتوى متاح حالياً</p>
+    </div>
   );
 }

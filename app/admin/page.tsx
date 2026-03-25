@@ -242,6 +242,13 @@ export default function AdminDashboard() {
           color="#E6B89C"
           link="/admin/services"
         />
+        <StatCard
+          title="الإعلانات"
+          value="📢"
+          icon="📢"
+          color="#FF9800"
+          link="/admin/ads"
+        />
       </div>
 
       {/* أقسام سريعة */}

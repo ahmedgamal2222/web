@@ -21,7 +21,7 @@ interface Lecture {
   description?: string;
   video_url?: string;
   stream_url?: string;
-  stream_type?: 'live' | 'recorded';
+  stream_type?: 'live' | 'recorded' | 'external';
   stream_key?: string;
   cf_live_input_id?: string;
   cf_video_id?: string;
@@ -56,9 +56,10 @@ export default function AdminLecturesPage() {
     institution_id: '',
     title: '',
     description: '',
-    stream_type: 'live' as 'live' | 'recorded',
+    stream_type: 'live' as 'live' | 'recorded' | 'external',
     stream_url: '',
     video_url: '',
+    external_url: '',
     category: '',
     scheduled_datetime: '',
     visibility: 'institution' as 'institution' | 'all',
@@ -119,12 +120,15 @@ export default function AdminLecturesPage() {
     e.preventDefault();
     setCreateLoading(true);
     try {
+      const extParsed = form.stream_type === 'external' ? parseExternalVideoUrl(form.external_url) : null;
       await createLecture({
         institution_id: Number(form.institution_id),
         title: form.title,
         description: form.description || undefined,
-        stream_type: form.stream_type,
-        stream_url: form.stream_url || undefined,
+        stream_type: form.stream_type === 'external' ? 'recorded' : form.stream_type,
+        stream_url: form.stream_type === 'external'
+          ? (extParsed?.embedUrl || form.external_url || undefined)
+          : form.stream_url || undefined,
         video_url: form.video_url || undefined,
         category: form.category || undefined,
         scheduled_datetime: form.scheduled_datetime || undefined,
@@ -132,7 +136,7 @@ export default function AdminLecturesPage() {
         visibility: form.visibility,
       });
       setShowCreate(false);
-      setForm({ institution_id: '', title: '', description: '', stream_type: 'live', stream_url: '', video_url: '', category: '', scheduled_datetime: '', visibility: 'institution' });
+      setForm({ institution_id: '', title: '', description: '', stream_type: 'live', stream_url: '', video_url: '', external_url: '', category: '', scheduled_datetime: '', visibility: 'institution' });
       await loadAll();
     } catch (err: any) {
       alert(err.message);
@@ -291,11 +295,11 @@ export default function AdminLecturesPage() {
                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} placeholder="وصف مختصر..." style={{ ...inputStyle, resize: 'vertical' }} />
               </Field>
               <Field label="نوع البث">
-                <div style={{ display: 'flex', gap: 12 }}>
-                  {(['live', 'recorded'] as const).map(t => (
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  {(['live', 'recorded', 'external'] as const).map(t => (
                     <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: form.stream_type === t ? 700 : 400, color: form.stream_type === t ? C.teal : '#666' }}>
                       <input type="radio" value={t} checked={form.stream_type === t} onChange={() => setForm({ ...form, stream_type: t })} />
-                      {t === 'live' ? '🔴 مباشر' : '🎬 مسجّل'}
+                      {t === 'live' ? '🔴 مباشر' : t === 'recorded' ? '🎬 مسجّل' : '🎥 فيديو خارجي'}
                     </label>
                   ))}
                 </div>
@@ -308,6 +312,35 @@ export default function AdminLecturesPage() {
               {form.stream_type === 'recorded' && (
                 <Field label="رابط الفيديو المسجّل">
                   <input value={form.video_url} onChange={e => setForm({ ...form, video_url: e.target.value })} placeholder="https://..." style={inputStyle} />
+                </Field>
+              )}
+              {form.stream_type === 'external' && (
+                <Field label="رابط الفيديو الخارجي (YouTube / Vimeo / Dailymotion)">
+                  <input
+                    value={form.external_url}
+                    onChange={e => setForm({ ...form, external_url: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=... أو رابط Vimeo/Dailymotion"
+                    style={inputStyle}
+                  />
+                  {form.external_url && (() => {
+                    const p = parseExternalVideoUrl(form.external_url);
+                    const icons: Record<string, string> = { youtube: '▶ YouTube', vimeo: '● Vimeo', dailymotion: '◉ Dailymotion' };
+                    return p ? (
+                      <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ background: `${C.teal}15`, color: C.teal, padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>
+                          ✅ {icons[p.platform] || p.platform} — تم التعرف على المنصة
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: '#888' }}>سيتم تحويل الرابط تلقائياً</span>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#e57373' }}>
+                        ⚠️ لم يتم التعرف على المنصة — يُقبل روابط YouTube أو Vimeo أو Dailymotion
+                      </div>
+                    );
+                  })()}
+                  <div style={{ marginTop: 8, padding: '8px 12px', background: `${C.softGreen}15`, border: `1px solid ${C.softGreen}40`, borderRadius: 8, fontSize: '0.8rem', color: '#555', lineHeight: 1.6 }}>
+                    📌 سيُعرض هذا الفيديو على الشاشة تلقائياً عند عدم وجود بث مباشر
+                  </div>
                 </Field>
               )}
               <Field label="التصنيف">
@@ -547,10 +580,22 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
             className="stream-url-input"
             value={editUrl}
             onChange={e => setEditUrl(e.target.value)}
-            placeholder={isRecorded ? 'رابط الفيديو المسجّل أو CF iframe URL' : 'رابط البث HLS/RTMP'}
+            placeholder={isRecorded ? 'رابط CF أو YouTube/Vimeo/Dailymotion' : 'رابط البث HLS/RTMP'}
           />
+          {(() => {
+            const ext = parseExternalVideoUrl(editUrl);
+            const labels: Record<string, string> = { youtube: 'YouTube', vimeo: 'Vimeo', dailymotion: 'Dailymotion' };
+            return ext ? (
+              <span style={{ fontSize: '0.72rem', color: C.teal, background: `${C.teal}10`, padding: '2px 8px', borderRadius: 10, flexShrink: 0 }}>
+                ✅ {labels[ext.platform]}
+              </span>
+            ) : null;
+          })()}
           <button
-            onClick={() => onUpdateUrl(lecture, editUrl)}
+            onClick={() => {
+              const ext = parseExternalVideoUrl(editUrl);
+              onUpdateUrl(lecture, ext ? ext.embedUrl : editUrl);
+            }}
             disabled={isLoading}
             style={{ padding: '6px 14px', borderRadius: 20, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}40`, cursor: 'pointer', fontSize: '0.82rem' }}
           >
@@ -648,6 +693,13 @@ function StreamBadge({ isLive, streamType }: { isLive: boolean; streamType?: str
       </span>
     );
   }
+  if (streamType === 'external') {
+    return (
+      <span style={{ background: '#ede7f620', color: '#7b1fa2', padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
+        🎥 خارجي
+      </span>
+    );
+  }
   return (
     <span style={{ background: `${C.softGreen}20`, color: C.softGreen, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
       📅 مجدول
@@ -663,6 +715,22 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </div>
   );
+}
+
+// ─── External Video URL Parser ───────────────────────────────────────────────
+function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'youtube' | 'vimeo' | 'dailymotion' } | null {
+  if (!url) return null;
+  const u = url.trim();
+  // YouTube: watch, embed, shorts, youtu.be
+  const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1`, platform: 'youtube' };
+  // Vimeo
+  const vm = u.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+  if (vm) return { embedUrl: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1`, platform: 'vimeo' };
+  // Dailymotion: video page or dai.ly short link
+  const dm = u.match(/(?:dailymotion\.com\/(?:video\/|embed\/video\/)|dai\.ly\/)([a-zA-Z0-9]+)/);
+  if (dm) return { embedUrl: `https://www.dailymotion.com/embed/video/${dm[1]}?autoplay=1&mute=1`, platform: 'dailymotion' };
+  return null;
 }
 
 const inputStyle: React.CSSProperties = {

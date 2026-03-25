@@ -1,9 +1,26 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, API_BASE } from '@/lib/api';
+import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, API_BASE } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
+
+// ─── External Video URL Parser ───────────────────────────────────────────────
+function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'youtube' | 'vimeo' | 'dailymotion' } | null {
+  if (!url) return null;
+  const u = url.trim();
+  const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1`, platform: 'youtube' };
+  const vm = u.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+  if (vm) return { embedUrl: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1`, platform: 'vimeo' };
+  const dm = u.match(/(?:dailymotion\.com\/(?:video\/|embed\/video\/)|dai\.ly\/)([a-zA-Z0-9]+)/);
+  if (dm) return { embedUrl: `https://www.dailymotion.com/embed/video/${dm[1]}?autoplay=1&mute=1`, platform: 'dailymotion' };
+  // Already an embed URL
+  if (u.includes('youtube.com/embed/')) return { embedUrl: u, platform: 'youtube' };
+  if (u.includes('player.vimeo.com/video/')) return { embedUrl: u, platform: 'vimeo' };
+  if (u.includes('dailymotion.com/embed/video/')) return { embedUrl: u, platform: 'dailymotion' };
+  return null;
+}
 
 export default function ScreenPage() {
   const institutionId = typeof window !== 'undefined'
@@ -15,6 +32,8 @@ export default function ScreenPage() {
   const [news, setNews] = useState<any[]>([]);
   const [lectures, setLectures] = useState<any[]>([]);
   const [currentAd, setCurrentAd] = useState<any>(null);
+  const [allAds, setAllAds] = useState<any[]>([]);
+  const [agreements, setAgreements] = useState<any[]>([]);
   const [galaxyData, setGalaxyData] = useState<GalaxyData | null>(null);
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
@@ -102,16 +121,18 @@ export default function ScreenPage() {
     const loadData = async () => {
       try {
         setDataLoading(true);
-        const [eventsData, newsData, lecturesData, galaxyDataResult] = await Promise.all([
+        const [eventsData, newsData, lecturesData, galaxyDataResult, agreementsResult] = await Promise.all([
           fetchEvents(institutionId),
           fetchNews(),
           fetchLectures(),
           fetchGalaxyData(),
+          (fetchAgreements({ limit: 20 }) as Promise<any>).catch(() => ({ data: [] })),
         ]);
         setEvents(eventsData);
         setNews(newsData);
         setLectures(lecturesData);
         setGalaxyData(galaxyDataResult);
+        setAgreements((agreementsResult as any)?.data ?? []);
       } catch (err) {
         console.error('Error loading screen data:', err);
       } finally {
@@ -153,7 +174,7 @@ export default function ScreenPage() {
   useEffect(() => {
     if (!authenticated) return;
 
-    let index = 0;
+    let cancelled = false;
 
     const fetchAds = async () => {
       try {
@@ -166,17 +187,31 @@ export default function ScreenPage() {
         const json = await response.json();
         const ads: any[] = json?.data ?? [];
 
+        setAllAds(ads);
         if (ads.length === 0) return;
 
         // إيقاف الدوران القديم إن وُجد
         if (adIntervalRef.current) clearInterval(adIntervalRef.current);
 
-        index = 0;
-        setCurrentAd(ads[0]);
+        // خلط عشوائي للإعلانات (Fisher-Yates shuffle)
+        const shuffled = [...ads];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        let index = 0;
+        setCurrentAd(shuffled[0]);
 
         adIntervalRef.current = setInterval(() => {
-          index = (index + 1) % ads.length;
-          setCurrentAd(ads[index]);
+          index = (index + 1) % shuffled.length;
+          // إعادة الخلط عند إكمال دورة كاملة
+          if (index === 0) {
+            for (let i = shuffled.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+          }
+          setCurrentAd(shuffled[index]);
         }, 10000);
       } catch (err) {
         console.error('Error fetching ads:', err);
@@ -299,13 +334,45 @@ export default function ScreenPage() {
   }
 
   const liveLecture = lectures.find(l => l.is_live);
-  // أحدث محاضرة مسجّلة إذا لم يكن هناك بث مباشر (تشمل المحاضرات ذات cf_video_id أو cf_live_input_id)
+  // أحدث محاضرة مسجّلة أو خارجية إذا لم يكن هناك بث مباشر (تشمل المحاضرات ذات cf_video_id أو cf_live_input_id)
   const recentRecorded = !liveLecture
-    ? lectures.find(l => l.stream_type === 'recorded' && (l.stream_url || l.video_url || l.cf_video_id || l.cf_live_input_id))
+    ? lectures.find(l => (l.stream_type === 'recorded' || l.stream_type === 'external') && (l.stream_url || l.video_url || l.cf_video_id || l.cf_live_input_id))
     : null;
   const displayLecture = liveLecture || recentRecorded;
+  // كشف رابط خارجي (YouTube/Vimeo/Dailymotion) في stream_url
+  const externalEmbed = displayLecture?.stream_url ? parseExternalVideoUrl(displayLecture.stream_url) : null;
 
-  // ─── الشاشة الرئيسية (4 أرباع) ───────────────────────────────────────────
+  // دمج الأخبار + الفعاليات + الاتفاقيات في تدفق موحّد مرتّب زمنياً
+  const combinedFeed = [
+    ...news.map((n: any) => ({
+      type: 'news' as const,
+      date: n.published_at,
+      title: n.title,
+      icon: '📰',
+      subtitle: null,
+    })),
+    ...events.map((e: any) => ({
+      type: 'event' as const,
+      date: e.start_datetime || e.created_at,
+      title: e.title,
+      icon: '📅',
+      subtitle: e.start_datetime
+        ? new Date(e.start_datetime).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })
+        : null,
+    })),
+    ...agreements.map((a: any) => ({
+      type: 'agreement' as const,
+      date: a.signed_at || a.start_date || a.created_at,
+      title: a.title || 'اتفاقية',
+      icon: '🤝',
+      subtitle: a.status === 'active' ? 'اتفاقية نشطة' : a.status === 'signed' ? 'تم توقيع الاتفاقية' : 'اتفاقية جديدة',
+    })),
+  ]
+    .filter(item => item.date)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 8);
+
+  const tickerItems = combinedFeed.length > 0 ? combinedFeed : news;
   return (
     <div className="cultural-screen">
       <style jsx global>{`
@@ -504,7 +571,88 @@ export default function ScreenPage() {
           height: 100%; color: rgba(255,255,255,0.5);
           font-size: 0.95rem; gap: 8px;
         }
-        .empty-icon { font-size: 2.5rem; }
+        /* ربع الإعلانات - قائمة */
+        .ads-list {
+          height: calc(100% - 50px);
+          overflow-y: auto;
+          padding: 48px 10px 10px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          direction: rtl;
+        }
+        .ads-list::-webkit-scrollbar { width: 4px; }
+        .ads-list::-webkit-scrollbar-thumb { background: #FFD70040; border-radius: 4px; }
+        .ad-list-item {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,215,0,0.15);
+          border-radius: 10px;
+          padding: 10px;
+          transition: border-color 0.3s;
+        }
+        .ad-list-item.ad-active {
+          border-color: rgba(255,215,0,0.6);
+          background: rgba(255,215,0,0.06);
+        }
+        .ad-list-image {
+          width: 70px;
+          height: 55px;
+          object-fit: cover;
+          border-radius: 6px;
+          flex-shrink: 0;
+        }
+        .ad-list-body {
+          flex: 1;
+          min-width: 0;
+          color: white;
+        }
+        .ad-list-title {
+          font-size: 0.88rem;
+          font-weight: bold;
+          color: #FFD700;
+          margin-bottom: 3px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .ad-list-content {
+          font-size: 0.75rem;
+          opacity: 0.7;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .ad-list-source {
+          font-size: 0.68rem;
+          opacity: 0.45;
+          margin-top: 4px;
+        }
+        /* عناصر الخبر في التدفق المدمج */
+        .feed-item {
+          padding: 10px;
+          border-bottom: 1px solid rgba(255,215,0,0.15);
+          margin-bottom: 4px;
+        }
+        .feed-top {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 3px;
+        }
+        .feed-icon { font-size: 0.85rem; }
+        .feed-title { font-size: 0.9rem; color: white; }
+        .feed-subtitle {
+          font-size: 0.75rem;
+          color: #FFD700;
+          opacity: 0.8;
+          margin-top: 2px;
+        }
+        .feed-event .feed-title { color: #87CEEB; }
+        .feed-agreement .feed-title { color: #90EE90; }
       `}</style>
 
       {/* شريط المؤسسة */}
@@ -524,7 +672,11 @@ export default function ScreenPage() {
           {liveLecture ? (
             <span className="badge-live"><span className="badge-live-dot" />LIVE</span>
           ) : recentRecorded ? (
-            <span className="badge-recorded">🎬 مسجّل</span>
+            recentRecorded.stream_type === 'external' || parseExternalVideoUrl(recentRecorded.stream_url || '') ? (
+              <span className="badge-recorded">🎥 خارجي</span>
+            ) : (
+              <span className="badge-recorded">🎬 مسجّل</span>
+            )
           ) : (
             '✦ بث مباشر ✦'
           )}
@@ -557,6 +709,15 @@ export default function ScreenPage() {
                 <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 20px' }}>جاري معالجة التسجيل على Cloudflare Stream</div>
                 <div style={{ fontSize: '0.78rem', opacity: 0.5 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
               </div>
+            ) : externalEmbed ? (
+              /* فيديو خارجي (YouTube / Vimeo / Dailymotion) */
+              <iframe
+                src={externalEmbed.embedUrl}
+                className="lecture-video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ border: 'none', width: '100%', height: '100%' }}
+              />
             ) : (
               /* Fallback: native video element for direct HLS/MP4 URLs */
               <video
@@ -611,16 +772,22 @@ export default function ScreenPage() {
         )}
       </div>
 
-      {/* الربع 3: الأخبار */}
+      {/* الربع 3: الأخبار + الفعاليات + الاتفاقيات */}
       <div className="quadrant">
         <div className="q-header">✦ أخبار المجرة ✦</div>
         <div className="news-list">
-          {news.length > 0 ? news.slice(0, 6).map((item, i) => (
-            <div key={i} className="news-list-item">
-              <div className="news-date">
-                {new Date(item.published_at).toLocaleDateString('ar-EG')}
+          {combinedFeed.length > 0 ? combinedFeed.map((item, i) => (
+            <div key={i} className={`news-list-item feed-item feed-${item.type}`}>
+              <div className="feed-top">
+                <span className="feed-icon">{item.icon}</span>
+                <span className="news-date">
+                  {new Date(item.date).toLocaleDateString('ar-EG')}
+                </span>
               </div>
-              <div>{item.title}</div>
+              <div className="feed-title">{item.title}</div>
+              {item.subtitle && (
+                <div className="feed-subtitle">{item.subtitle}</div>
+              )}
             </div>
           )) : (
             <div className="empty-state">
@@ -629,48 +796,48 @@ export default function ScreenPage() {
             </div>
           )}
         </div>
-        {news.length > 0 && (
+        {tickerItems.length > 0 && (
           <div className="news-ticker">
             <div className="news-items">
-              {news.map((item, i) => (
-                <span key={i} className="news-item">✦ {item.title}</span>
+              {tickerItems.map((item: any, i: number) => (
+                <span key={i} className="news-item">
+                  {(item as any).icon ?? '✦'} {item.title}
+                </span>
               ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* الربع 4: إعلانات */}
+      {/* الربع 4: إعلانات (جميع الإعلانات) */}
       <div className="quadrant">
-        <div className="q-header">✦ إعلان ✦</div>
-        {currentAd ? (
-          <div className="ad-content">
-            {currentAd.image_url && (
-              <img src={currentAd.image_url} alt={currentAd.title} className="ad-image" />
-            )}
-            <div className="ad-title">{currentAd.title}</div>
-            {currentAd.content && (
-              <p style={{ margin: '0 0 10px', opacity: 0.8 }}>{currentAd.content}</p>
-            )}
-            {currentAd.institution_name && (
-              <span style={{
-                fontSize: '0.75rem',
-                opacity: 0.5,
-                borderTop: '1px solid rgba(255,215,0,0.2)',
-                paddingTop: 8,
-                marginTop: 4,
-              }}>
-                {currentAd.institution_name}
-              </span>
-            )}
-          </div>
-        ) : (
-          <div className="ad-content">
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>✨</div>
-            <p style={{ margin: 0, fontSize: '1.2rem' }}>المجرة الحضارية</p>
-            <p style={{ margin: '8px 0 0', fontSize: '0.9rem', opacity: 0.6 }}>"معاً نزداد توهجاً"</p>
-          </div>
-        )}
+        <div className="q-header">✦ إعلانات ✦</div>
+        <div className="ads-list">
+          {allAds.length > 0 ? allAds.map((ad: any, i: number) => (
+            <div key={i} className={`ad-list-item${currentAd?.id === ad.id ? ' ad-active' : ''}`}>
+              {ad.image_url && (
+                <img src={ad.image_url} alt={ad.title} className="ad-list-image" />
+              )}
+              <div className="ad-list-body">
+                <div className="ad-list-title">{ad.title}</div>
+                {ad.content && (
+                  <div className="ad-list-content">{ad.content}</div>
+                )}
+                {ad.institution_name_ar || ad.institution_name ? (
+                  <div className="ad-list-source">
+                    {ad.institution_name_ar || ad.institution_name}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )) : (
+            <div className="ad-content">
+              <div style={{ fontSize: '3rem', marginBottom: 16 }}>✨</div>
+              <p style={{ margin: 0, fontSize: '1.2rem' }}>المجرة الحضارية</p>
+              <p style={{ margin: '8px 0 0', fontSize: '0.9rem', opacity: 0.6 }}>"معاً نزداد توهجاً"</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
