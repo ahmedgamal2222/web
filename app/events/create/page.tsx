@@ -388,8 +388,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '11px 14px',
-  background: 'rgba(255,255,255,0.06)',
-  border: `1px solid rgba(255,255,255,0.1)`,
+  background: 'rgba(255,255,255,0.07)',
+  border: `1px solid ${COLORS.teal}50`,
   borderRadius: 10,
   color: 'white',
   fontSize: '0.95rem',
@@ -398,6 +398,15 @@ const inputStyle: React.CSSProperties = {
 };
 
 const selectStyle: React.CSSProperties = {
-  ...inputStyle,
+  width: '100%',
+  padding: '11px 14px',
+  background: COLORS.darkNavy,
+  border: `1px solid ${COLORS.teal}60`,
+  borderRadius: 10,
+  color: 'white',
+  fontSize: '0.95rem',
+  outline: 'none',
+  boxSizing: 'border-box',
   cursor: 'pointer',
+  appearance: 'auto',
 };
