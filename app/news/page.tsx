@@ -810,6 +810,8 @@ function AdCreateModal({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
+  const [detectedLocation, setDetectedLocation] = useState<{ country: string | null; city: string | null; region: string | null } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const API_BASE_MODAL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
   const canAfford = coins >= AD_COST;
@@ -822,6 +824,18 @@ function AdCreateModal({
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+  };
+
+  const fetchLocation = async () => {
+    setLocationLoading(true);
+    try {
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE_MODAL}/api/ads/location`, { headers: { 'X-Session-ID': sid } });
+      const data = await res.json();
+      if (data.success) setDetectedLocation(data.data);
+    } catch { /* ignore */ } finally {
+      setLocationLoading(false);
+    }
   };
 
   const handleSubmit = async (ev: React.FormEvent) => {
@@ -967,7 +981,7 @@ function AdCreateModal({
             {/* Targeting */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>نطاق الاستهداف</label>
-              <select value={form.target_type} onChange={set('target_type')} style={iSt}>
+              <select value={form.target_type} onChange={e => setForm(p => ({ ...p, target_type: e.target.value as any, target_value: '' }))} style={iSt}>
                 <option value="all">🌍 الكل</option>
                 <option value="country">🏳️ دولة محددة</option>
                 <option value="city">🏙️ مدينة محددة</option>
@@ -975,17 +989,79 @@ function AdCreateModal({
             </div>
 
             {form.target_type !== 'all' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>
-                  {form.target_type === 'country' ? 'اسم الدولة' : 'اسم المدينة'}
+                  {form.target_type === 'country' ? 'كود الدولة (ISO)' : 'اسم المدينة'}
                 </label>
+
+                {/* زر اكتشاف الموقع */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={fetchLocation}
+                    disabled={locationLoading}
+                    style={{
+                      padding: '7px 14px', borderRadius: 20,
+                      border: `1.5px solid ${COLORS.teal}`,
+                      background: locationLoading ? `${COLORS.teal}10` : `${COLORS.teal}15`,
+                      color: COLORS.teal, cursor: locationLoading ? 'default' : 'pointer',
+                      fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {locationLoading ? '⏳ جاري الاكتشاف...' : '📍 اكتشاف موقعك'}
+                  </button>
+                  {detectedLocation?.country && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(p => ({
+                        ...p,
+                        target_value: form.target_type === 'country'
+                          ? (detectedLocation.country || '')
+                          : (detectedLocation.city || ''),
+                      }))}
+                      style={{
+                        padding: '5px 12px', borderRadius: 20,
+                        border: `1px solid ${COLORS.softGreen}`,
+                        background: `${COLORS.softGreen}15`,
+                        color: COLORS.teal, cursor: 'pointer', fontSize: '0.78rem',
+                      }}
+                    >
+                      {form.target_type === 'country'
+                        ? `✓ استخدام: ${detectedLocation.country}`
+                        : detectedLocation.city
+                          ? `✓ استخدام: ${detectedLocation.city}`
+                          : 'لا توجد مدينة مكتشفة'}
+                    </button>
+                  )}
+                </div>
+
+                {/* معلومات الموقع المكتشف */}
+                {detectedLocation && (
+                  <div style={{
+                    background: `${COLORS.teal}08`, border: `1px solid ${COLORS.teal}30`,
+                    borderRadius: 10, padding: '10px 14px', fontSize: '0.78rem', color: COLORS.teal,
+                  }}>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>📡 موقعك المكتشف:</div>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', color: '#555' }}>
+                      {detectedLocation.country && <span>🏳️ <b>الدولة:</b> {detectedLocation.country}</span>}
+                      {detectedLocation.city && <span>🏙️ <b>المدينة:</b> {detectedLocation.city}</span>}
+                      {detectedLocation.region && <span>📍 <b>المنطقة:</b> {detectedLocation.region}</span>}
+                    </div>
+                  </div>
+                )}
+
                 <input
                   type="text"
                   value={form.target_value}
                   onChange={set('target_value')}
-                  placeholder={form.target_type === 'country' ? 'مثال: Saudi Arabia' : 'مثال: Riyadh'}
+                  placeholder={form.target_type === 'country' ? 'مثال: SA أو EG أو AE' : 'مثال: Riyadh أو Cairo'}
                   style={iSt}
                 />
+                <div style={{ fontSize: '0.72rem', color: '#999' }}>
+                  {form.target_type === 'country'
+                    ? '⚠️ أدخل كود الدولة ISO: SA، EG، AE، IQ...'
+                    : '⚠️ أدخل اسم المدينة بالإنجليزية'}
+                </div>
               </div>
             )}
 

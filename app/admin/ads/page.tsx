@@ -56,6 +56,8 @@ export default function AdminAdsPage() {
   const [imageUploading, setImageUploading] = useState(false);
   const [imageProgress, setImageProgress] = useState(0);
   const [imagePreview, setImagePreview] = useState('');
+  const [detectedLocation, setDetectedLocation] = useState<{ country: string | null; city: string | null; region: string | null } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) { setErr('يرجى اختيار ملف صورة صالح'); return; }
@@ -102,6 +104,21 @@ export default function AdminAdsPage() {
       setInstitutions(instData.data || []);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDetectedLocation = async () => {
+    setLocationLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/location`, { headers: authH });
+      const data = await res.json();
+      if (data.success) {
+        setDetectedLocation(data.data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLocationLoading(false);
     }
   };
 
@@ -365,14 +382,81 @@ export default function AdminAdsPage() {
               </F>
 
               {form.target_type !== 'all' && (
-                <F label={form.target_type === 'country' ? 'اسم الدولة (بالإنجليزية)' : 'اسم المدينة (بالإنجليزية)'}>
-                  <input
-                    type="text"
-                    value={form.target_value}
-                    onChange={e => setForm({ ...form, target_value: e.target.value })}
-                    placeholder={form.target_type === 'country' ? 'مثال: Saudi Arabia' : 'مثال: Riyadh'}
-                    style={fStyle}
-                  />
+                <F label={form.target_type === 'country' ? 'كود الدولة (ISO)' : 'اسم المدينة'}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {/* زر اكتشاف الموقع */}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={fetchDetectedLocation}
+                        disabled={locationLoading}
+                        style={{
+                          padding: '8px 16px', borderRadius: 20, border: `1.5px solid ${C.teal}`,
+                          background: locationLoading ? `${C.teal}10` : `${C.teal}15`,
+                          color: C.teal, cursor: locationLoading ? 'default' : 'pointer',
+                          fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {locationLoading ? '⏳ جاري الاكتشاف...' : '📍 اكتشاف موقعك'}
+                      </button>
+                      {detectedLocation && (
+                        <div style={{ fontSize: '0.78rem', color: '#666', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {detectedLocation.country && (
+                            <button
+                              type="button"
+                              onClick={() => form.target_type === 'country'
+                                ? setForm(f => ({ ...f, target_value: detectedLocation.country! }))
+                                : setForm(f => ({ ...f, target_value: detectedLocation.city || '' }))
+                              }
+                              style={{
+                                padding: '4px 12px', borderRadius: 20, border: `1px solid ${C.softGreen}`,
+                                background: `${C.softGreen}15`, color: C.teal,
+                                cursor: 'pointer', fontSize: '0.78rem',
+                              }}
+                            >
+                              {form.target_type === 'country'
+                                ? `✓ استخدام: ${detectedLocation.country}`
+                                : detectedLocation.city
+                                  ? `✓ استخدام: ${detectedLocation.city}`
+                                  : `لا توجد مدينة مكتشفة`
+                              }
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* معلومات الموقع المكتشف */}
+                    {detectedLocation && (
+                      <div style={{
+                        background: `${C.teal}08`, border: `1px solid ${C.teal}30`,
+                        borderRadius: 10, padding: '10px 14px', fontSize: '0.8rem', color: C.teal,
+                      }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>📡 الموقع المكتشف من Cloudflare:</div>
+                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', color: '#555' }}>
+                          {detectedLocation.country && <span>🏳️ <b>كود الدولة:</b> {detectedLocation.country}</span>}
+                          {detectedLocation.city && <span>🏙️ <b>المدينة:</b> {detectedLocation.city}</span>}
+                          {detectedLocation.region && <span>📍 <b>المنطقة:</b> {detectedLocation.region}</span>}
+                        </div>
+                        <div style={{ marginTop: 6, color: '#888', fontSize: '0.74rem' }}>
+                          ℹ️ يُستخدم هذا الكود للمطابقة مع موقع الزوار عند عرض الإعلانات
+                        </div>
+                      </div>
+                    )}
+
+                    <input
+                      type="text"
+                      value={form.target_value}
+                      onChange={e => setForm({ ...form, target_value: e.target.value })}
+                      placeholder={form.target_type === 'country' ? 'مثال: SA أو EG أو AE (كود ISO)' : 'مثال: Riyadh أو Cairo'}
+                      style={fStyle}
+                    />
+                    <div style={{ fontSize: '0.74rem', color: '#999' }}>
+                      {form.target_type === 'country'
+                        ? '⚠️ أدخل كود الدولة بالإنجليزية (ISO): SA، EG، AE، IQ...'
+                        : '⚠️ أدخل اسم المدينة بالإنجليزية كما تُعرّفه Cloudflare'}
+                    </div>
+                  </div>
                 </F>
               )}
 
