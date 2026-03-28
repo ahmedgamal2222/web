@@ -107,7 +107,6 @@ export default function CreateNewsPage() {
       background: COLORS.darkNavy,
       color: 'white',
       direction: 'rtl',
-      fontFamily: 'Arial, sans-serif',
       padding: '40px 20px',
     }}>
       <div style={{ maxWidth: 680, margin: '0 auto' }}>

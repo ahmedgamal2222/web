@@ -307,62 +307,97 @@ function LiveStreamSection() {
       background: 'white',
       borderRadius: 20,
       padding: '20px',
-      boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
+      boxShadow: `0 4px 14px ${COLORS.darkNavy}12`,
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: 280,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: '1.5rem' }}>📺</span>
-          <h3 style={{ color: COLORS.darkNavy, margin: 0 }}>إدارة البث المباشر</h3>
+      {/* Header */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: 14, paddingBottom: 12,
+        borderBottom: '2px solid #ff444418',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <span style={{ fontSize: '1.35rem' }}>📺</span>
+          <h3 style={{ color: COLORS.darkNavy, margin: 0, fontSize: '0.97rem', fontWeight: 700 }}>إدارة البث المباشر</h3>
         </div>
-        {liveLectures.length > 0 && (
-          <span style={{
-            background: '#ff444420', color: '#ff4444',
-            padding: '3px 12px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 700,
-            display: 'flex', alignItems: 'center', gap: 5,
-          }}>
+        <span style={{
+          background: liveLectures.length > 0 ? '#ff444418' : '#f2f2f2',
+          color: liveLectures.length > 0 ? '#ff4444' : '#aaa',
+          padding: '3px 12px', borderRadius: 20,
+          fontSize: '0.83rem', fontWeight: 700,
+          display: 'flex', alignItems: 'center', gap: 5,
+        }}>
+          {liveLectures.length > 0 && (
             <span style={{ width: 7, height: 7, background: '#ff4444', borderRadius: '50%', display: 'inline-block', animation: 'blink 1s infinite' }} />
-            {liveLectures.length} بث مباشر
-          </span>
+          )}
+          {liveLectures.length > 0 ? `${liveLectures.length} بث مباشر` : 'لا يوجد بث'}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1 }}>
+        {loading ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            height: '100%', minHeight: 120, gap: 10,
+            color: '#aaa', fontSize: '0.9rem',
+          }}>
+            <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
+            جاري التحميل...
+          </div>
+        ) : lectures.length === 0 ? (
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            height: '100%', minHeight: 120,
+            border: '2px dashed #ff444428', borderRadius: 14,
+            gap: 8, color: '#c0c0c0', fontSize: '0.88rem',
+          }}>
+            <span style={{ fontSize: '1.8rem', opacity: 0.35 }}>📺</span>
+            لا توجد محاضرات بعد
+          </div>
+        ) : (
+          <div>
+            {lectures.slice(0, 3).map((l, i) => (
+              <div key={l.id} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '9px 0', gap: 8,
+                borderBottom: i < Math.min(lectures.length, 3) - 1 ? `1px solid ${COLORS.teal}15` : 'none',
+              }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{
+                    fontWeight: 600, color: COLORS.darkNavy, fontSize: '0.9rem',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{l.title}</div>
+                  <div style={{ fontSize: '0.82rem', color: '#888', marginTop: 2 }}>
+                    {l.stream_type === 'recorded' ? '🎬 مسجّل' : '📅 مجدول'}
+                  </div>
+                </div>
+                <span style={{
+                  background: l.is_live ? '#ff444415' : `${COLORS.teal}15`,
+                  color: l.is_live ? '#ff4444' : COLORS.teal,
+                  padding: '3px 10px', borderRadius: 20,
+                  fontSize: '0.82rem', fontWeight: l.is_live ? 700 : 400,
+                  whiteSpace: 'nowrap', flexShrink: 0,
+                }}>
+                  {l.is_live ? '🔴 LIVE' : 'غير نشط'}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {loading ? (
-        <div style={{ color: '#aaa', fontSize: '0.9rem', padding: '10px 0' }}>جاري التحميل...</div>
-      ) : lectures.length === 0 ? (
-        <div style={{ color: '#bbb', fontSize: '0.9rem', padding: '10px 0' }}>لا توجد محاضرات بعد</div>
-      ) : (
-        <div style={{ marginBottom: 15 }}>
-          {lectures.slice(0, 3).map((l, i) => (
-            <div key={l.id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '9px 0',
-              borderBottom: i < Math.min(lectures.length, 3) - 1 ? `1px solid ${COLORS.teal}20` : 'none',
-            }}>
-              <div>
-                <div style={{ fontWeight: 600, color: COLORS.darkNavy, fontSize: '0.9rem' }}>{l.title}</div>
-                <div style={{ fontSize: '0.82rem', color: '#888' }}>
-                  {l.stream_type === 'recorded' ? '🎬 مسجّل' : '📅 مجدول'}
-                </div>
-              </div>
-              {l.is_live ? (
-                <span style={{ background: '#ff444415', color: '#ff4444', padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700 }}>
-                  🔴 LIVE
-                </span>
-              ) : (
-                <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem' }}>
-                  غير نشط
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
+      {/* Footer */}
       <Link href="/admin/lectures" style={{
-        display: 'block', textAlign: 'center', padding: '10px',
-        background: '#ff4444', color: 'white', textDecoration: 'none',
-        borderRadius: 40, fontSize: '0.9rem', fontWeight: 600,
-        transition: 'all 0.3s',
+        display: 'block', textAlign: 'center',
+        padding: '10px', marginTop: 14,
+        background: '#ff4444', color: 'white',
+        textDecoration: 'none', borderRadius: 40,
+        fontSize: '0.9rem', fontWeight: 600,
+        transition: 'all 0.25s',
       }}
       onMouseEnter={e => { e.currentTarget.style.background = '#cc0000'; }}
       onMouseLeave={e => { e.currentTarget.style.background = '#ff4444'; }}
@@ -430,94 +465,110 @@ function StatCard({ title, value, icon, color, link }: any) {
     <Link href={link} style={{ textDecoration: 'none' }}>
       <div style={{
         background: 'white',
-        borderRadius: 20,
-        padding: '20px',
-        boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-        border: `1px solid ${color}40`,
-        transition: 'all 0.3s',
+        borderRadius: 18,
+        padding: '18px 20px',
+        boxShadow: `0 4px 14px ${COLORS.darkNavy}12`,
+        border: `1px solid ${color}25`,
+        borderTop: `3px solid ${color}`,
+        transition: 'all 0.25s',
+        minHeight: 110,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: 10,
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-5px)';
-        e.currentTarget.style.boxShadow = `0 10px 25px ${color}60`;
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = `0 10px 28px ${color}45`;
       }}
       onMouseLeave={e => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = `0 5px 15px ${COLORS.darkNavy}20`;
+        e.currentTarget.style.boxShadow = `0 4px 14px ${COLORS.darkNavy}12`;
       }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ fontSize: '0.85rem', color: '#777', fontWeight: 600, lineHeight: 1.3 }}>{title}</div>
           <div style={{
-            width: 50,
-            height: 50,
-            background: `${color}20`,
-            borderRadius: 15,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.5rem',
+            width: 42, height: 42, flexShrink: 0,
+            background: `${color}18`,
+            borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.35rem',
           }}>
             {icon}
           </div>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: '#666' }}>{title}</div>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color }}>{value}</div>
-          </div>
         </div>
+        <div style={{ fontSize: '2.1rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
       </div>
     </Link>
   );
 }
 
 function QuickSection({ title, icon, count, items, link }: any) {
+  const hasItems = items.length > 0;
   return (
     <div style={{
       background: 'white',
       borderRadius: 20,
       padding: '20px',
-      boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
+      boxShadow: `0 4px 14px ${COLORS.darkNavy}12`,
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: 280,
     }}>
+      {/* Header */}
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: 14, paddingBottom: 12,
+        borderBottom: `2px solid ${COLORS.teal}18`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: '1.5rem' }}>{icon}</span>
-          <h3 style={{ color: COLORS.darkNavy }}>{title}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <span style={{ fontSize: '1.35rem' }}>{icon}</span>
+          <h3 style={{ color: COLORS.darkNavy, margin: 0, fontSize: '0.97rem', fontWeight: 700 }}>{title}</h3>
         </div>
         <span style={{
-          background: COLORS.teal,
-          color: 'white',
-          padding: '2px 10px',
-          borderRadius: 20,
-          fontSize: '0.8rem',
+          background: count > 0 ? `${COLORS.teal}18` : '#f2f2f2',
+          color: count > 0 ? COLORS.teal : '#aaa',
+          padding: '3px 12px', borderRadius: 20,
+          fontSize: '0.83rem', fontWeight: 700,
         }}>
-          {count} جديد
+          {count}
         </span>
       </div>
 
-      <div style={{ marginBottom: 15 }}>
-        {items.length === 0 ? (
-          <div style={{ color: '#bbb', fontSize: '0.88rem', padding: '10px 0', textAlign: 'center' }}>لا توجد بيانات</div>
+      {/* Items — flex:1 fills available space */}
+      <div style={{ flex: 1 }}>
+        {!hasItems ? (
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            height: '100%', minHeight: 120,
+            border: `2px dashed ${COLORS.teal}28`,
+            borderRadius: 14, gap: 8,
+            color: '#c0c0c0', fontSize: '0.88rem',
+          }}>
+            <span style={{ fontSize: '1.8rem', opacity: 0.35 }}>📭</span>
+            لا توجد بيانات حالياً
+          </div>
         ) : items.map((item: any, index: number) => (
           <div key={index} style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '10px 0',
-            borderBottom: index < items.length - 1 ? `1px solid ${COLORS.teal}20` : 'none',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '9px 0', gap: 8,
+            borderBottom: index < items.length - 1 ? `1px solid ${COLORS.teal}15` : 'none',
           }}>
-            <div>
-              <div style={{ fontWeight: 600, color: COLORS.darkNavy }}>{item.label}</div>
-              <div style={{ fontSize: '0.82rem', color: '#666' }}>{item.time}</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{
+                fontWeight: 600, color: COLORS.darkNavy, fontSize: '0.9rem',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{item.label}</div>
+              <div style={{ fontSize: '0.82rem', color: '#888', marginTop: 2 }}>{item.time}</div>
             </div>
             <span style={{
-              background: item.status === 'pending' ? '#FFC10720' : `${COLORS.softGreen}20`,
-              color: item.status === 'pending' ? '#FFC107' : COLORS.softGreen,
-              padding: '2px 8px',
-              borderRadius: 12,
-              fontSize: '0.82rem',
+              background: item.status === 'pending' ? '#FFC10718' : `${COLORS.softGreen}18`,
+              color: item.status === 'pending' ? '#d4920a' : COLORS.softGreen,
+              padding: '3px 10px', borderRadius: 20,
+              fontSize: '0.82rem', fontWeight: 600,
+              whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {item.status === 'pending' ? 'قيد المراجعة' : 'نشط'}
             </span>
@@ -525,21 +576,19 @@ function QuickSection({ title, icon, count, items, link }: any) {
         ))}
       </div>
 
+      {/* Footer button pinned to bottom */}
       <Link href={link} style={{
-        display: 'block',
-        textAlign: 'center',
-        padding: '10px',
-        background: COLORS.teal,
-        color: 'white',
-        textDecoration: 'none',
-        borderRadius: 40,
-        fontSize: '0.9rem',
-        transition: 'all 0.3s',
+        display: 'block', textAlign: 'center',
+        padding: '10px', marginTop: 14,
+        background: COLORS.teal, color: 'white',
+        textDecoration: 'none', borderRadius: 40,
+        fontSize: '0.9rem', fontWeight: 600,
+        transition: 'all 0.25s',
       }}
       onMouseEnter={e => e.currentTarget.style.background = COLORS.darkNavy}
       onMouseLeave={e => e.currentTarget.style.background = COLORS.teal}
       >
-        عرض الكل
+        عرض الكل ←
       </Link>
     </div>
   );

@@ -167,7 +167,7 @@ function AgreementCard({
   const otherSig = isFrom ? ag.signature_to : ag.signature_from;
 
   return (
-    <div style={{ background: 'white', borderRadius: 18, padding: 22, boxShadow: `0 4px 18px ${C.darkNavy}12`, border: `1px solid ${ag.status === 'signed' ? C.success : C.teal}25`, direction: 'rtl' }}>
+    <div style={{ background: 'white', borderRadius: 18, padding: 24, boxShadow: `0 4px 16px ${C.darkNavy}10`, border: `1px solid ${ag.status === 'signed' ? C.success : C.teal}22`, borderTop: `3px solid ${ag.status === 'signed' ? C.success : ag.status === 'rejected' ? C.live : C.teal}`, direction: 'rtl' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: '1.05rem', color: C.darkNavy, marginBottom: 4 }}>
@@ -199,10 +199,10 @@ function AgreementCard({
       {/* التوقيعات */}
       {(ag.status === 'negotiating' || ag.status === 'signed') && (
         <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-          <div style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: ag.signature_from ? `${C.success}15` : '#f9f9f9', border: `1px solid ${ag.signature_from ? C.success : '#e0e0e0'}`, fontSize: '0.8rem', textAlign: 'center', color: ag.signature_from ? C.success : '#999' }}>
+          <div style={{ flex: 1, padding: '9px 14px', borderRadius: 10, background: ag.signature_from ? `${C.success}12` : '#f9f9f9', border: `1px solid ${ag.signature_from ? C.success : '#e8e8e8'}`, fontSize: '0.85rem', textAlign: 'center', color: ag.signature_from ? C.success : '#999', fontWeight: ag.signature_from ? 700 : 400 }}>
             {ag.from_name_ar || ag.from_name}: {ag.signature_from ? '✓ وقّع' : 'لم يوقّع بعد'}
           </div>
-          <div style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: ag.signature_to ? `${C.success}15` : '#f9f9f9', border: `1px solid ${ag.signature_to ? C.success : '#e0e0e0'}`, fontSize: '0.8rem', textAlign: 'center', color: ag.signature_to ? C.success : '#999' }}>
+          <div style={{ flex: 1, padding: '9px 14px', borderRadius: 10, background: ag.signature_to ? `${C.success}12` : '#f9f9f9', border: `1px solid ${ag.signature_to ? C.success : '#e8e8e8'}`, fontSize: '0.85rem', textAlign: 'center', color: ag.signature_to ? C.success : '#999', fontWeight: ag.signature_to ? 700 : 400 }}>
             {ag.to_name_ar || ag.to_name}: {ag.signature_to ? '✓ وقّع' : 'لم يوقّع بعد'}
           </div>
         </div>
@@ -478,43 +478,59 @@ export default function AdminAgreementsPage() {
     <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
 
       {/* هيدر */}
-      <div style={{ background: C.darkNavy, borderRadius: 20, padding: '28px 32px', marginBottom: 28, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+      <div className="page-hero" style={{ marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', margin: 0 }}>🤝 نظام عقود الاتفاق</h1>
-          <p style={{ opacity: 0.7, margin: '6px 0 0', fontSize: '0.9rem' }}>
+          <h1 style={{ fontSize: '1.85rem', margin: 0, fontWeight: 800 }}>🤝 نظام عقود الاتفاق</h1>
+          <p style={{ opacity: 0.7, margin: '8px 0 0', fontSize: '0.93rem' }}>
             إنشاء وإدارة الاتفاقيات بين المؤسسات — توقيع إلكتروني • تفاوض • نشر تلقائي
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <a href="/admin" style={{ padding: '10px 20px', borderRadius: 30, background: 'rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.2)' }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <a href="/admin" style={{ padding: '10px 22px', borderRadius: 30, background: 'rgba(255,255,255,0.12)', color: 'white', textDecoration: 'none', fontSize: '0.92rem', border: '1px solid rgba(255,255,255,0.25)', fontWeight: 600 }}>
             ← لوحة الأدمن
           </a>
-          <button onClick={() => setShowCreate(true)} style={{ padding: '10px 24px', borderRadius: 30, background: C.softGreen, color: C.darkNavy, border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
+          <button onClick={() => setShowCreate(true)} style={{ padding: '10px 26px', borderRadius: 30, background: C.softGreen, color: C.darkNavy, border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', boxShadow: `0 3px 12px ${C.softGreen}50` }}>
             + طلب اتفاقية جديدة
           </button>
         </div>
       </div>
 
       {/* إحصائيات */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 28 }}>
         {[
           { label: 'إجمالي الاتفاقيات', value: stats.total,       color: C.teal,    icon: '📋' },
           { label: 'مسودة / انتظار',    value: stats.draft,       color: C.warning, icon: '⏳' },
           { label: 'قيد التفاوض',       value: stats.negotiating, color: C.teal,    icon: '💬' },
           { label: 'موقَّعة',            value: stats.signed,      color: C.success, icon: '✅' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '18px 20px', boxShadow: `0 4px 14px ${C.darkNavy}12`, border: `1px solid ${s.color}30` }}>
-            <div style={{ fontSize: '1.8rem', marginBottom: 4 }}>{s.icon}</div>
-            <div style={{ fontSize: '0.85rem', color: C.teal }}>{s.label}</div>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: s.color }}>{s.value}</div>
+          <div key={s.label} style={{
+            background: 'white', borderRadius: 16,
+            padding: '16px 18px',
+            boxShadow: `0 4px 14px ${C.darkNavy}10`,
+            border: `1px solid ${s.color}20`,
+            borderTop: `3px solid ${s.color}`,
+            display: 'flex', flexDirection: 'column', gap: 8,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>{s.label}</div>
+              <div style={{ fontSize: '1.3rem' }}>{s.icon}</div>
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</div>
           </div>
         ))}
       </div>
 
       {/* فلتر الحالة */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
+      <div className="filter-bar" style={{ marginBottom: 20 }}>
         {['', 'draft', 'negotiating', 'signed', 'rejected'].map(s => (
-          <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: '6px 16px', borderRadius: 20, border: `1px solid ${filterStatus === s ? C.teal : '#ddd'}`, background: filterStatus === s ? C.teal : 'white', color: filterStatus === s ? 'white' : '#666', cursor: 'pointer', fontSize: '0.85rem' }}>
+          <button key={s} onClick={() => setFilterStatus(s)} style={{
+            padding: '7px 18px', borderRadius: 22,
+            border: `1px solid ${filterStatus === s ? C.teal : '#e0e0e0'}`,
+            background: filterStatus === s ? C.teal : 'white',
+            color: filterStatus === s ? 'white' : '#555',
+            cursor: 'pointer', fontSize: '0.88rem', fontWeight: filterStatus === s ? 700 : 400,
+            transition: 'all 0.2s',
+          }}>
             {s === '' ? 'الكل' : (STATUS_LABELS[s]?.label || s)}
           </button>
         ))}
@@ -522,11 +538,17 @@ export default function AdminAgreementsPage() {
 
       {/* قائمة الاتفاقيات */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: C.teal }}>جاري التحميل...</div>
+        <div className="loading-page">
+          <div className="spinner" />
+          جاري التحميل...
+        </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 20, color: C.teal }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🤝</div>
-          {filterStatus ? 'لا توجد اتفاقيات بهذه الحالة' : 'لا توجد اتفاقيات بعد — أنشئ أول اتفاقية'}
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 20, color: '#aaa', border: `2px dashed ${C.teal}30` }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: 14, opacity: 0.4 }}>🤝</div>
+          <div style={{ fontSize: '1rem', fontWeight: 600, color: C.darkNavy, marginBottom: 6 }}>
+            {filterStatus ? 'لا توجد اتفاقيات بهذه الحالة' : 'لا توجد اتفاقيات بعد'}
+          </div>
+          {!filterStatus && <div style={{ fontSize: '0.88rem', color: '#bbb' }}>أنشئ أول اتفاقية بالضغط على الزر أعلاه</div>}
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 16 }}>

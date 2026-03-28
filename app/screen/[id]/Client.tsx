@@ -42,7 +42,7 @@ export default function ScreenPage() {
   const [error, setError] = useState('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const adIntervalRef = useRef<NodeJS.Timeout>();
+  const adIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // تخطي المصادقة للأدمن تلقائياً
   useEffect(() => {
@@ -380,7 +380,7 @@ export default function ScreenPage() {
           margin: 0; padding: 0;
           overflow: hidden;
           background: #000;
-          font-family: 'Arial', sans-serif;
+          font-family: 'Cairo', 'Arial', sans-serif;
         }
         .cultural-screen {
           position: fixed;
@@ -396,32 +396,37 @@ export default function ScreenPage() {
         }
         .quadrant {
           background: #0a0a1a;
-          border: 1px solid #FFD700;
-          border-radius: 12px;
+          border: 1px solid rgba(255,215,0,0.45);
+          border-radius: 14px;
           overflow: hidden;
           position: relative;
         }
         .q-header {
           position: absolute;
-          top: 10px; right: 10px;
-          background: rgba(255,215,0,0.9);
+          top: 12px; right: 12px;
+          background: rgba(255,215,0,0.92);
           color: #0a0a1a;
-          padding: 5px 15px;
-          border-radius: 20px;
-          font-weight: bold;
+          padding: 6px 18px;
+          border-radius: 22px;
+          font-weight: 800;
           z-index: 10;
-          font-size: 0.85rem;
+          font-size: 0.9rem;
+          letter-spacing: 0.3px;
+          box-shadow: 0 2px 10px rgba(255,215,0,0.35);
         }
         /* ربع الفيديو */
         .lecture-video { width: 100%; height: 100%; object-fit: cover; }
         .lecture-info {
           position: absolute;
-          bottom: 10px; left: 10px; right: 10px;
-          background: rgba(0,0,0,0.7);
+          bottom: 12px; left: 12px; right: 12px;
+          background: rgba(0,0,0,0.78);
+          backdrop-filter: blur(6px);
           color: white;
-          padding: 10px;
-          border-radius: 8px;
-          font-size: 0.9rem;
+          padding: 12px 16px;
+          border-radius: 12px;
+          font-size: 0.95rem;
+          border: 1px solid rgba(255,255,255,0.1);
+          line-height: 1.5;
         }
         /* ربع المجرة */
         .galaxy-view {
@@ -442,36 +447,42 @@ export default function ScreenPage() {
           50%      { box-shadow: 0 0 80px #FFD700; }
         }
         .star-label {
-          margin-top: 16px;
+          margin-top: 18px;
           color: white;
-          background: rgba(0,0,0,0.7);
-          padding: 6px 14px;
-          border-radius: 20px;
-          border: 1px solid #FFD700;
+          background: rgba(0,0,0,0.75);
+          padding: 8px 20px;
+          border-radius: 22px;
+          border: 1px solid rgba(255,215,0,0.6);
           white-space: nowrap;
-          font-size: 0.95rem;
+          font-size: 1.05rem;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+          box-shadow: 0 0 18px rgba(255,215,0,0.18);
         }
         /* ربع الأخبار */
         .news-list {
           height: calc(100% - 50px);
           overflow-y: auto;
-          padding: 48px 15px 10px 15px;
+          padding: 52px 16px 12px 16px;
           color: white;
           direction: rtl;
         }
-        .news-list::-webkit-scrollbar { width: 4px; }
-        .news-list::-webkit-scrollbar-thumb { background: #FFD70040; border-radius: 4px; }
+        .news-list::-webkit-scrollbar { width: 3px; }
+        .news-list::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 4px; }
         .news-list-item {
-          padding: 10px;
-          border-bottom: 1px solid rgba(255,215,0,0.2);
-          margin-bottom: 5px;
+          padding: 11px 8px;
+          border-bottom: 1px solid rgba(255,215,0,0.15);
+          margin-bottom: 2px;
+          transition: background 0.2s;
         }
-        .news-date { font-size: 0.75rem; color: #FFD700; opacity: 0.7; margin-bottom: 4px; }
+        .news-list-item:hover { background: rgba(255,215,0,0.04); border-radius: 8px; }
+        .news-date { font-size: 0.83rem; color: #FFD700; opacity: 0.75; margin-bottom: 4px; }
         .news-ticker {
           position: absolute;
           bottom: 0; left: 0; right: 0;
-          height: 50px;
-          background: rgba(0,0,0,0.85);
+          height: 48px;
+          background: rgba(0,0,0,0.88);
+          border-top: 1px solid rgba(255,215,0,0.25);
           display: flex; align-items: center;
           overflow: hidden;
         }
@@ -480,7 +491,7 @@ export default function ScreenPage() {
           animation: ticker 40s linear infinite;
           white-space: nowrap;
         }
-        .news-item { padding: 0 30px; color: #FFD700; font-size: 1rem; }
+        .news-item { padding: 0 32px; color: #FFD700; font-size: 1rem; font-weight: 600; }
         @keyframes ticker {
           0%   { transform: translateX(100vw); }
           100% { transform: translateX(-100%); }
@@ -488,25 +499,32 @@ export default function ScreenPage() {
         /* الشريط العلوي */
         .institution-info {
           position: fixed;
-          top: 10px; right: 10px;
-          background: rgba(0,0,0,0.75);
+          top: 12px; right: 12px;
+          background: rgba(0,0,0,0.82);
+          backdrop-filter: blur(8px);
           color: white;
-          padding: 8px 20px;
-          border-radius: 30px;
-          border: 1px solid #FFD700;
+          padding: 9px 22px;
+          border-radius: 32px;
+          border: 1px solid rgba(255,215,0,0.55);
           z-index: 100;
-          font-size: 0.9rem;
+          font-size: 0.95rem;
           direction: rtl;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         }
-        .institution-name { color: #FFD700; font-weight: bold; }
+        .institution-name { color: #FFD700; font-weight: 800; }
         /* مؤشر الحالة */
         .screen-status {
           position: fixed;
-          bottom: 10px; right: 10px;
+          bottom: 12px; right: 14px;
           color: #32CD32;
-          font-size: 0.85rem;
+          font-size: 0.88rem;
+          font-weight: 600;
           z-index: 100;
           direction: rtl;
+          background: rgba(0,0,0,0.65);
+          padding: 5px 14px;
+          border-radius: 20px;
+          border: 1px solid rgba(50,205,50,0.3);
         }
         .status-dot {
           display: inline-block;
@@ -528,27 +546,30 @@ export default function ScreenPage() {
         }
         /* شارة البث */
         .badge-live {
-          display: inline-flex; align-items: center; gap: 5px;
+          display: inline-flex; align-items: center; gap: 6px;
           background: #ff4444; color: white;
-          padding: 4px 12px; border-radius: 20px;
-          font-size: 0.78rem; font-weight: 700;
-          animation: none;
+          padding: 5px 14px; border-radius: 22px;
+          font-size: 0.88rem; font-weight: 800;
+          box-shadow: 0 2px 10px rgba(255,68,68,0.5);
         }
         .badge-live-dot {
-          width: 7px; height: 7px; background: white;
+          width: 8px; height: 8px; background: white;
           border-radius: 50%; animation: blink 1s infinite;
         }
         .badge-recorded {
-          display: inline-flex; align-items: center; gap: 5px;
-          background: rgba(78,141,156,0.9); color: white;
-          padding: 4px 12px; border-radius: 20px;
-          font-size: 0.78rem; font-weight: 600;
+          display: inline-flex; align-items: center; gap: 6px;
+          background: rgba(78,141,156,0.92); color: white;
+          padding: 5px 14px; border-radius: 22px;
+          font-size: 0.88rem; font-weight: 700;
+          box-shadow: 0 2px 10px rgba(78,141,156,0.4);
         }
         .viewer-count {
-          position: absolute; top: 44px; left: 10px;
-          background: rgba(0,0,0,0.6); color: white;
-          padding: 3px 10px; border-radius: 20px;
-          font-size: 0.75rem; z-index: 10;
+          position: absolute; top: 46px; left: 12px;
+          background: rgba(0,0,0,0.72); color: white;
+          padding: 4px 12px; border-radius: 20px;
+          font-size: 0.85rem; font-weight: 600; z-index: 10;
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(255,255,255,0.12);
         }
         .empty-state {
           display: flex; flex-direction: column;
@@ -613,13 +634,14 @@ export default function ScreenPage() {
         .ad-badge-pill {
           display: inline-flex;
           align-self: flex-start;
-          background: rgba(255,215,0,0.9);
+          background: rgba(255,215,0,0.92);
           color: #0a0a1a;
-          padding: 4px 14px;
+          padding: 5px 16px;
           border-radius: 30px;
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.5px;
+          font-size: 0.85rem;
+          font-weight: 800;
+          letter-spacing: 0.4px;
+          box-shadow: 0 2px 8px rgba(255,215,0,0.3);
         }
         .ad-no-image .ad-badge-pill { align-self: center; }
         .ad-star-deco {
@@ -633,34 +655,35 @@ export default function ScreenPage() {
         }
         .ad-full-title {
           margin: 0;
-          font-size: 1.35rem;
+          font-size: 1.4rem;
           font-weight: 800;
           color: white;
-          line-height: 1.35;
-          text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+          line-height: 1.4;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
         .ad-no-image .ad-full-title {
           color: #FFD700;
-          text-shadow: 0 0 20px rgba(255,215,0,0.4);
+          text-shadow: 0 0 24px rgba(255,215,0,0.45);
         }
         .ad-full-body {
           margin: 0;
-          font-size: 0.88rem;
-          color: rgba(255,255,255,0.82);
-          line-height: 1.55;
-          text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+          font-size: 0.93rem;
+          color: rgba(255,255,255,0.85);
+          line-height: 1.6;
+          text-shadow: 0 1px 5px rgba(0,0,0,0.6);
           display: -webkit-box;
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        .ad-no-image .ad-full-body { color: rgba(255,255,255,0.7); text-shadow: none; }
+        .ad-no-image .ad-full-body { color: rgba(255,255,255,0.72); text-shadow: none; }
         .ad-full-source {
-          font-size: 0.72rem;
-          color: rgba(255,215,0,0.7);
+          font-size: 0.85rem;
+          color: rgba(255,215,0,0.75);
           margin-top: 4px;
-          border-top: 1px solid rgba(255,215,0,0.2);
-          padding-top: 8px;
+          border-top: 1px solid rgba(255,215,0,0.22);
+          padding-top: 9px;
+          font-weight: 600;
         }
         .ad-full-placeholder {
           width: 100%; height: 100%;
@@ -677,23 +700,24 @@ export default function ScreenPage() {
         }
         /* عناصر الخبر في التدفق المدمج */
         .feed-item {
-          padding: 10px;
-          border-bottom: 1px solid rgba(255,215,0,0.15);
-          margin-bottom: 4px;
+          padding: 10px 6px;
+          border-bottom: 1px solid rgba(255,215,0,0.12);
+          margin-bottom: 2px;
         }
         .feed-top {
           display: flex;
           align-items: center;
-          gap: 6px;
-          margin-bottom: 3px;
+          gap: 7px;
+          margin-bottom: 4px;
         }
-        .feed-icon { font-size: 0.85rem; }
-        .feed-title { font-size: 0.9rem; color: white; }
+        .feed-icon { font-size: 0.9rem; }
+        .feed-title { font-size: 0.95rem; color: white; font-weight: 600; line-height: 1.4; }
         .feed-subtitle {
-          font-size: 0.75rem;
+          font-size: 0.83rem;
           color: #FFD700;
-          opacity: 0.8;
-          margin-top: 2px;
+          opacity: 0.82;
+          margin-top: 3px;
+          font-weight: 500;
         }
         .feed-event .feed-title { color: #87CEEB; }
         .feed-agreement .feed-title { color: #90EE90; }

@@ -135,39 +135,22 @@ export default function ServiceDetailsPage() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        جاري التحميل...
+      <div className="loading-page">
+        <div className="spinner" />
       </div>
     );
   }
 
   if (!service) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        الخدمة غير موجودة
+      <div className="loading-page">
+        <p style={{ color: COLORS.darkNavy }}>الخدمة غير موجودة</p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="page-wrap page-inner">
       {/* زر العودة */}
       <Link href="/services" style={{
         display: 'inline-flex',

@@ -86,7 +86,7 @@ export default function EventDetailPage() {
   const fmt = (d: string) => new Date(d).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.darkNavy, color: 'white', direction: 'rtl', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: COLORS.darkNavy, color: 'white', direction: 'rtl' }}>
 
       {/* Hero banner */}
       <div style={{

@@ -94,20 +94,9 @@ export default function ProviderRequestsPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="page-wrap page-inner">
       {/* الهيدر */}
-      <div style={{
-        background: COLORS.darkNavy,
-        borderRadius: 30,
-        padding: '40px',
-        marginBottom: 30,
-        color: 'white',
-      }}>
+      <div className="page-hero">
         <h1 style={{ fontSize: '2.5rem', marginBottom: 15 }}>
           ✦ طلبات الخدمات الواردة
         </h1>
@@ -115,13 +104,7 @@ export default function ProviderRequestsPage() {
       </div>
 
       {/* فلاتر */}
-      <div style={{
-        background: 'white',
-        borderRadius: 20,
-        padding: '20px',
-        marginBottom: 30,
-        boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-      }}>
+      <div className="filter-bar" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {['all', 'pending', 'accepted', 'in_progress', 'completed', 'cancelled'].map((status) => (
             <button
@@ -145,20 +128,8 @@ export default function ProviderRequestsPage() {
 
       {/* قائمة الطلبات */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 50 }}>
-          <div style={{
-            width: 50,
-            height: 50,
-            margin: '0 auto 20px',
-            border: `3px solid ${COLORS.teal}20`,
-            borderTopColor: COLORS.teal,
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-          }} />
-          <p>جاري تحميل الطلبات...</p>
-          <style>{`
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}</style>
+        <div className="loading-page" style={{ minHeight: 260 }}>
+          <div className="spinner" />
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 20 }}>
@@ -217,7 +188,7 @@ export default function ProviderRequestsPage() {
                   borderBottom: `1px solid ${COLORS.teal}20`,
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.8rem', color: '#666' }}>الميزانية المقترحة</div>
+                    <div style={{ fontSize: '0.85rem', color: '#666' }}>الميزانية المقترحة</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 600, color: COLORS.teal }}>
                       {request.budget} جنيه
                     </div>

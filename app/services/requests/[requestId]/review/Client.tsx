@@ -75,15 +75,7 @@ export default function ReviewPage() {
 
   if (success) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        direction: 'rtl',
-      }}>
+      <div className="loading-page">
         <div style={{
           background: 'white',
           borderRadius: 30,
@@ -108,31 +100,15 @@ export default function ReviewPage() {
           </div>
           <h2 style={{ color: COLORS.darkNavy, marginBottom: 10 }}>شكراً لتقييمك!</h2>
           <p style={{ color: COLORS.teal, marginBottom: 20 }}>تقييمك يساعد في تحسين الخدمات</p>
-          <div style={{
-            width: 40,
-            height: 40,
-            border: `3px solid ${COLORS.teal}`,
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '20px auto',
-          }} />
+          <div className="spinner" style={{ margin: '20px auto' }} />
           <p style={{ fontSize: '0.9rem', color: '#666' }}>جاري التحويل إلى صفحة الطلبات...</p>
-          <style>{`
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}</style>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="page-wrap page-inner">
       <div style={{
         background: COLORS.darkNavy,
         borderRadius: 30,
