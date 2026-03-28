@@ -45,8 +45,8 @@ export default function ScreenPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const masterGainRef = useRef<GainNode | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fadeFnRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // تخطي المصادقة للأدمن تلقائياً
   useEffect(() => {
@@ -232,42 +232,15 @@ export default function ScreenPage() {
     };
   }, [authenticated, institution]);
 
-  // ─── صوت الفضاء — يُهيَّأ عند أول نقرة (متطلب المتصفح) ─────────────────
+  // ─── صوت المجرة — يُهيَّأ عند أول تفاعل (متطلب المتصفح) ─────────────────
   useEffect(() => {
     const unlock = () => {
-      if (audioCtxRef.current) return;
+      if (audioRef.current) return;
       try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        audioCtxRef.current = ctx;
-        const master = ctx.createGain();
-        master.gain.setValueAtTime(0, ctx.currentTime);
-        master.connect(ctx.destination);
-        masterGainRef.current = master;
-        // استئناف السياق فوراً بعد الإنشاء (بعض المتصفحات تُوقفه تلقائياً)
-        ctx.resume().catch(() => {});
-        // White noise — space static
-        const bufSz = ctx.sampleRate * 2;
-        const buf = ctx.createBuffer(1, bufSz, ctx.sampleRate);
-        const ch = buf.getChannelData(0);
-        for (let i = 0; i < bufSz; i++) ch[i] = (Math.random() * 2 - 1) * 0.35;
-        const noise = ctx.createBufferSource();
-        noise.buffer = buf; noise.loop = true;
-        const lp = ctx.createBiquadFilter();
-        lp.type = 'lowpass'; lp.frequency.value = 280;
-        const ng = ctx.createGain(); ng.gain.value = 0.1;
-        noise.connect(lp); lp.connect(ng); ng.connect(master);
-        noise.start();
-        // Deep space drones
-        [36, 54, 72, 108].forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          osc.type = 'sine'; osc.frequency.value = freq;
-          const lfo = ctx.createOscillator();
-          lfo.type = 'sine'; lfo.frequency.value = 0.07 + i * 0.04;
-          const lg = ctx.createGain(); lg.gain.value = 0.5;
-          lfo.connect(lg); lg.connect(osc.frequency); lfo.start();
-          const og = ctx.createGain(); og.gain.value = 0.065;
-          osc.connect(og); og.connect(master); osc.start();
-        });
+        const audio = new Audio('/sound/virtualzero-whoosh-sci-fi-portal-hd-374800.mp3');
+        audio.loop = true;
+        audio.volume = 0;
+        audioRef.current = audio;
       } catch (_) {}
     };
     document.addEventListener('click', unlock, { once: true });
@@ -275,33 +248,41 @@ export default function ScreenPage() {
     return () => {
       document.removeEventListener('click', unlock);
       document.removeEventListener('touchstart', unlock);
+      if (fadeFnRef.current) clearInterval(fadeFnRef.current);
+      audioRef.current?.pause();
     };
   }, []);
 
   // رفع/خفض الصوت عند دخول/خروج ربع المجرة
+  const fadeTo = (target: number, onDone?: () => void) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (fadeFnRef.current) clearInterval(fadeFnRef.current);
+    const step = 0.02;
+    const interval = 60; // ms — ~2 ثانية للوصول من 0 إلى 1
+    fadeFnRef.current = setInterval(() => {
+      const cur = audio.volume;
+      if (Math.abs(cur - target) <= step) {
+        audio.volume = target;
+        clearInterval(fadeFnRef.current);
+        onDone?.();
+      } else {
+        audio.volume = cur < target ? Math.min(cur + step, target) : Math.max(cur - step, target);
+      }
+    }, interval);
+  };
+
   const startSpaceSound = () => {
-    const ctx = audioCtxRef.current;
-    const master = masterGainRef.current;
-    if (!ctx || !master) return;
-    const ramp = () => {
-      master.gain.cancelScheduledValues(ctx.currentTime);
-      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-      master.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 2);
-    };
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(ramp).catch(() => {});
-    } else {
-      ramp();
-    }
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) audio.play().catch(() => {});
+    fadeTo(0.6);
   };
 
   const stopSpaceSound = () => {
-    const ctx = audioCtxRef.current;
-    const master = masterGainRef.current;
-    if (!ctx || !master) return;
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
+    const audio = audioRef.current;
+    if (!audio) return;
+    fadeTo(0, () => audio.pause());
   };
 
   // ─── شاشة تسجيل الدخول ───────────────────────────────────────────────────
