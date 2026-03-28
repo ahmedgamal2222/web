@@ -403,7 +403,7 @@ function InstitutionCard({ institution }: { institution: Institution }) {
             color: COLORS.darkNavy,
             padding: '5px 12px',
             borderRadius: 30,
-            fontSize: '0.7rem',
+            fontSize: '0.82rem',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
@@ -458,22 +458,22 @@ function InstitutionCard({ institution }: { institution: Institution }) {
                 flexWrap: 'wrap',
               }}>
                 <span style={{
-                  background: `${typeStyle.color}20`,
-                  color: typeStyle.color,
-                  padding: '4px 12px',
-                  borderRadius: 30,
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                }}>
-                  {typeStyle.label}
-                </span>
-                {institution.is_verified && (
+                    background: `${typeStyle.color}20`,
+                    color: typeStyle.color,
+                    padding: '4px 12px',
+                    borderRadius: 30,
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                  }}>
+                    {typeStyle.label}
+                  </span>
+                  {institution.is_verified && (
                   <span style={{
                     background: COLORS.softGreen,
                     color: 'white',
                     padding: '4px 12px',
                     borderRadius: 30,
-                    fontSize: '0.7rem',
+                    fontSize: '0.82rem',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
@@ -567,7 +567,7 @@ function StatItem({ icon, value, label }: { icon: string; value: number; label: 
     <div style={{ textAlign: 'center' }}>
       <div style={{ fontSize: '1.2rem', marginBottom: 4 }}>{icon}</div>
       <div style={{ fontSize: '1rem', fontWeight: 700, color: COLORS.darkNavy }}>{value}</div>
-      <div style={{ fontSize: '0.6rem', color: COLORS.teal }}>{label}</div>
+      <div style={{ fontSize: '0.8rem', color: COLORS.teal }}>{label}</div>
     </div>
   );
 }
@@ -764,40 +764,17 @@ export default function InstitutionsPage() {
     currentPage * itemsPerPage
   );
 
-  // شاشة التحميل
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint} 0%, white 100%)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: 80,
-            height: 80,
-            border: `5px solid ${COLORS.teal}`,
-            borderTopColor: COLORS.softGreen,
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            marginBottom: 20,
-          }} />
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-          <h2 style={{ color: COLORS.darkNavy }}>جاري تحميل المؤسسات...</h2>
-        </div>
+      <div className="loading-page">
+        <div className="spinner" style={{ width: 56, height: 56, borderWidth: 4 }} />
+        <h3 style={{ color: '#281C59', margin: '8px 0 0' }}>جاري تحميل المؤسسات...</h3>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20 0%, white 100%)`,
-      direction: 'rtl',
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    }}>
+    <div className="page-wrap" style={{ direction: 'rtl' }}>
       {/* الهيدر */}
       <PageHeader />
 
@@ -869,54 +846,31 @@ export default function InstitutionsPage() {
 
         {/* أزرار التنقل بين الصفحات */}
         {totalPages > 1 && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 10,
-            marginTop: 40,
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 40, alignItems: 'center' }}>
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              style={{
-                padding: '12px 25px',
-                borderRadius: 40,
-                border: `2px solid ${COLORS.teal}`,
-                background: currentPage === 1 ? 'transparent' : COLORS.teal,
-                color: currentPage === 1 ? COLORS.teal : 'white',
-                cursor: currentPage === 1 ? 'default' : 'pointer',
-                fontSize: '1rem',
-                fontWeight: 600,
-                transition: 'all 0.3s',
-              }}
+              className="btn-outline btn-sm"
+              style={{ borderRadius: 40 }}
             >
               ← السابق
             </button>
-            
             <span style={{
-              padding: '12px 25px',
-              background: COLORS.lightMint,
+              padding: '10px 22px',
+              background: 'white',
               borderRadius: 40,
-              color: COLORS.darkNavy,
-              fontWeight: 600,
+              color: '#281C59',
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              boxShadow: '0 2px 8px rgba(40,28,89,0.1)',
             }}>
               {currentPage} / {totalPages}
             </span>
-            
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              style={{
-                padding: '12px 25px',
-                borderRadius: 40,
-                border: `2px solid ${COLORS.teal}`,
-                background: currentPage === totalPages ? 'transparent' : COLORS.teal,
-                color: currentPage === totalPages ? COLORS.teal : 'white',
-                cursor: currentPage === totalPages ? 'default' : 'pointer',
-                fontSize: '1rem',
-                fontWeight: 600,
-                transition: 'all 0.3s',
-              }}
+              className="btn-outline btn-sm"
+              style={{ borderRadius: 40 }}
             >
               التالي →
             </button>

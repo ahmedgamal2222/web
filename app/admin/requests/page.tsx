@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -131,7 +131,7 @@ function RequestModal({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{
-              padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem',
+              padding: '3px 12px', borderRadius: 20, fontSize: '0.85rem',
               background: m.bg, color: m.color, fontWeight: 600,
             }}>
               {m.label}
@@ -428,7 +428,7 @@ export default function AdminRequestsPage() {
               <div style={{ fontSize: '1.8rem', fontWeight: 700, color: card.color }}>
                 {counts[card.key]}
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 4 }}>{card.label}</div>
+              <div style={{ fontSize: '0.85rem', color: '#888', marginTop: 4 }}>{card.label}</div>
             </button>
           ))}
         </div>
@@ -477,14 +477,8 @@ export default function AdminRequestsPage() {
 
         {/* ── table ── */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#555' }}>
-            <div style={{
-              width: 42, height: 42, margin: '0 auto 16px',
-              border: '3px solid rgba(155,176,255,0.15)',
-              borderTopColor: '#9BB0FF', borderRadius: '50%',
-              animation: 'spin 0.9s linear infinite',
-            }} />
-            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: '#9BB0FF', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div className="spinner" style={{ borderTopColor: '#9BB0FF', borderColor: 'rgba(155,176,255,0.15)' }} />
             جاري التحميل…
           </div>
         ) : filtered.length === 0 ? (
@@ -507,7 +501,7 @@ export default function AdminRequestsPage() {
               gridTemplateColumns: '1fr 120px 120px 120px 100px 90px',
               padding: '12px 20px',
               borderBottom: '1px solid rgba(255,255,255,0.05)',
-              fontSize: '0.75rem', color: '#666',
+              fontSize: '0.83rem', color: '#666',
               textTransform: 'uppercase', letterSpacing: '0.05em',
             }}>
               <span>المؤسسة</span>
@@ -542,7 +536,7 @@ export default function AdminRequestsPage() {
                       {req.name_ar || req.name}
                     </div>
                     {req.city && (
-                      <div style={{ fontSize: '0.75rem', color: '#555', marginTop: 2 }}>
+                      <div style={{ fontSize: '0.83rem', color: '#555', marginTop: 2 }}>
                         {req.city}
                       </div>
                     )}
@@ -552,14 +546,14 @@ export default function AdminRequestsPage() {
                   </span>
                   <span style={{ fontSize: '0.82rem', color: '#999' }}>{req.country}</span>
                   <span style={{
-                    fontSize: '0.78rem', color: '#666',
+                    fontSize: '0.85rem', color: '#666',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{req.email}</span>
-                  <span style={{ fontSize: '0.78rem', color: '#555' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#555' }}>
                     {fmtDate(req.submitted_at)}
                   </span>
                   <span style={{
-                    fontSize: '0.75rem', fontWeight: 600,
+                    fontSize: '0.83rem', fontWeight: 600,
                     padding: '3px 10px', borderRadius: 20,
                     background: m.bg, color: m.color,
                     whiteSpace: 'nowrap', textAlign: 'center',
@@ -574,7 +568,7 @@ export default function AdminRequestsPage() {
 
         {/* result count */}
         {!loading && filtered.length > 0 && (
-          <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.78rem', color: '#444' }}>
+          <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.85rem', color: '#444' }}>
             عرض {filtered.length} من {requests.length} طلب
           </div>
         )}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Institution, Agreement } from '@/lib/types';
@@ -315,7 +315,7 @@ function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string
   ];
   return (
     <div style={{ background: 'white', borderRadius: 22, padding: '20px 14px', boxShadow: `0 5px 24px ${COLORS.darkNavy}18`, border: `1px solid ${COLORS.softGreen}40` }}>
-      <div style={{ fontSize: '0.72rem', color: COLORS.teal, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 14, padding: '0 6px', textTransform: 'uppercase' }}>القائمة</div>
+      <div style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 14, padding: '0 6px', textTransform: 'uppercase' }}>القائمة</div>
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {navItems.map(item => (
           <a key={item.href} href={item.href} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, textDecoration: 'none', color: COLORS.darkNavy, fontSize: '0.9rem', fontWeight: 500, transition: 'all 0.2s', border: '1px solid transparent' }} onMouseEnter={e => { e.currentTarget.style.background = `${COLORS.teal}12`; e.currentTarget.style.borderColor = `${COLORS.teal}30`; e.currentTarget.style.color = COLORS.teal; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = COLORS.darkNavy; }}>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -95,7 +95,7 @@ function GalaxyLogo() {
           المجرة الحضارية
         </div>
         <div className="logo-subtitle" style={{
-          fontSize: '0.58rem', color: '#4E8D9C', letterSpacing: '0.3em',
+          fontSize: '0.82rem', color: '#4E8D9C', letterSpacing: '0.3em',
           marginTop: 5, fontWeight: 700, textTransform: 'uppercase' as const, opacity: 0.9,
         }}>
           Civilization Galaxy
@@ -299,7 +299,7 @@ function TopBar({
             color: listOpen ? '#85C79A' : '#aaa',
             padding: '2px 9px',
             borderRadius: 20,
-            fontSize: '0.72rem',
+            fontSize: '0.82rem',
             fontWeight: 700,
           }}>
             {starCount}
@@ -493,7 +493,7 @@ function StatsBar({ data }: { data: GalaxyData }) {
             }}>{s.value}</span>
           </div>
           <div className="stat-label" style={{
-            fontSize: '0.62rem', color: '#6a7f90',
+            fontSize: '0.82rem', color: '#6a7f90',
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
           }}>{s.label}</div>
         </div>
@@ -573,17 +573,17 @@ function InstitutionAgreements({
         borderRadius: 12,
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.7rem', color: '#888' }}>الإجمالي</div>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>الإجمالي</div>
           <div style={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.teal }}>{agreements.length}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.7rem', color: '#888' }}>النشطة</div>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>النشطة</div>
           <div style={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.softGreen }}>
             {agreements.filter(a => a.status === 'active').length}
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.7rem', color: '#888' }}>المكتملة</div>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>المكتملة</div>
           <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#FFC107' }}>
             {agreements.filter(a => a.status === 'completed').length}
           </div>
@@ -644,7 +644,7 @@ function InstitutionAgreements({
                   <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff', marginBottom: 4 }}>
                     {agreement.title || `اتفاقية ${TYPE_LABELS[agreement.type] || agreement.type}`}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#888', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '0.83rem', color: '#888', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     <span style={{ color: COLORS.lightMint }}>{agreement.from_name_ar || agreement.from_name}</span>
                     <span style={{ color: COLORS.teal }}>←</span>
                     <span style={{ color: COLORS.softGreen }}>{agreement.to_name_ar || agreement.to_name}</span>
@@ -652,7 +652,7 @@ function InstitutionAgreements({
                   
                   {/* تاريخ التوقيع إذا وجد */}
                   {agreement.signed_date && (
-                    <div style={{ fontSize: '0.65rem', color: '#666', marginTop: 4 }}>
+                    <div style={{ fontSize: '0.82rem', color: '#666', marginTop: 4 }}>
                       📅 {new Date(agreement.signed_date).toLocaleDateString('ar-EG')}
                     </div>
                   )}
@@ -705,7 +705,7 @@ function StatusBadge({
         color: activeColor,
         padding: '2px 8px',
         borderRadius: 20,
-        fontSize: '0.7rem',
+        fontSize: '0.85rem',
       }}>
         {activeText}
       </span>
@@ -718,7 +718,7 @@ function StatusBadge({
       color: '#9E9E9E',
       padding: '2px 8px',
       borderRadius: 20,
-      fontSize: '0.7rem',
+      fontSize: '0.85rem',
     }}>
       {inactiveText}
     </span>
@@ -838,7 +838,7 @@ function InstitutionsPanel({
                 'جميع المؤسسات'
               }
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
+            <div style={{ fontSize: '0.83rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
               {showAgreements && selectedStar ?
                 `${selectedStar.agreements?.length || 0} اتفاقية` :
                 `${filtered.length} من أصل ${stars.length} مؤسسة`
@@ -1019,7 +1019,7 @@ function InstitutionsPanel({
                     style={{
                       padding: '5px 12px',
                       borderRadius: 30,
-                      fontSize: '0.75rem',
+                      fontSize: '0.83rem',
                       border: `1px solid ${activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : 'rgba(255,255,255,0.1)'}`,
                       background: activeType === t ? `${TYPE_COLORS[t] || COLORS.teal}20` : 'transparent',
                       color: activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : '#888',
@@ -1102,7 +1102,7 @@ function InstitutionsPanel({
                         borderRadius: '50%',
                         width: 18,
                         height: 18,
-                        fontSize: '0.6rem',
+                        fontSize: '0.82rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1121,7 +1121,7 @@ function InstitutionsPanel({
                     }}>
                       {star.name_ar || star.name}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                    <div style={{ fontSize: '0.83rem', color: '#888' }}>
                       {star.city}، {star.country}
                     </div>
                     
@@ -1150,7 +1150,7 @@ function InstitutionsPanel({
                           color: COLORS.teal,
                           padding: '2px 8px',
                           borderRadius: 20,
-                          fontSize: '0.7rem',
+                          fontSize: '0.85rem',
                         }}>
                           🔗 {getActiveAgreementsCount(star)} نشطة
                         </span>
@@ -1160,7 +1160,7 @@ function InstitutionsPanel({
                   
                   {/* نوع المؤسسة */}
                   <span style={{
-                    fontSize: '0.7rem', padding: '4px 10px',
+                    fontSize: '0.85rem', padding: '4px 10px',
                     borderRadius: 20,
                     background: `${TYPE_COLORS[star.type] || COLORS.teal}20`,
                     color: TYPE_COLORS[star.type] || COLORS.teal,

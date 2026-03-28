@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -183,7 +183,7 @@ export default function AdminLecturesPage() {
   }, [lectures.map(l => `${l.id}:${l.cf_video_id}`).join(',')]);
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', padding: 20 }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
       <style>{`
         .stream-url-input {
           background: rgba(0,0,0,0.04);
@@ -232,7 +232,7 @@ export default function AdminLecturesPage() {
         ].map(s => (
           <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '18px 20px', boxShadow: `0 4px 14px ${C.darkNavy}15`, border: `1px solid ${s.color}30` }}>
             <div style={{ fontSize: '1.8rem', marginBottom: 4 }}>{s.icon}</div>
-            <div style={{ fontSize: '0.78rem', color: C.teal }}>{s.label}</div>
+            <div style={{ fontSize: '0.85rem', color: C.teal }}>{s.label}</div>
             <div style={{ fontSize: '2rem', fontWeight: 700, color: s.color }}>{s.value}</div>
           </div>
         ))}
@@ -327,13 +327,13 @@ export default function AdminLecturesPage() {
                     const icons: Record<string, string> = { youtube: '▶ YouTube', vimeo: '● Vimeo', dailymotion: '◉ Dailymotion' };
                     return p ? (
                       <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ background: `${C.teal}15`, color: C.teal, padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>
+                        <span style={{ background: `${C.teal}15`, color: C.teal, padding: '3px 10px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 600 }}>
                           ✅ {icons[p.platform] || p.platform} — تم التعرف على المنصة
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: '#888' }}>سيتم تحويل الرابط تلقائياً</span>
+                        <span style={{ fontSize: '0.83rem', color: '#888' }}>سيتم تحويل الرابط تلقائياً</span>
                       </div>
                     ) : (
-                      <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#e57373' }}>
+                      <div style={{ marginTop: 6, fontSize: '0.83rem', color: '#e57373' }}>
                         ⚠️ لم يتم التعرف على المنصة — يُقبل روابط YouTube أو Vimeo أو Dailymotion
                       </div>
                     );
@@ -409,7 +409,7 @@ export default function AdminLecturesPage() {
               { label: 'رابط Iframe للتضمين', value: cfModal.iframe_url },
             ].map(({ label, value }) => (
               <div key={label} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: '0.78rem', color: C.softGreen, marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: '0.85rem', color: C.softGreen, marginBottom: 4 }}>{label}</div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
                     readOnly
@@ -544,30 +544,30 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
           <p style={{ margin: '0 0 8px', fontSize: '0.88rem', color: '#666', lineHeight: 1.5 }}>{lecture.description}</p>
         )}
         {isLive && lecture.started_at && (
-          <div style={{ fontSize: '0.78rem', color: C.live, marginBottom: 4 }}>
+          <div style={{ fontSize: '0.85rem', color: C.live, marginBottom: 4 }}>
             🕐 بدأ: {new Date(lecture.started_at).toLocaleString('ar-EG')}
             {lecture.viewer_count !== undefined && ` · 👁️ ${lecture.viewer_count} مشاهد`}
           </div>
         )}
         {!isLive && lecture.ended_at && (
-          <div style={{ fontSize: '0.78rem', color: '#999', marginBottom: 4 }}>
+          <div style={{ fontSize: '0.85rem', color: '#999', marginBottom: 4 }}>
             انتهى: {new Date(lecture.ended_at).toLocaleString('ar-EG')}
           </div>
         )}
 
         {/* CF Stream Info */}
         {lecture.cf_live_input_id && (
-          <div style={{ fontSize: '0.78rem', color: C.teal, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: '0.85rem', color: C.teal, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span>☁️ CF Stream:</span>
             <code style={{ background: `${C.teal}10`, padding: '1px 6px', borderRadius: 4 }}>{lecture.cf_live_input_id.slice(0, 16)}…</code>
             {!isLive && !lecture.cf_video_id && (
-              <span style={{ background: '#fff3cd', color: '#856404', padding: '1px 8px', borderRadius: 10, fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ background: '#fff3cd', color: '#856404', padding: '1px 8px', borderRadius: 10, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
                 جاري معالجة التسجيل...
               </span>
             )}
             {lecture.cf_video_id && (
-              <span style={{ background: '#d4edda', color: '#155724', padding: '1px 8px', borderRadius: 10, fontSize: '0.72rem' }}>
+              <span style={{ background: '#d4edda', color: '#155724', padding: '1px 8px', borderRadius: 10, fontSize: '0.82rem' }}>
                 ✅ تسجيل جاهز
               </span>
             )}
@@ -586,7 +586,7 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
             const ext = parseExternalVideoUrl(editUrl);
             const labels: Record<string, string> = { youtube: 'YouTube', vimeo: 'Vimeo', dailymotion: 'Dailymotion' };
             return ext ? (
-              <span style={{ fontSize: '0.72rem', color: C.teal, background: `${C.teal}10`, padding: '2px 8px', borderRadius: 10, flexShrink: 0 }}>
+              <span style={{ fontSize: '0.82rem', color: C.teal, background: `${C.teal}10`, padding: '2px 8px', borderRadius: 10, flexShrink: 0 }}>
                 ✅ {labels[ext.platform]}
               </span>
             ) : null;
@@ -611,7 +611,7 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
                 <div style={{ flex: 1, height: 6, background: `${C.teal}20`, borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ width: `${uploadProgress}%`, height: '100%', background: C.teal, transition: 'width 0.3s', borderRadius: 3 }} />
                 </div>
-                <span style={{ fontSize: '0.78rem', color: C.teal }}>{uploadProgress}%</span>
+                <span style={{ fontSize: '0.85rem', color: C.teal }}>{uploadProgress}%</span>
               </div>
             ) : (
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: uploadLoading ? 'default' : 'pointer', opacity: uploadLoading ? 0.6 : 1 }}>
@@ -663,7 +663,7 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
             {isLoading ? '...' : '⏹ إيقاف البث'}
           </button>
         )}
-        <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center' }}>
+        <div style={{ fontSize: '0.83rem', color: '#aaa', textAlign: 'center' }}>
           #{lecture.id} · {new Date(lecture.created_at).toLocaleDateString('ar-EG')}
         </div>
       </div>
@@ -677,7 +677,7 @@ function StreamBadge({ isLive, streamType }: { isLive: boolean; streamType?: str
     return (
       <span style={{
         background: C.live, color: 'white', padding: '2px 10px',
-        borderRadius: 20, fontSize: '0.72rem', fontWeight: 700,
+        borderRadius: 20, fontSize: '0.82rem', fontWeight: 700,
         display: 'inline-flex', alignItems: 'center', gap: 4,
         animation: 'none',
       }}>
@@ -688,20 +688,20 @@ function StreamBadge({ isLive, streamType }: { isLive: boolean; streamType?: str
   }
   if (streamType === 'recorded') {
     return (
-      <span style={{ background: `${C.teal}20`, color: C.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
+      <span style={{ background: `${C.teal}20`, color: C.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600 }}>
         🎬 مسجّل
       </span>
     );
   }
   if (streamType === 'external') {
     return (
-      <span style={{ background: '#ede7f620', color: '#7b1fa2', padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
+      <span style={{ background: '#ede7f620', color: '#7b1fa2', padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600 }}>
         🎥 خارجي
       </span>
     );
   }
   return (
-    <span style={{ background: `${C.softGreen}20`, color: C.softGreen, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
+    <span style={{ background: `${C.softGreen}20`, color: C.softGreen, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600 }}>
       📅 مجدول
     </span>
   );

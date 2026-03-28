@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -73,7 +73,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 const StatusBadge = ({ s }: { s: string }) => {
   const st = STATUS_LABELS[s] || { label: s, color: '#999' };
   return (
-    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, background: `${st.color}20`, color: st.color, border: `1px solid ${st.color}40` }}>
+    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 700, background: `${st.color}20`, color: st.color, border: `1px solid ${st.color}40` }}>
       {st.label}
     </span>
   );
@@ -357,7 +357,7 @@ export default function InstitutionAgreementsPage() {
               color: activeTab === tab.key ? 'white' : C.teal,
             }}>
               {tab.label}
-              <span style={{ marginRight: 6, background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : `${C.teal}18`, padding: '1px 8px', borderRadius: 10, fontSize: '0.76rem' }}>
+              <span style={{ marginRight: 6, background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : `${C.teal}18`, padding: '1px 8px', borderRadius: 10, fontSize: '0.84rem' }}>
                 {tab.count}
               </span>
             </button>
@@ -386,7 +386,7 @@ export default function InstitutionAgreementsPage() {
           ].map(s => (
             <div key={s.label} style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: `0 3px 12px ${C.darkNavy}10`, border: `1px solid ${s.color}25` }}>
               <div style={{ fontSize: '1.4rem', marginBottom: 2 }}>{s.icon}</div>
-              <div style={{ fontSize: '0.75rem', color: C.teal }}>{s.label}</div>
+              <div style={{ fontSize: '0.83rem', color: C.teal }}>{s.label}</div>
               <div style={{ fontSize: '1.7rem', fontWeight: 700, color: s.color }}>{s.value}</div>
             </div>
           ))}
@@ -438,7 +438,7 @@ export default function InstitutionAgreementsPage() {
                   {/* البنود */}
                   {terms.length > 0 && (
                     <div style={{ marginBottom: 10 }}>
-                      <span style={{ fontSize: '0.78rem', color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
+                      <span style={{ fontSize: '0.83rem', color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
                       <span style={{ fontSize: '0.82rem', color: '#666' }}>{terms[0].text}{terms.length > 1 ? ` ... و${terms.length - 1} أخرى` : ''}</span>
                     </div>
                   )}
@@ -450,7 +450,7 @@ export default function InstitutionAgreementsPage() {
                         { name: ag.from_name_ar || ag.from_name, signed: !!ag.signature_from },
                         { name: ag.to_name_ar   || ag.to_name,   signed: !!ag.signature_to   },
                       ].map((p, i) => (
-                        <div key={i} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: p.signed ? `${C.success}12` : '#f9f9f9', border: `1px solid ${p.signed ? C.success : '#e0e0e0'}`, fontSize: '0.78rem', textAlign: 'center', color: p.signed ? C.success : '#999' }}>
+                        <div key={i} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: p.signed ? `${C.success}12` : '#f9f9f9', border: `1px solid ${p.signed ? C.success : '#e0e0e0'}`, fontSize: '0.83rem', textAlign: 'center', color: p.signed ? C.success : '#999' }}>
                           {p.name}: {p.signed ? '✓ وقّع' : 'لم يوقّع'}
                         </div>
                       ))}
@@ -493,7 +493,7 @@ export default function InstitutionAgreementsPage() {
                     )}
                   </div>
 
-                  <div style={{ marginTop: 8, fontSize: '0.72rem', color: '#ccc' }}>
+                  <div style={{ marginTop: 8, fontSize: '0.82rem', color: '#ccc' }}>
                     {new Date(ag.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </div>
                 </div>
@@ -516,7 +516,7 @@ export default function InstitutionAgreementsPage() {
             ].map(s => (
               <div key={s.label} style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: `0 3px 12px ${C.darkNavy}10`, border: `1px solid ${s.color}25` }}>
                 <div style={{ fontSize: '1.3rem', marginBottom: 2 }}>{s.icon}</div>
-                <div style={{ fontSize: '0.75rem', color: C.teal }}>{s.label}</div>
+                <div style={{ fontSize: '0.83rem', color: C.teal }}>{s.label}</div>
                 <div style={{ fontSize: '1.6rem', fontWeight: 700, color: s.color }}>{s.value}</div>
               </div>
             ))}
@@ -559,7 +559,7 @@ export default function InstitutionAgreementsPage() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: '0.75rem', color: '#aaa', padding: '3px 10px', background: '#f5f5f5', borderRadius: 10 }}>{typeLabel}</span>
+                        <span style={{ fontSize: '0.83rem', color: '#aaa', padding: '3px 10px', background: '#f5f5f5', borderRadius: 10 }}>{typeLabel}</span>
                         <StatusBadge s={ag.status} />
                       </div>
                     </div>
@@ -570,7 +570,7 @@ export default function InstitutionAgreementsPage() {
 
                     {terms.length > 0 && (
                       <div style={{ marginBottom: 10 }}>
-                        <span style={{ fontSize: '0.78rem', color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
+                        <span style={{ fontSize: '0.83rem', color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
                         <span style={{ fontSize: '0.82rem', color: '#666' }}>{terms[0].text}{terms.length > 1 ? ` ... و${terms.length - 1} أخرى` : ''}</span>
                       </div>
                     )}
@@ -582,7 +582,7 @@ export default function InstitutionAgreementsPage() {
                           { name: ag.from_name_ar || ag.from_name, signed: !!ag.signature_from },
                           { name: ag.to_name_ar   || ag.to_name,   signed: !!ag.signature_to   },
                         ].map((p, i) => (
-                          <div key={i} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: p.signed ? `${C.success}12` : '#f9f9f9', border: `1px solid ${p.signed ? C.success : '#e0e0e0'}`, fontSize: '0.78rem', textAlign: 'center', color: p.signed ? C.success : '#999' }}>
+                          <div key={i} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: p.signed ? `${C.success}12` : '#f9f9f9', border: `1px solid ${p.signed ? C.success : '#e0e0e0'}`, fontSize: '0.83rem', textAlign: 'center', color: p.signed ? C.success : '#999' }}>
                             {p.name}: {p.signed ? '✓ وقّع' : 'لم يوقّع'}
                           </div>
                         ))}
@@ -598,7 +598,7 @@ export default function InstitutionAgreementsPage() {
                           ⬇ PDF
                         </button>
                       )}
-                      <span style={{ marginRight: 'auto', fontSize: '0.72rem', color: '#ccc' }}>
+                      <span style={{ marginRight: 'auto', fontSize: '0.82rem', color: '#ccc' }}>
                         {new Date(ag.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </span>
                     </div>
@@ -663,7 +663,7 @@ export default function InstitutionAgreementsPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: C.teal }}>البنود والشروط</label>
-                  <button type="button" onClick={() => setCreateTerms([...createTerms, { text: '' }])} style={{ padding: '3px 10px', background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}30`, borderRadius: 12, cursor: 'pointer', fontSize: '0.78rem' }}>+ بند</button>
+                  <button type="button" onClick={() => setCreateTerms([...createTerms, { text: '' }])} style={{ padding: '3px 10px', background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}30`, borderRadius: 12, cursor: 'pointer', fontSize: '0.83rem' }}>+ بند</button>
                 </div>
                 {createTerms.map((t, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
@@ -776,7 +776,7 @@ export default function InstitutionAgreementsPage() {
                 ...(detailModal.end_date   ? [{ label: 'إلى', value: detailModal.end_date }] : []),
               ].map((item, i) => (
                 <div key={i} style={{ background: '#f8f9ff', borderRadius: 10, padding: '10px 12px' }}>
-                  <div style={{ fontSize: '0.72rem', color: C.teal, marginBottom: 2 }}>{item.label}</div>
+                  <div style={{ fontSize: '0.82rem', color: C.teal, marginBottom: 2 }}>{item.label}</div>
                   <div style={{ fontWeight: 600, color: C.darkNavy, fontSize: '0.88rem' }}>{item.value}</div>
                 </div>
               ))}
@@ -806,10 +806,10 @@ export default function InstitutionAgreementsPage() {
                     { label: detailModal.to_name_ar   || detailModal.to_name   || 'الطرف الثاني', sig: detailModal.signature_to, date: detailModal.signed_at_to },
                   ].map((s, i) => (
                     <div key={i} style={{ border: `1px solid ${s.sig ? C.success : '#e0e0e0'}`, borderRadius: 10, padding: 10, textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: s.sig ? C.success : '#999', marginBottom: 6 }}>{s.label}</div>
+                      <div style={{ fontSize: '0.83rem', fontWeight: 600, color: s.sig ? C.success : '#999', marginBottom: 6 }}>{s.label}</div>
                       {s.sig
                         ? <img src={s.sig} alt="توقيع" style={{ maxWidth: '100%', height: 65, objectFit: 'contain' }} />
-                        : <div style={{ padding: '16px 0', color: '#ccc', fontSize: '0.78rem' }}>لم يوقّع بعد</div>
+                        : <div style={{ padding: '16px 0', color: '#ccc', fontSize: '0.83rem' }}>لم يوقّع بعد</div>
                       }
                       {s.sig && s.date && <div style={{ fontSize: '0.7rem', color: '#aaa', marginTop: 3 }}>{new Date(s.date).toLocaleDateString('ar-SA')}</div>}
                     </div>

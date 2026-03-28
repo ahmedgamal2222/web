@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -266,7 +266,7 @@ function BroadcastContent() {
       <div style={{ background: C.darkNavy, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {status === 'live' && (
-            <span style={{ background: C.live, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ background: C.live, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{ width: 7, height: 7, background: 'white', borderRadius: '50%', display: 'inline-block', animation: 'pulse 1s infinite' }} />
               LIVE · {fmtDuration(duration)}
             </span>
@@ -390,7 +390,7 @@ function BroadcastContent() {
 
           {/* Status card */}
           <div style={{ background: status === 'live' ? `${C.live}15` : 'rgba(255,255,255,0.04)', border: `1px solid ${status === 'live' ? C.live + '40' : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: 16 }}>
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>الحالة</div>
+            <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>الحالة</div>
             <div style={{ fontWeight: 700, fontSize: '1.1rem', color: status === 'live' ? C.live : status === 'ready' ? C.softGreen : 'rgba(255,255,255,0.6)' }}>
               {status === 'idle' && '⚫ في انتظار الكاميرا'}
               {status === 'requesting' && '🟡 طلب الأذونات...'}
@@ -404,7 +404,7 @@ function BroadcastContent() {
           {/* Upload status after broadcast */}
           {uploadStatus !== 'idle' && (
             <div style={{ background: uploadStatus === 'done' ? 'rgba(133,199,154,0.1)' : uploadStatus === 'error' ? 'rgba(255,68,68,0.1)' : 'rgba(78,141,156,0.1)', border: `1px solid ${uploadStatus === 'done' ? C.softGreen + '50' : uploadStatus === 'error' ? '#ff444450' : C.teal + '50'}`, borderRadius: 14, padding: 14 }}>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>حفظ التسجيل</div>
+              <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>حفظ التسجيل</div>
               {uploadStatus === 'uploading' && (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)' }}>
@@ -431,7 +431,7 @@ function BroadcastContent() {
               <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: 8, fontWeight: 600 }}>الأجهزة</div>
               {videoDevices.length > 1 && (
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>📹 الكاميرا</div>
+                  <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>📹 الكاميرا</div>
                   <select
                     value={selectedVideo}
                     onChange={e => { setSelectedVideo(e.target.value); if (status === 'ready') openCamera(); }}
@@ -443,7 +443,7 @@ function BroadcastContent() {
               )}
               {audioDevices.length > 1 && (
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>🎙️ الميكروفون</div>
+                  <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}>🎙️ الميكروفون</div>
                   <select
                     value={selectedAudio}
                     onChange={e => { setSelectedAudio(e.target.value); if (status === 'ready') openCamera(); }}
@@ -469,7 +469,7 @@ function BroadcastContent() {
                       allow="autoplay; fullscreen"
                     />
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', marginTop: 5, textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.3)', marginTop: 5, textAlign: 'center' }}>
                     هذا ما يراه المشاهدون عبر Cloudflare Stream
                   </div>
                 </>
@@ -483,7 +483,7 @@ function BroadcastContent() {
           )}
 
           {/* Tips */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 14, fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 14, fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
             <div style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600, marginBottom: 6 }}>💡 نصائح</div>
             <div>• WebRTC تأخير منخفض (1–3 ث)</div>
             <div>• تأكد من اتصال الإنترنت قوي</div>
@@ -493,7 +493,7 @@ function BroadcastContent() {
 
           {/* WHIP URL (debug) */}
           {!whipUrl && (
-            <div style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.3)', borderRadius: 10, padding: 12, fontSize: '0.78rem', color: '#ff8888' }}>
+            <div style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.3)', borderRadius: 10, padding: 12, fontSize: '0.83rem', color: '#ff8888' }}>
               ⚠️ لم يتم تمرير رابط WHIP. ارجع لصفحة إدارة المحاضرات واضغط &quot;▶ بدء البث&quot; أولاً ثم اختر &quot;بث من المتصفح&quot;.
             </div>
           )}

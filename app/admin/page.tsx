@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -139,14 +139,9 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div>جاري التحميل...</div>
+      <div className="loading-page">
+        <div className="spinner" />
+        جاري التحميل...
       </div>
     );
   }
@@ -322,7 +317,7 @@ function LiveStreamSection() {
         {liveLectures.length > 0 && (
           <span style={{
             background: '#ff444420', color: '#ff4444',
-            padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700,
+            padding: '3px 12px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 700,
             display: 'flex', alignItems: 'center', gap: 5,
           }}>
             <span style={{ width: 7, height: 7, background: '#ff4444', borderRadius: '50%', display: 'inline-block', animation: 'blink 1s infinite' }} />
@@ -345,16 +340,16 @@ function LiveStreamSection() {
             }}>
               <div>
                 <div style={{ fontWeight: 600, color: COLORS.darkNavy, fontSize: '0.9rem' }}>{l.title}</div>
-                <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                <div style={{ fontSize: '0.82rem', color: '#888' }}>
                   {l.stream_type === 'recorded' ? '🎬 مسجّل' : '📅 مجدول'}
                 </div>
               </div>
               {l.is_live ? (
-                <span style={{ background: '#ff444415', color: '#ff4444', padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>
+                <span style={{ background: '#ff444415', color: '#ff4444', padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700 }}>
                   🔴 LIVE
                 </span>
               ) : (
-                <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem' }}>
+                <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem' }}>
                   غير نشط
                 </span>
               )}
@@ -412,7 +407,7 @@ function ContactSection() {
           >
             <span style={{ fontSize: '1.2rem' }}>{c.icon}</span>
             <div>
-              <div style={{ fontSize: '0.72rem', color: COLORS.teal }}>{c.label}</div>
+              <div style={{ fontSize: '0.82rem', color: COLORS.teal }}>{c.label}</div>
               <div style={{ fontSize: '0.88rem', color: COLORS.darkNavy, fontWeight: 600 }}>{c.value}</div>
             </div>
           </a>
@@ -424,7 +419,7 @@ function ContactSection() {
         borderRadius: 14, padding: '14px 16px', color: 'white', fontSize: '0.85rem', textAlign: 'center',
       }}>
         <div style={{ marginBottom: 4, fontSize: '1rem' }}>✦ المجرة الحضارية</div>
-        <div style={{ opacity: 0.75, fontSize: '0.78rem' }}>فريق الدعم متاح على مدار الساعة</div>
+        <div style={{ opacity: 0.75, fontSize: '0.85rem' }}>فريق الدعم متاح على مدار الساعة</div>
       </div>
     </div>
   );
@@ -515,14 +510,14 @@ function QuickSection({ title, icon, count, items, link }: any) {
           }}>
             <div>
               <div style={{ fontWeight: 600, color: COLORS.darkNavy }}>{item.label}</div>
-              <div style={{ fontSize: '0.7rem', color: '#666' }}>{item.time}</div>
+              <div style={{ fontSize: '0.82rem', color: '#666' }}>{item.time}</div>
             </div>
             <span style={{
               background: item.status === 'pending' ? '#FFC10720' : `${COLORS.softGreen}20`,
               color: item.status === 'pending' ? '#FFC107' : COLORS.softGreen,
               padding: '2px 8px',
               borderRadius: 12,
-              fontSize: '0.6rem',
+              fontSize: '0.82rem',
             }}>
               {item.status === 'pending' ? 'قيد المراجعة' : 'نشط'}
             </span>

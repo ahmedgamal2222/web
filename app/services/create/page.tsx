@@ -1,4 +1,4 @@
-// app/services/create/page.tsx
+﻿// app/services/create/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -159,14 +159,9 @@ export default function CreateServicePage() {
 
   if (!user) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div>جاري التحميل...</div>
+      <div className="loading-page">
+        <div className="spinner" />
+        جاري التحميل...
       </div>
     );
   }
@@ -227,12 +222,7 @@ export default function CreateServicePage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
       {/* الهيدر */}
       <div style={{
         background: COLORS.darkNavy,
@@ -700,25 +690,25 @@ export default function CreateServicePage() {
                 gap: 10,
               }}>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: '#666' }}>العنوان</div>
+                  <div style={{ fontSize: '0.82rem', color: '#666' }}>العنوان</div>
                   <div style={{ fontWeight: 600, color: COLORS.darkNavy }}>
                     {formData.title || 'لم يحدد'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: '#666' }}>التصنيف</div>
+                  <div style={{ fontSize: '0.82rem', color: '#666' }}>التصنيف</div>
                   <div style={{ fontWeight: 600, color: COLORS.darkNavy }}>
                     {formData.category || 'لم يحدد'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: '#666' }}>السعر</div>
+                  <div style={{ fontSize: '0.82rem', color: '#666' }}>السعر</div>
                   <div style={{ fontWeight: 600, color: COLORS.teal }}>
                     {formData.price || '0'} {formData.currency}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: '#666' }}>المدة</div>
+                  <div style={{ fontSize: '0.82rem', color: '#666' }}>المدة</div>
                   <div style={{ fontWeight: 600, color: COLORS.darkNavy }}>
                     {formData.delivery_time || '0'} يوم
                   </div>

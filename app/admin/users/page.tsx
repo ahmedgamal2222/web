@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -238,7 +238,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', padding: '20px', fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
 
       {/* ─── Header ─── */}
       <div style={{ background: C.darkNavy, borderRadius: 20, padding: '28px 32px', marginBottom: 28, color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
@@ -345,13 +345,13 @@ export default function AdminUsersPage() {
                             </div>
                             <div>
                               <div style={{ fontWeight: 600, color: C.darkNavy, fontSize: '0.9rem' }}>{u.name_ar || u.name}</div>
-                              <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{u.email}</div>
+                              <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{u.email}</div>
                             </div>
                           </button>
                         </td>
                         {/* Role */}
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, background: roleMeta.bg, color: roleMeta.color }}>
+                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 600, background: roleMeta.bg, color: roleMeta.color }}>
                             {roleMeta.label}
                           </span>
                         </td>
@@ -363,7 +363,7 @@ export default function AdminUsersPage() {
                         </td>
                         {/* Status */}
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, background: statusMeta.bg, color: statusMeta.color }}>
+                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 600, background: statusMeta.bg, color: statusMeta.color }}>
                             {statusMeta.label}
                           </span>
                         </td>

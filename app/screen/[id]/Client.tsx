@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, API_BASE } from '@/lib/api';
@@ -751,7 +751,7 @@ export default function ScreenPage() {
               <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a1a', color: 'rgba(255,255,255,0.6)', gap: 12 }}>
                 <div style={{ fontSize: '2.5rem' }}>⏳</div>
                 <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 20px' }}>جاري معالجة التسجيل على Cloudflare Stream</div>
-                <div style={{ fontSize: '0.78rem', opacity: 0.5 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
+                <div style={{ fontSize: '0.83rem', opacity: 0.5 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
               </div>
             ) : externalEmbed ? (
               /* فيديو خارجي (YouTube / Vimeo / Dailymotion) */
@@ -780,12 +780,12 @@ export default function ScreenPage() {
             <div className="lecture-info">
               <strong>{displayLecture.title}</strong>
               {liveLecture && displayLecture.started_at && (
-                <span style={{ fontSize: '0.78rem', opacity: 0.7, marginRight: 8 }}>
+                <span style={{ fontSize: '0.83rem', opacity: 0.7, marginRight: 8 }}>
                   بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}
                 </span>
               )}
               {recentRecorded && (
-                <span style={{ fontSize: '0.78rem', opacity: 0.6, marginRight: 8 }}>محاضرة مسجّلة</span>
+                <span style={{ fontSize: '0.83rem', opacity: 0.6, marginRight: 8 }}>محاضرة مسجّلة</span>
               )}
             </div>
           </>

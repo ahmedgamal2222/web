@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -150,7 +150,7 @@ export default function EventDetailPage() {
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.institution_name_ar || item.institution_name}</div>
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>المؤسسة المنظِّمة</div>
+              <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.4)' }}>المؤسسة المنظِّمة</div>
             </div>
           </div>
         )}
@@ -193,7 +193,7 @@ export default function EventDetailPage() {
                         <div style={{ fontSize: '0.8rem' }}>{new Date(e.start_datetime).toLocaleDateString('ar-EG', { month: 'long' })}</div>
                       </div>
                       <div style={{ padding: '12px 14px' }}>
-                        <span style={{ fontSize: '0.72rem', color: s.color, marginBottom: 6, display: 'block' }}>{s.label}</span>
+                        <span style={{ fontSize: '0.82rem', color: s.color, marginBottom: 6, display: 'block' }}>{s.label}</span>
                         <p style={{ margin: 0, fontSize: '0.88rem', color: COLORS.lightMint, fontWeight: 600, lineHeight: 1.4 }}>
                           {e.title.length > 70 ? e.title.slice(0, 70) + '...' : e.title}
                         </p>

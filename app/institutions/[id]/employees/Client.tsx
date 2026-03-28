@@ -1,496 +1,1502 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
+import { fetchGalaxyData, fetchInstitutionAgreements, API_BASE } from '@/lib/api';
+import AgreementDetails from '@/components/AgreementDetails';
+import Image from 'next/image';
 import Link from 'next/link';
-import { fetchInstitution, getAuthHeaders } from '@/lib/api';
-import { Institution } from '@/lib/types';
 
-const C = {
+const GalaxyCanvas = dynamic(() => import('@/components/GalaxyCanvas'), { ssr: false });
+
+// ============================================================
+// الألوان الأساسية
+// ============================================================
+const COLORS = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
   teal: '#4E8D9C',
   darkNavy: '#281C59',
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
-
-interface Employee {
-  id: number;
-  name: string;
-  name_ar?: string;
-  email: string;
-  phone?: string;
-  role: 'institution_admin' | 'employee' | 'explorer';
-  position?: string;
-  department?: string;
-  status: 'active' | 'inactive' | 'suspended';
-  created_at: string;
-  last_login?: string;
-  avatar_url?: string;
-}
-
-interface InviteForm {
-  email: string;
-  name: string;
-  name_ar: string;
-  role: 'institution_admin' | 'employee';
-  position: string;
-  department: string;
-}
-
-const ROLE_META: Record<string, { label: string; color: string; bg: string }> = {
-  institution_admin: { label: 'مدير المؤسسة', color: C.darkNavy, bg: `${C.teal}20` },
-  employee:          { label: 'موظف',          color: C.teal,     bg: `${C.softGreen}30` },
-  explorer:          { label: 'زائر',           color: '#888',     bg: '#88888820' },
+// ============================================================
+// Type Labels and Colors
+// ============================================================
+const TYPE_LABELS: Record<string, string> = {
+  educational: 'تعليمية',
+  research: 'بحثية',
+  cultural: 'ثقافية',
+  charitable: 'خيرية',
+  media: 'إعلامية',
+  developmental: 'تنموية',
+  default: 'عامة',
 };
 
-const STATUS_META: Record<string, { label: string; color: string }> = {
-  active:    { label: 'نشط',          color: C.softGreen },
-  inactive:  { label: 'غير نشط',     color: '#9ca3af' },
-  suspended: { label: 'موقوف',        color: '#ef4444' },
+const TYPE_COLORS: Record<string, string> = {
+  educational: COLORS.lightMint,
+  research: COLORS.softGreen,
+  cultural: COLORS.teal,
+  charitable: COLORS.darkNavy,
+  media: '#FFB3BA',
+  developmental: '#FFDAC1',
+  default: COLORS.teal,
 };
 
-function fmtDate(iso?: string) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
+// ============================================================
+// Logo Component
+// ============================================================
+function GalaxyLogo() {
+  return (
+    <div className="galaxy-logo" style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', userSelect: 'none' }}>
+      <div style={{ position: 'relative', width: 54, height: 54, flexShrink: 0 }}>
+        <svg width="54" height="54" viewBox="0 0 54 54" fill="none">
+          <defs>
+            <radialGradient id="rg_core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stopColor="#EDF7BD" />
+              <stop offset="42%"  stopColor="#85C79A" />
+              <stop offset="100%" stopColor="#4E8D9C" />
+            </radialGradient>
+            <radialGradient id="rg_halo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stopColor="#4E8D9C" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#4E8D9C" stopOpacity="0" />
+            </radialGradient>
+            <filter id="f_glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="2.8" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          {/* Ambient halo */}
+          <circle cx="27" cy="27" r="26" fill="url(#rg_halo)" />
+          {/* Outer orbital ring */}
+          <ellipse cx="27" cy="27" rx="24.5" ry="9.5"
+            stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3"
+            fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
+          {/* Inner orbital ring */}
+          <ellipse cx="27" cy="27" rx="18" ry="6.5"
+            stroke="#85C79A" strokeWidth="0.65" strokeDasharray="2 4"
+            fill="none" opacity="0.45" transform="rotate(40 27 27)" />
+          {/* Star core */}
+          <path
+            d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z"
+            fill="url(#rg_core)" filter="url(#f_glow)"
+          />
+          {/* Bright nucleus */}
+          <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
+          <circle cx="25.2" cy="25.2" r="1.2" fill="white" opacity="0.5" />
+        </svg>
+      </div>
+      <div>
+        <div className="logo-title" style={{
+          fontSize: '1.55rem', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.03em',
+          background: 'linear-gradient(130deg, #EDF7BD 0%, #85C79A 48%, #4E8D9C 100%)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+        }}>
+          المجرة الحضارية
+        </div>
+        <div className="logo-subtitle" style={{
+          fontSize: '0.82rem', color: '#4E8D9C', letterSpacing: '0.3em',
+          marginTop: 5, fontWeight: 700, textTransform: 'uppercase' as const, opacity: 0.9,
+        }}>
+          Civilization Galaxy
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function getInitials(name: string) {
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+// ============================================================
+// User Menu Component
+// ============================================================
+function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 14px 6px 8px',
+          background: 'rgba(78,141,156,0.1)',
+          border: '1px solid rgba(78,141,156,0.35)',
+          borderRadius: 40,
+          cursor: 'pointer',
+          transition: 'all 0.22s',
+        }}
+      >
+        <div style={{
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: COLORS.teal,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '0.9rem',
+        }}>
+          {(user.name_ar || user.name).charAt(0)}
+        </div>
+        <span className="user-name" style={{ color: '#fff', fontSize: '0.9rem' }}>
+          {user.name_ar || user.name}
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: COLORS.teal }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="user-dropdown" style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          marginTop: 10,
+          width: 210,
+          background: 'rgba(5, 4, 20, 0.97)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(78,141,156,0.28)',
+          borderRadius: 16,
+          overflow: 'hidden',
+          zIndex: 50,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(237,247,189,0.06)',
+        }}>
+          {/* {user.role === 'admin' && (
+            <Link href="/admin" style={dropdownItemStyle}>
+              <span>📊</span> لوحة التحكم
+            </Link>
+          )} */}
+          
+          {user.role === 'institution_admin' && (
+            <Link href={`/institutions/${user.institution_id}`} style={dropdownItemStyle}>
+              <span>🏛️</span> مؤسستي
+            </Link>
+          )}
+          
+          {/* {(user.role === 'employee' || user.role === 'institution_admin') && (
+            <Link href={`/screen/${user.institution_id}`} style={dropdownItemStyle}>
+              <span>📺</span> إدارة الشاشة
+            </Link>
+          )}
+          
+          <Link href="/services" style={dropdownItemStyle}>
+            <span>🛠️</span> الخدمات
+          </Link>
+          
+          <Link href="/services/requests" style={dropdownItemStyle}>
+            <span>📋</span> طلباتي
+          </Link>
+          
+          <Link href="/news" style={dropdownItemStyle}>
+            <span>📰</span> الأخبار
+          </Link> */}
+          
+          <Link href="/profile" style={dropdownItemStyle}>
+            <span>👤</span> الملف الشخصي
+          </Link>
+          
+          <div style={{ height: 1, background: `${COLORS.teal}20`, margin: '4px 0' }} />
+          
+          <button
+            onClick={onLogout}
+            style={{
+              ...dropdownItemStyle,
+              width: '100%',
+              textAlign: 'right',
+              border: 'none',
+              background: 'transparent',
+              color: '#ff5050',
+              cursor: 'pointer',
+            }}
+          >
+            <span>🚪</span> تسجيل الخروج
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default function InstitutionEmployeesPage() {
-  const id = typeof window !== 'undefined'
-    ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
-    : 'default';
-  const router = useRouter();
+const dropdownItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  padding: '11px 18px',
+  color: '#c8d8e8',
+  textDecoration: 'none',
+  fontSize: '0.88rem',
+  fontWeight: 500,
+  transition: 'all 0.2s',
+  cursor: 'pointer',
+  width: '100%',
+  boxSizing: 'border-box' as const,
+  letterSpacing: '0.01em',
+};
 
-  const [institution, setInstitution] = useState<Institution | null>(null);
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [canManage, setCanManage] = useState(false);
+// ============================================================
+// Top Navigation Bar
+// ============================================================
+function TopBar({
+  starCount,
+  onToggleList,
+  listOpen,
+  user,
+  onLogout,
+}: {
+  starCount: number;
+  onToggleList: () => void;
+  listOpen: boolean;
+  user: any;
+  onLogout: () => void;
+}) {
+  return (
+    <header className="topbar" style={{
+      position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 32px',
+      height: 76,
+      background: 'linear-gradient(180deg, rgba(5,4,20,0.97) 0%, rgba(5,4,20,0.85) 65%, rgba(5,4,20,0) 100%)',
+      backdropFilter: 'blur(22px)',
+      WebkitBackdropFilter: 'blur(22px)',
+      borderBottom: '1px solid rgba(78,141,156,0.2)',
+      boxShadow: '0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(133,199,154,0.08)',
+    }}>
+      <GalaxyLogo />
+      
+      <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+        {/* Institutions toggle */}
+        <button
+          onClick={onToggleList}
+          aria-pressed={listOpen}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '8px 20px',
+            background: listOpen
+              ? 'linear-gradient(135deg, rgba(78,141,156,0.3), rgba(133,199,154,0.15))'
+              : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${listOpen ? 'rgba(133,199,154,0.6)' : 'rgba(255,255,255,0.1)'}`,
+            borderRadius: 40,
+            color: listOpen ? '#85C79A' : '#bbb',
+            fontSize: '0.88rem',
+            cursor: 'pointer',
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+            boxShadow: listOpen ? '0 0 18px rgba(133,199,154,0.2)' : 'none',
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span className="inst-btn-label">المؤسسات</span>
+          <span style={{
+            background: listOpen ? 'rgba(133,199,154,0.25)' : 'rgba(255,255,255,0.08)',
+            color: listOpen ? '#85C79A' : '#aaa',
+            padding: '2px 9px',
+            borderRadius: 20,
+            fontSize: '0.82rem',
+            fontWeight: 700,
+          }}>
+            {starCount}
+          </span>
+        </button>
 
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteForm, setInviteForm] = useState<InviteForm>({
-    email: '', name: '', name_ar: '', role: 'employee', position: '', department: '',
-  });
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteError, setInviteError] = useState('');
-  const [inviteSuccess, setInviteSuccess] = useState('');
+        {user ? (
+          <UserMenu user={user} onLogout={onLogout} />
+        ) : (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Link
+              href="/login"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 20px',
+                background: 'rgba(78,141,156,0.12)',
+                border: '1px solid rgba(78,141,156,0.5)',
+                borderRadius: 40,
+                color: '#4E8D9C',
+                fontSize: '0.88rem',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'all 0.25s',
+                letterSpacing: '0.02em',
+              }}
+            >
+              دخول
+            </Link>
+            
+            <Link
+              href="/register"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 22px',
+                background: 'linear-gradient(135deg, #85C79A, #4E8D9C)',
+                border: 'none',
+                borderRadius: 40,
+                color: '#281C59',
+                fontSize: '0.88rem',
+                textDecoration: 'none',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: '0 4px 16px rgba(133,199,154,0.3)',
+                transition: 'all 0.25s',
+              }}
+            >
+              تسجيل
+            </Link>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
 
-  const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Employee>>({});
-  const [editLoading, setEditLoading] = useState(false);
+// ============================================================
+// Quick Actions Panel (للمستخدمين المسجلين)
+// ============================================================
+function QuickActions({ user }: { user: any }) {
+  const actions = [];
 
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  if (user.role === 'admin') {
+    actions.push(
+      { icon: '📊', label: 'لوحة التحكم', href: '/admin', color: COLORS.teal },
+      { icon: '📝', label: 'طلبات المؤسسات', href: '/admin/requests', color: '#FFC107' },
+      { icon: '📺', label: 'إدارة الشاشات', href: '/admin/screens', color: COLORS.softGreen },
+    );
+  }
 
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      router.push(`/login?redirect=/institutions/${id}/employees`);
-      return;
-    }
-    let u: any = null;
-    try { u = JSON.parse(userStr); } catch { /* corrupted */ }
-    if (!u || typeof u !== 'object') {
-      router.push(`/login?redirect=/institutions/${id}/employees`);
-      return;
-    }
-    setCurrentUser(u);
+  if (user.role === 'institution_admin') {
+    actions.push(
+      { icon: '🏛️', label: 'مؤسستي', href: `/institutions/${user.institution_id}`, color: COLORS.teal },
+      { icon: '📺', label: 'الشاشة', href: `/screen/${user.institution_id}`, color: COLORS.softGreen },
+      { icon: '👥', label: 'إدارة الموظفين', href: `/institutions/${user.institution_id}/employees`, color: '#4CAF50' },
+    );
+  }
 
-    const manage =
-      u.role === 'admin' ||
-      (u.role === 'institution_admin' && String(u.institution_id) === String(id));
-    setCanManage(manage);
+  if (user.role === 'employee') {
+    actions.push(
+      { icon: '🏛️', label: 'مؤسستي', href: `/institutions/${user.institution_id}`, color: COLORS.teal },
+      { icon: '📺', label: 'الشاشة', href: `/screen/${user.institution_id}`, color: COLORS.softGreen },
+    );
+  }
 
-    loadData();
-  }, [id]);
+  // إجراءات مشتركة للجميع
+  actions.push(
+    { icon: '🛠️', label: 'الخدمات', href: '/services', color: '#FF9B4E' },
+    { icon: '📋', label: 'طلباتي', href: '/services/requests', color: '#9C27B0' },
+    { icon: '📰', label: 'الأخبار', href: '/news', color: '#E91E63' },
+  );
 
-  async function loadData() {
-    setLoading(true);
-    setError('');
-    try {
-      const [inst, empRes] = await Promise.all([
-        fetchInstitution(id),
-        fetch(`${API_BASE}/api/institutions/${id}/employees`, {
-          headers: getAuthHeaders(),
-        }),
-      ]);
-      setInstitution(inst);
+  if (user.role === 'explorer' || !user.institution_id) {
+    actions.push(
+      { icon: '✨', label: 'طلب إنشاء مؤسسة', href: '/institution-request', color: '#FFD700' },
+    );
+  }
 
-      if (empRes.ok) {
-        const data = await empRes.json();
-        const raw = data.data ?? data.employees ?? data ?? [];
-        setEmployees(Array.isArray(raw) ? raw.filter(Boolean) : []);
-      } else {
-        const err = await empRes.json().catch(() => ({}));
-        setError(err.error || 'فشل جلب بيانات الموظفين');
+  return (
+    <div className="quick-actions" style={{
+      position: 'absolute',
+      top: 88,
+      left: 28,
+      zIndex: 39,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 5,
+    }}>
+      {actions.map((action, index) => (
+        <Link
+          key={index}
+          href={action.href}
+          className="quick-action-item"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '9px 18px',
+            background: 'rgba(5, 4, 20, 0.88)',
+            backdropFilter: 'blur(18px)',
+            WebkitBackdropFilter: 'blur(18px)',
+            border: `1px solid ${action.color}35`,
+            borderRadius: 14,
+            color: '#c8d8e8',
+            textDecoration: 'none',
+            fontSize: '0.84rem',
+            fontWeight: 500,
+            transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
+            boxShadow: `0 4px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)`,
+            letterSpacing: '0.01em',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = `${action.color}18`;
+            e.currentTarget.style.borderColor = `${action.color}80`;
+            e.currentTarget.style.color = '#fff';
+            e.currentTarget.style.transform = 'translateX(4px)';
+            e.currentTarget.style.boxShadow = `0 6px 22px ${action.color}25, inset 0 1px 0 rgba(255,255,255,0.07)`;
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(5,4,20,0.88)';
+            e.currentTarget.style.borderColor = `${action.color}35`;
+            e.currentTarget.style.color = '#c8d8e8';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)`;
+          }}
+        >
+          <span className="quick-action-icon" style={{ fontSize: '1rem', width: 18, textAlign: 'center', flexShrink: 0 }}>{action.icon}</span>
+          <span className="quick-action-label">{action.label}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// Stats Bar
+// ============================================================
+function StatsBar({ data }: { data: GalaxyData }) {
+  const activeInstitutions = data.stars.filter(s => s.is_active === true).length;
+  
+  const stats = [
+    { label: 'المؤسسات', value: data.stars.length, color: COLORS.teal, icon: '🏛️' },
+    { label: 'شاشات نشطة', value: data.stats?.active_screens ?? 0, color: COLORS.softGreen, icon: '✨' },
+    { label: 'مؤسسات نشطة', value: activeInstitutions, color: '#4CAF50', icon: '🟢' },
+    { label: 'اتفاقيات', value: data.stats?.total_connections ?? 0, color: '#FF9B4E', icon: '🔗' },
+  ];
+  
+  return (
+    <div className="stats-bar" style={{
+      position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 40, display: 'flex', gap: 10, alignItems: 'stretch',
+    }}>
+      {stats.map((s) => (
+        <div key={s.label} className="stat-card" style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '12px 26px',
+          background: 'rgba(6, 7, 22, 0.88)',
+          backdropFilter: 'blur(22px)',
+          WebkitBackdropFilter: 'blur(22px)',
+          border: `1px solid ${s.color}30`,
+          borderRadius: 18,
+          boxShadow: `0 0 24px ${s.color}12, 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)`,
+          minWidth: 96,
+          transition: 'all 0.3s ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 5 }}>
+            <span className="stat-icon" style={{ fontSize: '1rem', opacity: 0.8 }}>{s.icon}</span>
+            <span className="stat-value" style={{
+              fontSize: '1.55rem', fontWeight: 800, color: s.color,
+              textShadow: `0 0 14px ${s.color}70`,
+              lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+            }}>{s.value}</span>
+          </div>
+          <div className="stat-label" style={{
+            fontSize: '0.82rem', color: '#6a7f90',
+            letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+          }}>{s.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// دالة مساعدة للحصول على لون حالة الاتفاقية
+// ============================================================
+const getStatusColor = (status: string): string => {
+  switch(status) {
+    case 'active': return COLORS.softGreen;
+    case 'pending': return '#FFC107';
+    case 'completed': return COLORS.teal;
+    default: return '#9E9E9E';
+  }
+};
+
+// ============================================================
+// Institution Agreements Component
+// ============================================================
+function InstitutionAgreements({ 
+  agreements, 
+  onViewAgreement 
+}: { 
+  agreements?: Agreement[];
+  onViewAgreement: (id: string) => void;
+}) {
+  if (!agreements || agreements.length === 0) {
+    return (
+      <div style={{ 
+        padding: 30, 
+        textAlign: 'center', 
+        color: '#666',
+        background: 'rgba(0,0,0,0.2)',
+        borderRadius: 12,
+        border: `1px dashed ${COLORS.teal}`,
+      }}>
+        <span style={{ fontSize: '2rem', display: 'block', marginBottom: 10 }}>📝</span>
+        لا توجد اتفاقيات لهذه المؤسسة
+      </div>
+    );
+  }
+
+  // تجميع الاتفاقيات حسب النوع
+  const agreementsByType = agreements.reduce((acc, agreement) => {
+    const type = agreement.type || 'other';
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(agreement);
+    return acc;
+  }, {} as Record<string, Agreement[]>);
+
+  return (
+    <div style={{ marginTop: 15 }}>
+      <h4 style={{ 
+        color: COLORS.teal, 
+        marginBottom: 15, 
+        fontSize: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}>
+        <span>🔗</span>
+        جميع الاتفاقيات ({agreements.length})
+      </h4>
+
+      {/* عرض إحصائيات سريعة للاتفاقيات */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 8,
+        marginBottom: 20,
+        padding: '10px',
+        background: `${COLORS.teal}10`,
+        borderRadius: 12,
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>الإجمالي</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.teal }}>{agreements.length}</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>النشطة</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.softGreen }}>
+            {agreements.filter(a => a.status === 'active').length}
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>المكتملة</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#FFC107' }}>
+            {agreements.filter(a => a.status === 'completed').length}
+          </div>
+        </div>
+      </div>
+
+      {/* عرض الاتفاقيات مجمعة حسب النوع */}
+      {Object.entries(agreementsByType).map(([type, typeAgreements]) => (
+        <div key={type} style={{ marginBottom: 20 }}>
+          <h5 style={{
+            color: TYPE_COLORS[type] || COLORS.teal,
+            fontSize: '0.85rem',
+            marginBottom: 10,
+            paddingRight: 8,
+            borderRight: `3px solid ${TYPE_COLORS[type] || COLORS.teal}`,
+          }}>
+            {TYPE_LABELS[type] || type} ({typeAgreements.length})
+          </h5>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {typeAgreements.map(agreement => (
+              <button
+                key={agreement.id}
+                onClick={() => onViewAgreement(agreement.id.toString())}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 15px',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${getStatusColor(agreement.status)}40`,
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  width: '100%',
+                  textAlign: 'right',
+                  transition: 'all 0.3s',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = `${COLORS.teal}10`;
+                  e.currentTarget.style.borderColor = getStatusColor(agreement.status);
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.borderColor = `${getStatusColor(agreement.status)}40`;
+                }}
+              >
+                {/* شريط جانبي حسب الحالة */}
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: '4px',
+                  background: getStatusColor(agreement.status),
+                  borderRadius: '0 4px 4px 0',
+                }} />
+                
+                <div style={{ flex: 1, marginRight: 10 }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff', marginBottom: 4 }}>
+                    {agreement.title || `اتفاقية ${TYPE_LABELS[agreement.type] || agreement.type}`}
+                  </div>
+                  <div style={{ fontSize: '0.83rem', color: '#888', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ color: COLORS.lightMint }}>{agreement.from_name_ar || agreement.from_name}</span>
+                    <span style={{ color: COLORS.teal }}>←</span>
+                    <span style={{ color: COLORS.softGreen }}>{agreement.to_name_ar || agreement.to_name}</span>
+                  </div>
+                  
+                  {/* تاريخ التوقيع إذا وجد */}
+                  {agreement.signed_date && (
+                    <div style={{ fontSize: '0.82rem', color: '#666', marginTop: 4 }}>
+                      📅 {new Date(agreement.signed_date).toLocaleDateString('ar-EG')}
+                    </div>
+                  )}
+                </div>
+
+                {/* قوة الاتفاقية */}
+                {agreement.strength && (
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: 2,
+                    background: 'rgba(0,0,0,0.3)',
+                    padding: '4px 8px',
+                    borderRadius: 20,
+                  }}>
+                    {[1, 2, 3].map(i => (
+                      <span key={i} style={{
+                        color: i <= agreement.strength! ? '#FFD700' : '#333',
+                        fontSize: '0.8rem',
+                      }}>★</span>
+                    ))}
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// مكون مساعد لعرض حالة (نشط/غير نشط)
+// ============================================================
+function StatusBadge({ 
+  active, 
+  activeText, 
+  inactiveText, 
+  activeColor 
+}: { 
+  active: boolean; 
+  activeText: string; 
+  inactiveText: string; 
+  activeColor: string;
+}) {
+  if (active) {
+    return (
+      <span style={{
+        background: `${activeColor}20`,
+        color: activeColor,
+        padding: '2px 8px',
+        borderRadius: 20,
+        fontSize: '0.85rem',
+      }}>
+        {activeText}
+      </span>
+    );
+  }
+  
+  return (
+    <span style={{
+      background: '#9E9E9E20',
+      color: '#9E9E9E',
+      padding: '2px 8px',
+      borderRadius: 20,
+      fontSize: '0.85rem',
+    }}>
+      {inactiveText}
+    </span>
+  );
+}
+
+// ============================================================
+// Institutions Panel
+// ============================================================
+function InstitutionsPanel({
+  stars,
+  open,
+  onClose,
+  onSelect,
+  onViewAgreement,
+}: {
+  stars: GalaxyStar[];
+  open: boolean;
+  onClose: () => void;
+  onSelect: (star: GalaxyStar) => void;
+  onViewAgreement: (id: string) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [activeType, setActiveType] = useState<string>('all');
+  const [screenFilter, setScreenFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [selectedStar, setSelectedStar] = useState<GalaxyStar | null>(null);
+  const [showAgreements, setShowAgreements] = useState(false);
+  const [loadingAgreements, setLoadingAgreements] = useState(false);
+
+  const types = useMemo(() => {
+    const s = new Set(stars.map(s => s.type));
+    return ['all', ...Array.from(s)];
+  }, [stars]);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return stars.filter(s => {
+      const matchType = activeType === 'all' || s.type === activeType;
+      const matchScreen = screenFilter === 'all' || 
+                         (screenFilter === 'active' && s.screen_active) ||
+                         (screenFilter === 'inactive' && !s.screen_active);
+      const matchSearch = !q
+        || (s.name_ar || s.name).toLowerCase().includes(q)
+        || (s.country || '').toLowerCase().includes(q);
+      return matchType && matchSearch && matchScreen;
+    });
+  }, [stars, search, activeType, screenFilter]);
+
+  const handleStarClick = async (star: GalaxyStar) => {
+    if (showAgreements && selectedStar?.id === star.id) {
+      setShowAgreements(false);
+      setSelectedStar(null);
+    } else {
+      setSelectedStar(star);
+      setShowAgreements(true);
+      
+      // تحميل الاتفاقيات إذا لم تكن موجودة
+      if (!star.agreements || star.agreements.length === 0) {
+        setLoadingAgreements(true);
+        try {
+          const response = await fetchInstitutionAgreements(star.id) as any;
+          // تحديث بيانات النجمة بالاتفاقيات الجديدة
+          star.agreements = response.data;
+          // تحديث الحالة لإعادة الرسم
+          setSelectedStar({...star});
+        } catch (error) {
+          console.error('فشل تحميل الاتفاقيات:', error);
+        } finally {
+          setLoadingAgreements(false);
+        }
       }
-    } catch (e: any) {
-      setError(e.message || 'حدث خطأ');
-    } finally {
-      setLoading(false);
     }
-  }
-
-  async function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
-    setInviteLoading(true);
-    setInviteError('');
-    setInviteSuccess('');
-    try {
-      const res = await fetch(`${API_BASE}/api/institutions/${id}/employees/invite`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(inviteForm),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'فشل إرسال الدعوة');
-      setInviteSuccess('تم إرسال الدعوة بنجاح');
-      setInviteForm({ email: '', name: '', name_ar: '', role: 'employee', position: '', department: '' });
-      setTimeout(() => { setShowInvite(false); setInviteSuccess(''); }, 2000);
-      await loadData();
-    } catch (e: any) {
-      setInviteError(e.message);
-    } finally {
-      setInviteLoading(false);
-    }
-  }
-
-  async function handleEditSave() {
-    if (!editEmployee) return;
-    setEditLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/users/${editEmployee.id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(editForm),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'فشل التحديث');
-      setEditEmployee(null);
-      await loadData();
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setEditLoading(false);
-    }
-  }
-
-  async function handleStatusChange(empId: number, status: string) {
-    setActionLoading(empId);
-    try {
-      const res = await fetch(`${API_BASE}/api/users/${empId}/status`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ status }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'فشل التحديث');
-      await loadData();
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setActionLoading(null);
-    }
-  }
-
-  async function handleRemove(empId: number, empName: string) {
-    if (!confirm(`هل أنت متأكد من إزالة ${empName} من المؤسسة؟`)) return;
-    setActionLoading(empId);
-    try {
-      const res = await fetch(`${API_BASE}/api/institutions/${id}/employees/${empId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'فشل الإزالة');
-      await loadData();
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setActionLoading(null);
-    }
-  }
-
-  const filtered = employees.filter(emp => {
-    const q = searchQuery.toLowerCase();
-    const matchQ = !q ||
-      (emp.name || '').toLowerCase().includes(q) ||
-      (emp.name_ar || '').toLowerCase().includes(q) ||
-      (emp.email || '').toLowerCase().includes(q) ||
-      (emp.position || '').toLowerCase().includes(q) ||
-      (emp.department || '').toLowerCase().includes(q);
-    const matchRole   = filterRole   === 'all' || emp.role   === filterRole;
-    const matchStatus = filterStatus === 'all' || emp.status === filterStatus;
-    return matchQ && matchRole && matchStatus;
-  });
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 14px', border: `1.5px solid ${C.teal}40`,
-    borderRadius: 10, fontSize: '0.95rem', outline: 'none', color: C.darkNavy,
-    background: 'white', boxSizing: 'border-box',
   };
 
-  if (loading) {
+  // دالة للحصول على العدد الإجمالي للاتفاقيات النشطة
+  const getActiveAgreementsCount = (star: GalaxyStar) => {
+    return star.agreements?.filter(a => a.status === 'active').length || 0;
+  };
+
+  return (
+    <>
+      {open && (
+        <div
+          onClick={onClose}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 45,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          }}
+        />
+      )}
+
+      <aside className="inst-panel" style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 46,
+        width: 480,
+        transform: open ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.45s cubic-bezier(0.4,0,0.2,1)',
+        background: 'rgba(5, 6, 22, 0.97)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        borderLeft: '1px solid rgba(78,141,156,0.25)',
+        display: 'flex', flexDirection: 'column',
+        direction: 'rtl',
+        boxShadow: '-12px 0 70px rgba(0,0,0,0.75), inset 1px 0 0 rgba(133,199,154,0.07)',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '22px 26px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'linear-gradient(135deg, rgba(78,141,156,0.13) 0%, rgba(40,28,89,0.12) 100%)',
+          borderBottom: '1px solid rgba(78,141,156,0.18)',
+          boxShadow: '0 1px 0 rgba(133,199,154,0.06)',
+        }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#EDF7BD', letterSpacing: '-0.01em' }}>
+              {showAgreements && selectedStar ?
+                `اتفاقيات ${selectedStar.name_ar || selectedStar.name}` :
+                'جميع المؤسسات'
+              }
+            </div>
+            <div style={{ fontSize: '0.83rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
+              {showAgreements && selectedStar ?
+                `${selectedStar.agreements?.length || 0} اتفاقية` :
+                `${filtered.length} من أصل ${stars.length} مؤسسة`
+              }
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {showAgreements && selectedStar && (
+              <button 
+                onClick={() => {
+                  setShowAgreements(false);
+                  setSelectedStar(null);
+                }} 
+                style={{
+                  background: `${COLORS.teal}20`,
+                  border: `1px solid ${COLORS.teal}`,
+                  borderRadius: 30,
+                  color: COLORS.teal,
+                  padding: '6px 14px',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = COLORS.teal;
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = `${COLORS.teal}20`;
+                  e.currentTarget.style.color = COLORS.teal;
+                }}
+              >
+                <span>←</span>
+                العودة للقائمة
+              </button>
+            )}
+            <button 
+              onClick={onClose} 
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: 'none',
+                borderRadius: '50%',
+                color: '#999',
+                width: 32, height: 32,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#ff505020';
+                e.currentTarget.style.color = '#ff5050';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.color = '#999';
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {showAgreements && selectedStar ? (
+          // عرض اتفاقيات المؤسسة المحددة مع مؤشر التحميل
+          <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+            {loadingAgreements ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: 40,
+                background: `${COLORS.teal}10`,
+                borderRadius: 16,
+              }}>
+                <div style={{
+                  width: 40, height: 40,
+                  border: `3px solid ${COLORS.teal}`,
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto 20px',
+                }} />
+                <p style={{ color: '#888' }}>جاري تحميل الاتفاقيات...</p>
+              </div>
+            ) : (
+              <InstitutionAgreements 
+                agreements={selectedStar.agreements} 
+                onViewAgreement={onViewAgreement}
+              />
+            )}
+          </div>
+        ) : (
+          // عرض قائمة المؤسسات
+          <>
+            {/* Search */}
+            <div style={{ padding: '16px 20px 12px' }}>
+              <input
+                type="search"
+                placeholder="🔍 بحث باسم المؤسسة أو البلد..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  background: 'rgba(5,4,20,0.6)',
+                  border: '1px solid rgba(78,141,156,0.35)',
+                  borderRadius: 14,
+                  color: '#e8f4f8',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  transition: 'all 0.22s',
+                  letterSpacing: '0.01em',
+                }}
+                onFocus={e => {
+                  e.currentTarget.style.borderColor = 'rgba(133,199,154,0.7)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(133,199,154,0.12)';
+                }}
+                onBlur={e => {
+                  e.currentTarget.style.borderColor = 'rgba(78,141,156,0.35)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Filters */}
+            <div style={{ padding: '0 20px 16px' }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <button
+                  onClick={() => setScreenFilter('all')}
+                  style={{
+                    flex: 1, padding: '8px 0', borderRadius: 30,
+                    border: `1px solid ${screenFilter === 'all' ? COLORS.teal : 'rgba(255,255,255,0.1)'}`,
+                    background: screenFilter === 'all' ? `${COLORS.teal}20` : 'transparent',
+                    color: screenFilter === 'all' ? COLORS.teal : '#888',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  الكل
+                </button>
+                <button
+                  onClick={() => setScreenFilter('active')}
+                  style={{
+                    flex: 1, padding: '8px 0', borderRadius: 30,
+                    border: `1px solid ${screenFilter === 'active' ? COLORS.softGreen : 'rgba(255,255,255,0.1)'}`,
+                    background: screenFilter === 'active' ? `${COLORS.softGreen}20` : 'transparent',
+                    color: screenFilter === 'active' ? COLORS.softGreen : '#888',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  ✨ شاشة نشطة
+                </button>
+                <button
+                  onClick={() => setScreenFilter('inactive')}
+                  style={{
+                    flex: 1, padding: '8px 0', borderRadius: 30,
+                    border: `1px solid ${screenFilter === 'inactive' ? '#9E9E9E' : 'rgba(255,255,255,0.1)'}`,
+                    background: screenFilter === 'inactive' ? '#9E9E9E20' : 'transparent',
+                    color: screenFilter === 'inactive' ? '#9E9E9E' : '#888',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  ⚪ غير نشطة
+                </button>
+              </div>
+
+              {/* Type filter chips */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {types.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setActiveType(t)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: 30,
+                      fontSize: '0.83rem',
+                      border: `1px solid ${activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : 'rgba(255,255,255,0.1)'}`,
+                      background: activeType === t ? `${TYPE_COLORS[t] || COLORS.teal}20` : 'transparent',
+                      color: activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : '#888',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {t === 'all' ? 'الكل' : (TYPE_LABELS[t] || t)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* List */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 20px' }}>
+              {filtered.length === 0 && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  color: '#666', 
+                  padding: '60px 20px',
+                  background: 'rgba(0,0,0,0.2)',
+                  borderRadius: 12,
+                  border: `1px dashed ${COLORS.teal}`,
+                }}>
+                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: 15 }}>🌌</span>
+                  لا توجد نتائج للبحث
+                </div>
+              )}
+              {filtered.map(star => (
+                <button
+                  key={star.id}
+                  onClick={() => handleStarClick(star)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 13,
+                    width: '100%', textAlign: 'right', padding: '13px 16px',
+                    marginBottom: 7, borderRadius: 14,
+                    cursor: 'pointer',
+                    background: selectedStar?.id === star.id
+                      ? 'rgba(78,141,156,0.14)'
+                      : 'rgba(255,255,255,0.02)',
+                    border: star.screen_active
+                      ? '1px solid rgba(133,199,154,0.4)'
+                      : '1px solid rgba(78,141,156,0.14)',
+                    transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+                    boxShadow: selectedStar?.id === star.id ? '0 0 20px rgba(78,141,156,0.1)' : 'none',
+                  }}
+                  onMouseEnter={e => {
+                    if (selectedStar?.id !== star.id) {
+                      e.currentTarget.style.background = 'rgba(78,141,156,0.09)';
+                    }
+                    e.currentTarget.style.transform = 'translateX(-3px)';
+                  }}
+                  onMouseLeave={e => {
+                    if (selectedStar?.id !== star.id) {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                    }
+                    e.currentTarget.style.transform = 'translateX(0)';
+                  }}
+                >
+                  {/* أيقونة المؤسسة مع عداد الاتفاقيات */}
+                  <div style={{ position: 'relative' }}>
+                    <div style={{
+                      width: 45, height: 45, borderRadius: '50%',
+                      background: `radial-gradient(circle at 30% 30%, ${star.color || COLORS.teal}, ${COLORS.darkNavy})`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontSize: '1.2rem',
+                      boxShadow: `0 0 15px ${star.color || COLORS.teal}`,
+                    }}>
+                      {(star.name_ar || star.name).charAt(0)}
+                    </div>
+                    
+                    {/* عداد الاتفاقيات الصغير على الأيقونة */}
+                    {star.agreements && star.agreements.length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: -2,
+                        left: -2,
+                        background: COLORS.teal,
+                        color: '#fff',
+                        borderRadius: '50%',
+                        width: 18,
+                        height: 18,
+                        fontSize: '0.82rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: `2px solid ${COLORS.darkNavy}`,
+                      }}>
+                        {star.agreements.length}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{
+                      fontWeight: 600, fontSize: '0.95rem',
+                      color: star.screen_active ? COLORS.softGreen : '#fff',
+                      marginBottom: 4,
+                    }}>
+                      {star.name_ar || star.name}
+                    </div>
+                    <div style={{ fontSize: '0.83rem', color: '#888' }}>
+                      {star.city}، {star.country}
+                    </div>
+                    
+                    {/* عرض حالة الشاشة والمؤسسة وعدد الاتفاقيات النشطة */}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                      {/* حالة الشاشة */}
+                      <StatusBadge
+                        active={star.screen_active}
+                        activeText="✨ شاشة نشطة"
+                        inactiveText="⚪ شاشة غير نشطة"
+                        activeColor={COLORS.softGreen}
+                      />
+
+                      {/* حالة المؤسسة */}
+                      <StatusBadge
+                        active={star.is_active || false}
+                        activeText="🟢 مؤسسة نشطة"
+                        inactiveText="⚪ مؤسسة غير نشطة"
+                        activeColor={COLORS.softGreen}
+                      />
+
+                      {/* عدد الاتفاقيات النشطة */}
+                      {getActiveAgreementsCount(star) > 0 && (
+                        <span style={{
+                          background: `${COLORS.teal}20`,
+                          color: COLORS.teal,
+                          padding: '2px 8px',
+                          borderRadius: 20,
+                          fontSize: '0.85rem',
+                        }}>
+                          🔗 {getActiveAgreementsCount(star)} نشطة
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* نوع المؤسسة */}
+                  <span style={{
+                    fontSize: '0.85rem', padding: '4px 10px',
+                    borderRadius: 20,
+                    background: `${TYPE_COLORS[star.type] || COLORS.teal}20`,
+                    color: TYPE_COLORS[star.type] || COLORS.teal,
+                    border: `1px solid ${TYPE_COLORS[star.type] || COLORS.teal}40`,
+                  }}>
+                    {TYPE_LABELS[star.type] || star.type}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </aside>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </>
+  );
+}
+
+// ============================================================
+// Main Page Component
+// ============================================================
+export default function HomePage() {
+  const [galaxyData, setGalaxyData] = useState<GalaxyData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [listOpen, setListOpen] = useState(false);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const mountedRef = useRef(true);
+
+  // التحقق من تسجيل الدخول
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  }, []);
+
+  function dedup(data: GalaxyData): GalaxyData {
+    const map = new Map<number, GalaxyStar>();
+    (data.stars || []).forEach(s => map.set(s.id, s));
+    return { ...data, stars: Array.from(map.values()) };
+  }
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        const raw = await fetchGalaxyData();
+        if (mountedRef.current) { 
+          setGalaxyData(dedup(raw)); 
+          setError(null); 
+        }
+      } catch (err) {
+        console.error(err);
+        if (mountedRef.current)
+          setError('فشل في تحميل بيانات المجرة');
+      } finally {
+        if (mountedRef.current) setLoading(false);
+      }
+    }
+    load();
+
+    const interval = setInterval(async () => {
+      if (!mountedRef.current) return;
+      try {
+        const raw = await fetchGalaxyData();
+        if (mountedRef.current) setGalaxyData(dedup(raw));
+      } catch { /* silent */ }
+    }, 30000);
+
+    return () => {
+      mountedRef.current = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleStarClick = (star: GalaxyStar) =>
+    window.open(`/institutions/${star.id}`, '_blank');
+
+  const handleViewAgreement = (agreementId: string) => {
+    setSelectedAgreementId(agreementId);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'X-Session-ID': localStorage.getItem('sessionId') || '',
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('user');
+      localStorage.removeItem('sessionId');
+      setUser(null);
+    }
+  };
+
+  if (loading && !galaxyData) {
     return (
-      <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', color: C.teal }}>
-          <div style={{ fontSize: '2rem', marginBottom: 12 }}>⏳</div>
-          <div>جاري التحميل...</div>
+      <div style={{
+        position: 'fixed', inset: 0,
+        background: 'radial-gradient(ellipse at 50% 40%, #0d0b2a 0%, #05041a 55%, #020210 100%)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 0,
+      }}>
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes spinR { to { transform: rotate(-360deg); } }
+          @keyframes pulseGlow {
+            0%,100% { opacity: 0.45; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.08); }
+          }
+          @keyframes fadeDots {
+            0%,100% { opacity: 0.3; } 50% { opacity: 1; }
+          }
+        `}</style>
+
+        {/* Orbital rings loader */}
+        <div style={{ position: 'relative', width: 130, height: 130, marginBottom: 36 }}>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            border: '1.5px solid rgba(78,141,156,0.35)',
+            animation: 'spin 9s linear infinite',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 12, borderRadius: '50%',
+            border: '1.5px solid rgba(133,199,154,0.3)',
+            animation: 'spinR 6s linear infinite',
+          }}/>
+          <div style={{
+            position: 'absolute', inset: 25, borderRadius: '50%',
+            border: '1px solid rgba(237,247,189,0.22)',
+            animation: 'spin 3.5s linear infinite',
+          }}/>
+          {/* Orbiting dot */}
+          <div style={{
+            position: 'absolute', top: 0, left: '50%',
+            width: 7, height: 7, marginLeft: -3.5, marginTop: -3.5,
+            borderRadius: '50%',
+            background: '#85C79A',
+            boxShadow: '0 0 10px #85C79A',
+            transformOrigin: '3.5px calc(65px + 3.5px)',
+            animation: 'spin 9s linear infinite',
+          }}/>
+          {/* Core glow */}
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(237,247,189,0.85) 0%, rgba(133,199,154,0.45) 50%, rgba(78,141,156,0.15) 100%)',
+              animation: 'pulseGlow 2.4s ease-in-out infinite',
+              boxShadow: '0 0 30px rgba(78,141,156,0.7), 0 0 60px rgba(78,141,156,0.3)',
+            }}/>
+          </div>
+        </div>
+
+        <GalaxyLogo />
+
+        <p style={{
+          color: '#4E8D9C', marginTop: 28, fontSize: '0.82rem',
+          letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600,
+          animation: 'fadeDots 2s ease-in-out infinite',
+        }}>
+          جاري إطلاق المجرة الحضارية
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0,
+        background: 'radial-gradient(ellipse at 50% 40%, #0d0b2a 0%, #05041a 60%, #020210 100%)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{
+          textAlign: 'center', padding: '48px 56px',
+          background: 'rgba(6,7,22,0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: 24,
+          border: '1px solid rgba(78,141,156,0.22)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
+          maxWidth: 380,
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: 8 }}>⚠️</div>
+          <h3 style={{ color: '#EDF7BD', margin: '16px 0 8px', fontWeight: 700, fontSize: '1.1rem' }}>{error}</h3>
+          <p style={{ color: '#5a7080', fontSize: '0.85rem', marginBottom: 28 }}>تحقق من اتصالك بالإنترنت وحاول مجدداً</p>
+          <button onClick={() => window.location.reload()}
+            style={{
+              background: 'linear-gradient(135deg, #85C79A, #4E8D9C)',
+              border: 'none', padding: '11px 36px',
+              borderRadius: 40, color: '#281C59',
+              fontSize: '0.95rem', cursor: 'pointer', fontWeight: 700,
+              boxShadow: '0 6px 20px rgba(133,199,154,0.3)',
+            }}>
+            إعادة المحاولة
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', padding: '20px', fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
+    <main style={{
+      width: '100vw', height: '100vh',
+      overflow: 'hidden', position: 'relative',
+      direction: 'rtl',
+      background: '#05041a',
+      fontFamily: "'Segoe UI', 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif",
+    }}>
+      <style>{`
+        /* ===== RESPONSIVE: GALAXY HOME PAGE ===== */
 
-      {/* ─── Header ─── */}
-      <div style={{ background: C.darkNavy, borderRadius: 20, padding: '28px 32px', marginBottom: 28, color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <div style={{ fontSize: '0.85rem', color: `${C.lightMint}80`, marginBottom: 6 }}>
-            <Link href="/institutions" style={{ color: `${C.lightMint}80`, textDecoration: 'none' }}>المؤسسات</Link>
-            {' / '}
-            <Link href={`/institutions/${id}`} style={{ color: `${C.lightMint}80`, textDecoration: 'none' }}>{institution?.name_ar || institution?.name}</Link>
-            {' / '}الموظفون
-          </div>
-          <h1 style={{ fontSize: '1.8rem', margin: 0 }}>👥 موظفو {institution?.name_ar || institution?.name}</h1>
-          <p style={{ color: `${C.lightMint}80`, margin: '6px 0 0', fontSize: '0.9rem' }}>{employees.length} موظف مسجّل</p>
-        </div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {canManage && (
-            <button
-              onClick={() => setShowInvite(true)}
-              style={{ background: C.teal, color: 'white', border: 'none', borderRadius: 40, padding: '10px 22px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
-            >
-              + دعوة موظف
-            </button>
-          )}
-          <Link href={`/institutions/${id}`} style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', color: 'white', padding: '10px 20px', borderRadius: 40, textDecoration: 'none', fontSize: '0.9rem' }}>
-            ← العودة
-          </Link>
-        </div>
-      </div>
+        /* --- Logo --- */
+        @media (max-width: 480px) {
+          .galaxy-logo { gap: 8px !important; }
+          .galaxy-logo svg { width: 36px !important; height: 36px !important; }
+          .logo-title { font-size: 1.05rem !important; }
+          .logo-subtitle { display: none !important; }
+        }
 
-      {/* ─── Error ─── */}
-      {error && (
-        <div style={{ background: '#fee2e2', border: '1px solid #ef4444', borderRadius: 12, padding: '14px 20px', marginBottom: 20, color: '#ef4444' }}>
-          {error}
-        </div>
-      )}
+        /* --- TopBar --- */
+        @media (max-width: 640px) {
+          .topbar { padding: 0 12px !important; height: 60px !important; }
+          .topbar-right { gap: 5px !important; }
+          .inst-btn-label { display: none !important; }
+          .user-name { display: none !important; }
+        }
 
-      {/* ─── Filters ─── */}
-      <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
-          placeholder="ابحث باسم الموظف أو البريد أو المنصب..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          style={{ ...inputStyle, maxWidth: 320 }}
+        /* --- Quick Actions: icon-only circular dock on mobile --- */
+        @media (max-width: 768px) {
+          .quick-actions {
+            top: auto !important;
+            bottom: 88px !important;
+            left: 10px !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+          }
+          .quick-action-item {
+            padding: 11px !important;
+            border-radius: 50% !important;
+            width: 42px !important;
+            height: 42px !important;
+            justify-content: center !important;
+            gap: 0 !important;
+            box-sizing: border-box !important;
+          }
+          .quick-action-label { display: none !important; }
+          .quick-action-icon { width: auto !important; font-size: 1.1rem !important; }
+        }
+
+        /* --- Stats Bar: compact + horizontal scroll on mobile --- */
+        @media (max-width: 640px) {
+          .stats-bar {
+            bottom: 10px !important;
+            gap: 5px !important;
+            max-width: calc(100vw - 70px) !important;
+            overflow-x: auto !important;
+            scrollbar-width: none !important;
+          }
+          .stats-bar::-webkit-scrollbar { display: none; }
+          .stat-card {
+            padding: 8px 12px !important;
+            min-width: 64px !important;
+            border-radius: 12px !important;
+            flex-shrink: 0 !important;
+          }
+          .stat-value { font-size: 1.1rem !important; }
+          .stat-icon { font-size: 0.8rem !important; }
+          .stat-label { display: none !important; }
+        }
+
+        /* --- Institutions Panel: full-width on mobile --- */
+        @media (max-width: 768px) {
+          .inst-panel { width: 100vw !important; }
+        }
+
+        /* --- User menu dropdown: align right on mobile --- */
+        @media (max-width: 480px) {
+          .user-dropdown { left: auto !important; right: 0 !important; }
+        }
+      `}</style>
+      {galaxyData && (
+        <GalaxyCanvas
+          data={galaxyData}
+          onStarClick={handleStarClick}
+          autoRotate
         />
-        <select value={filterRole} onChange={e => setFilterRole(e.target.value)} style={{ ...inputStyle, maxWidth: 180, cursor: 'pointer' }}>
-          <option value="all">كل الأدوار</option>
-          <option value="institution_admin">مدير المؤسسة</option>
-          <option value="employee">موظف</option>
-        </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ ...inputStyle, maxWidth: 180, cursor: 'pointer' }}>
-          <option value="all">كل الحالات</option>
-          <option value="active">نشط</option>
-          <option value="inactive">غير نشط</option>
-          <option value="suspended">موقوف</option>
-        </select>
-        <span style={{ color: '#888', fontSize: '0.85rem', marginRight: 'auto' }}>
-          {filtered.length} نتيجة
-        </span>
-      </div>
-
-      {/* ─── Grid ─── */}
-      {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9ca3af' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>👤</div>
-          <div style={{ fontSize: '1.1rem' }}>لا يوجد موظفون مطابقون</div>
-          {canManage && <div style={{ marginTop: 8, fontSize: '0.9rem' }}>ابدأ بدعوة موظفين للمؤسسة</div>}
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-          {filtered.map(emp => {
-            if (!emp || emp.id == null) return null;
-            const roleMeta   = ROLE_META[emp.role]   || ROLE_META.explorer;
-            const statusMeta = STATUS_META[emp.status] || STATUS_META.inactive;
-            return (
-              <div key={emp.id} style={{ background: 'white', borderRadius: 18, padding: '24px', boxShadow: '0 2px 16px rgba(0,0,0,0.07)', border: `1px solid ${C.teal}15`, transition: 'box-shadow 0.2s' }}>
-                {/* Avatar + name */}
-                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 16 }}>
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: `linear-gradient(135deg, ${C.teal}, ${C.darkNavy})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1.1rem', flexShrink: 0 }}>
-                    {emp.avatar_url
-                      ? <img src={emp.avatar_url} alt={emp.name} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover' }} />
-                      : getInitials(emp.name_ar || emp.name || '?')}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: '1rem', color: C.darkNavy, marginBottom: 2 }}>{emp.name_ar || emp.name}</div>
-                    {emp.name && emp.name_ar && <div style={{ fontSize: '0.78rem', color: '#888' }}>{emp.name}</div>}
-                    <div style={{ fontSize: '0.8rem', color: C.teal, marginTop: 2 }}>{emp.email}</div>
-                  </div>
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: `${statusMeta.color}20`, color: statusMeta.color, flexShrink: 0 }}>
-                    {statusMeta.label}
-                  </span>
-                </div>
-
-                {/* Role */}
-                <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, background: roleMeta.bg, color: roleMeta.color, marginBottom: 12 }}>
-                  {roleMeta.label}
-                </span>
-
-                {/* Details */}
-                <div style={{ fontSize: '0.84rem', color: '#555', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                  {emp.position   && <div>📌 {emp.position}</div>}
-                  {emp.department && <div>🏢 {emp.department}</div>}
-                  {emp.phone      && <div>📞 {emp.phone}</div>}
-                  <div style={{ color: '#aaa' }}>انضم: {fmtDate(emp.created_at)}</div>
-                  {emp.last_login && <div style={{ color: '#aaa' }}>آخر دخول: {fmtDate(emp.last_login)}</div>}
-                </div>
-
-                {/* Actions */}
-                {canManage && (
-                  <div style={{ marginTop: 18, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => { setEditEmployee(emp); setEditForm({ position: emp.position, department: emp.department, role: emp.role, status: emp.status }); }}
-                      style={{ flex: 1, padding: '8px 14px', background: `${C.teal}15`, border: `1px solid ${C.teal}30`, borderRadius: 10, color: C.teal, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
-                    >
-                      ✏️ تعديل
-                    </button>
-                    {emp.status === 'active' ? (
-                      <button
-                        onClick={() => handleStatusChange(emp.id, 'suspended')}
-                        disabled={actionLoading === emp.id}
-                        style={{ flex: 1, padding: '8px 14px', background: '#fee2e220', border: '1px solid #ef444430', borderRadius: 10, color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
-                      >
-                        {actionLoading === emp.id ? '...' : '🚫 إيقاف'}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleStatusChange(emp.id, 'active')}
-                        disabled={actionLoading === emp.id}
-                        style={{ flex: 1, padding: '8px 14px', background: `${C.softGreen}20`, border: `1px solid ${C.softGreen}40`, borderRadius: 10, color: '#16a34a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
-                      >
-                        {actionLoading === emp.id ? '...' : '✅ تفعيل'}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleRemove(emp.id, emp.name_ar || emp.name)}
-                      disabled={actionLoading === emp.id}
-                      style={{ padding: '8px 12px', background: 'transparent', border: '1px solid #ef444430', borderRadius: 10, color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >
-                      🗑
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
       )}
 
-      {/* ─── Invite Modal ─── */}
-      {showInvite && (
-        <div onClick={e => e.target === e.currentTarget && setShowInvite(false)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 style={{ margin: 0, color: C.darkNavy, fontSize: '1.3rem' }}>دعوة موظف جديد</h2>
-              <button onClick={() => setShowInvite(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#888' }}>✕</button>
-            </div>
+      <TopBar
+        starCount={galaxyData?.stars.length ?? 0}
+        onToggleList={() => setListOpen(o => !o)}
+        listOpen={listOpen}
+        user={user}
+        onLogout={handleLogout}
+      />
 
-            {inviteError   && <div style={{ background: '#fee2e2', border: '1px solid #ef4444', borderRadius: 10, padding: '12px 16px', marginBottom: 16, color: '#ef4444', fontSize: '0.9rem' }}>{inviteError}</div>}
-            {inviteSuccess && <div style={{ background: '#d1fae5', border: '1px solid #10b981', borderRadius: 10, padding: '12px 16px', marginBottom: 16, color: '#065f46', fontSize: '0.9rem' }}>{inviteSuccess}</div>}
+      {user && <QuickActions user={user} />}
 
-            <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                { key: 'email',      label: 'البريد الإلكتروني *', type: 'email',  placeholder: 'example@domain.com' },
-                { key: 'name',       label: 'الاسم (إنجليزي) *',   type: 'text',  placeholder: 'Full Name' },
-                { key: 'name_ar',    label: 'الاسم (عربي)',         type: 'text',  placeholder: 'الاسم بالعربية' },
-                { key: 'position',   label: 'المنصب الوظيفي',       type: 'text',  placeholder: 'مثال: أستاذ، مدير قسم...' },
-                { key: 'department', label: 'القسم / الإدارة',      type: 'text',  placeholder: 'مثال: قسم الأبحاث' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>{f.label}</label>
-                  <input
-                    type={f.type}
-                    placeholder={f.placeholder}
-                    value={(inviteForm as any)[f.key]}
-                    onChange={e => setInviteForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    required={f.key === 'email' || f.key === 'name'}
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>الدور الوظيفي *</label>
-                <select value={inviteForm.role} onChange={e => setInviteForm(prev => ({ ...prev, role: e.target.value as any }))} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="employee">موظف</option>
-                  <option value="institution_admin">مدير المؤسسة</option>
-                </select>
-              </div>
-              <button type="submit" disabled={inviteLoading} style={{ padding: '12px', background: C.teal, color: 'white', border: 'none', borderRadius: 40, fontSize: '1rem', cursor: inviteLoading ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: inviteLoading ? 0.7 : 1 }}>
-                {inviteLoading ? 'جاري الإرسال...' : '📧 إرسال الدعوة'}
-              </button>
-            </form>
-          </div>
-        </div>
+      {galaxyData && <StatsBar data={galaxyData} />}
+
+      {galaxyData && (
+        <InstitutionsPanel
+          stars={galaxyData.stars}
+          open={listOpen}
+          onClose={() => setListOpen(false)}
+          onSelect={() => {}}
+          onViewAgreement={handleViewAgreement}
+        />
       )}
 
-      {/* ─── Edit Modal ─── */}
-      {editEmployee && (
-        <div onClick={e => e.target === e.currentTarget && setEditEmployee(null)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, width: '100%', maxWidth: 480 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 style={{ margin: 0, color: C.darkNavy, fontSize: '1.3rem' }}>تعديل: {editEmployee.name_ar || editEmployee.name}</h2>
-              <button onClick={() => setEditEmployee(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#888' }}>✕</button>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                { key: 'position',   label: 'المنصب الوظيفي', placeholder: 'مثال: أستاذ' },
-                { key: 'department', label: 'القسم / الإدارة', placeholder: 'مثال: قسم الأبحاث' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>{f.label}</label>
-                  <input
-                    type="text"
-                    placeholder={f.placeholder}
-                    value={(editForm as any)[f.key] || ''}
-                    onChange={e => setEditForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>الدور</label>
-                <select value={editForm.role || editEmployee.role} onChange={e => setEditForm(prev => ({ ...prev, role: e.target.value as any }))} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="employee">موظف</option>
-                  <option value="institution_admin">مدير المؤسسة</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>الحالة</label>
-                <select value={editForm.status || editEmployee.status} onChange={e => setEditForm(prev => ({ ...prev, status: e.target.value as any }))} style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="active">نشط</option>
-                  <option value="inactive">غير نشط</option>
-                  <option value="suspended">موقوف</option>
-                </select>
-              </div>
-              <button onClick={handleEditSave} disabled={editLoading} style={{ padding: '12px', background: C.teal, color: 'white', border: 'none', borderRadius: 40, fontSize: '1rem', cursor: editLoading ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: editLoading ? 0.7 : 1 }}>
-                {editLoading ? 'جاري الحفظ...' : '💾 حفظ التعديلات'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {selectedAgreementId && (
+        <AgreementDetails
+          agreementId={selectedAgreementId}
+          onClose={() => setSelectedAgreementId(null)}
+        />
       )}
-    </div>
+    </main>
   );
 }

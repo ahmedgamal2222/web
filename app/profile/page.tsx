@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -221,11 +221,7 @@ export default function ProfilePage() {
     router.push('/login');
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 14px', border: `1.5px solid ${C.teal}40`,
-    borderRadius: 10, fontSize: '0.95rem', outline: 'none', color: C.darkNavy,
-    background: 'white', boxSizing: 'border-box',
-  };
+  const inputStyle: React.CSSProperties = { color: C.darkNavy };
 
   const tabBtn = (tab: typeof activeTab, label: string) => (
     <button
@@ -241,30 +237,25 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', color: C.teal }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⏳</div>
-          <div>جاري التحميل...</div>
-        </div>
+      <div className="loading-page">
+        <div className="spinner" />
+        جاري التحميل...
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, display: 'flex', alignItems: 'center', justifyContent: 'center', direction: 'rtl' }}>
-        <div style={{ textAlign: 'center', color: '#ef4444' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>❌</div>
-          <div>{error || 'فشل تحميل الملف الشخصي'}</div>
-          <button onClick={loadProfile} style={{ marginTop: 16, padding: '10px 24px', background: C.teal, color: 'white', border: 'none', borderRadius: 40, cursor: 'pointer' }}>إعادة المحاولة</button>
-        </div>
+      <div className="loading-page" style={{ flexDirection: 'column', gap: 16 }}>
+        <span style={{ fontSize: '2.5rem' }}>❌</span>
+        <span style={{ color: '#ef4444' }}>{error || 'فشل تحميل الملف الشخصي'}</span>
+        <button onClick={loadProfile} className="btn-primary" style={{ borderRadius: 40 }}>إعادة المحاولة</button>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
-
+    <div className="page-wrap" style={{ direction: 'rtl' }}>
       {/* ─── Cover + Avatar ─── */}
       <div style={{ background: `linear-gradient(135deg, ${C.darkNavy} 0%, ${C.teal} 100%)`, height: 220, position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 50%, rgba(133,199,154,0.15) 0%, transparent 70%)' }} />
@@ -299,7 +290,7 @@ export default function ProfilePage() {
                 : getInitials(profile.name_ar || profile.name || '?')}
             </div>
             {profile.is_verified && (
-              <div style={{ position: 'absolute', bottom: 4, left: 4, background: C.softGreen, borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', fontSize: '0.75rem' }}>✓</div>
+              <div style={{ position: 'absolute', bottom: 4, left: 4, background: C.softGreen, borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', fontSize: '0.83rem' }}>✓</div>
             )}
           </div>
 
@@ -345,7 +336,7 @@ export default function ProfilePage() {
             { label: 'الهاتف',          value: profile.phone || '—',        icon: '📞' },
           ].map(item => (
             <div key={item.label} style={{ background: 'white', borderRadius: 14, padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize: '0.78rem', color: '#9ca3af', marginBottom: 6 }}>{item.icon} {item.label}</div>
+              <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: 6 }}>{item.icon} {item.label}</div>
               <div style={{ fontSize: '0.88rem', fontWeight: 600, color: C.darkNavy, wordBreak: 'break-word' }}>{item.value}</div>
             </div>
           ))}
@@ -446,10 +437,10 @@ export default function ProfilePage() {
                 </div>
 
                 <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, paddingTop: 8 }}>
-                  <button type="submit" disabled={saveLoading} style={{ flex: 1, padding: '12px', background: C.teal, color: 'white', border: 'none', borderRadius: 40, cursor: saveLoading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '1rem', opacity: saveLoading ? 0.7 : 1 }}>
+                  <button type="submit" disabled={saveLoading} className="btn-primary" style={{ flex: 1, opacity: saveLoading ? 0.7 : 1 }}>
                     {saveLoading ? 'جاري الحفظ...' : '💾 حفظ التعديلات'}
                   </button>
-                  <button type="button" onClick={() => setEditMode(false)} style={{ flex: 1, padding: '12px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 40, cursor: 'pointer', fontWeight: 600, fontSize: '1rem' }}>
+                  <button type="button" onClick={() => setEditMode(false)} className="btn-ghost" style={{ flex: 1 }}>
                     إلغاء
                   </button>
                 </div>
@@ -466,15 +457,15 @@ export default function ProfilePage() {
             {/* Account info */}
             <div style={{ background: `${C.lightMint}40`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 20, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>البريد الإلكتروني</div>
+                <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>البريد الإلكتروني</div>
                 <div style={{ fontWeight: 600, color: C.darkNavy }}>{profile.email}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>آخر دخول</div>
+                <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>آخر دخول</div>
                 <div style={{ fontWeight: 600, color: C.darkNavy }}>{fmtDate(profile.last_login)}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>حالة الحساب</div>
+                <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>حالة الحساب</div>
                 <div style={{ fontWeight: 600, color: profile.status === 'active' ? '#16a34a' : '#ef4444' }}>
                   {profile.status === 'active' ? '✅ نشط' : '⛔ موقوف'}
                 </div>
@@ -513,7 +504,7 @@ export default function ProfilePage() {
                     </div>
                   ))}
 
-                  <button type="submit" disabled={pwdLoading} style={{ padding: '12px', background: C.darkNavy, color: 'white', border: 'none', borderRadius: 40, cursor: pwdLoading ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '1rem', opacity: pwdLoading ? 0.7 : 1 }}>
+                  <button type="submit" disabled={pwdLoading} className="btn-navy" style={{ width: '100%', opacity: pwdLoading ? 0.7 : 1 }}>
                     {pwdLoading ? 'جاري التغيير...' : '🔑 تغيير كلمة المرور'}
                   </button>
                 </form>
@@ -559,7 +550,7 @@ export default function ProfilePage() {
                           ? <Link href={act.link} style={{ color: C.teal, textDecoration: 'none' }}>{act.description}</Link>
                           : act.description}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: '#9ca3af', marginTop: 3 }}>{fmtDate(act.created_at)}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#9ca3af', marginTop: 3 }}>{fmtDate(act.created_at)}</div>
                     </div>
                   </div>
                 ))}

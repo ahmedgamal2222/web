@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -148,20 +148,9 @@ export default function ScreensManagementPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
       {/* الهيدر */}
-      <div style={{
-        background: COLORS.darkNavy,
-        borderRadius: 20,
-        padding: '30px',
-        marginBottom: 30,
-        color: 'white',
-      }}>
+      <div className="page-hero">
         <h1 style={{ fontSize: '2rem', marginBottom: 10 }}>
           ✦ إدارة الشاشات
         </h1>

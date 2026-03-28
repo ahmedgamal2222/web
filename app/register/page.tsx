@@ -107,17 +107,13 @@ export default function RegisterPage() {
     }
   };
 
-  // Shared input style
+  // Shared input style — base styles now come from globals.css
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '12px 16px',
-    border: `2px solid ${COLORS.teal}40`, borderRadius: 12,
-    fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s',
-    color: COLORS.darkNavy, background: 'white',
+    color: COLORS.darkNavy,
   };
 
   const labelStyle: React.CSSProperties = {
-    display: 'block', marginBottom: 7,
-    color: COLORS.darkNavy, fontWeight: 600, fontSize: '0.92rem',
+    color: COLORS.darkNavy,
   };
 
   return (
@@ -167,12 +163,8 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{
-              background: '#ff505015', border: '1px solid #ff5050',
-              borderRadius: 10, padding: '12px', marginBottom: 20,
-              color: '#ff5050', textAlign: 'center', fontSize: '0.9rem',
-            }}>
-              {error}
+            <div className="alert alert-error" style={{ marginBottom: 22 }}>
+              ⚠️ {error}
             </div>
           )}
 
@@ -195,13 +187,10 @@ export default function RegisterPage() {
                 <label style={labelStyle}>رقم الهاتف</label>
                 <input type="tel" name="phone" value={formData.phone} onChange={handleChange} style={inputStyle} />
               </div>
-              <button type="button" onClick={() => setStep(2)} style={{
-                width: '100%', padding: '13px',
-                background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
-                color: 'white', border: 'none', borderRadius: 40,
-                fontSize: '1.05rem', fontWeight: 700, cursor: 'pointer',
-                boxShadow: `0 6px 20px ${COLORS.teal}50`, marginTop: 6,
-              }}>
+              <button type="button" onClick={() => setStep(2)}
+                className="btn-primary"
+                style={{ width: '100%', padding: '13px', fontSize: '1.05rem', borderRadius: 14, marginTop: 6 }}
+              >
                 التالي ←
               </button>
             </div>
@@ -241,33 +230,28 @@ export default function RegisterPage() {
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-                <button type="button" onClick={() => setStep(1)} style={{
-                  flex: 1, padding: '13px', background: 'transparent',
-                  color: COLORS.teal, border: `2px solid ${COLORS.teal}`,
-                  borderRadius: 40, fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
-                }}>
+                <button type="button" onClick={() => setStep(1)}
+                  className="btn-outline"
+                  style={{ flex: 1, padding: '13px', fontSize: '1rem' }}
+                >
                   ← السابق
                 </button>
-                <button type="submit" disabled={loading} style={{
-                  flex: 2, padding: '13px',
-                  background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
-                  color: 'white', border: 'none', borderRadius: 40,
-                  fontSize: '1rem', fontWeight: 700,
-                  cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.75 : 1,
-                  boxShadow: `0 6px 20px ${COLORS.teal}50`,
-                }}>
-                  {loading ? 'جاري الإنشاء...' : 'إنشاء حساب ✓'}
+                <button type="submit" disabled={loading}
+                  className="btn-primary"
+                  style={{ flex: 2, padding: '13px', fontSize: '1rem', borderRadius: 14 }}
+                >
+                  {loading ? '⏳ جاري الإنشاء...' : 'إنشاء حساب ✓'}
                 </button>
               </div>
             </div>
           )}
 
-          <div style={{ textAlign: 'center', marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Link href="/login" style={{ color: COLORS.teal, textDecoration: 'none', fontWeight: 600, fontSize: '0.92rem' }}>
-              لديك حساب؟ سجل دخولك
+          <div style={{ textAlign: 'center', marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link href="/login" style={{ color: COLORS.teal, textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem' }}>
+              لديك حساب؟ سجل دخولك ←
             </Link>
-            <Link href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: '0.82rem' }}>
-              ← العودة للرئيسية
+            <Link href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: '0.88rem' }}>
+              العودة للرئيسية
             </Link>
           </div>
         </form>

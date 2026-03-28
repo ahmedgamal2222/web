@@ -99,14 +99,9 @@ export default function InstitutionRequestPage() {
 
   if (!user) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div>جاري التحميل...</div>
+      <div className="loading-page">
+        <div className="spinner" />
+        جاري التحميل...
       </div>
     );
   }
@@ -194,39 +189,12 @@ export default function InstitutionRequestPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      padding: 'clamp(16px, 4vw, 40px)',
-      direction: 'rtl',
-    }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         {/* الهيدر */}
-        <div style={{
-          background: COLORS.darkNavy,
-          borderRadius: 'clamp(16px, 2.5vw, 28px)',
-          padding: 'clamp(20px, 4vw, 40px)',
-          marginBottom: 24,
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 150,
-            height: 150,
-            background: COLORS.teal,
-            opacity: 0.2,
-            borderRadius: '50%',
-          }} />
-          <h1 style={{ fontSize: '2rem', marginBottom: 10 }}>
-            ✦ طلب إنشاء مؤسسة جديدة
-          </h1>
-          <p style={{ opacity: 0.9 }}>
-            املأ النموذج التالي لتقديم طلب إنشاء مؤسسة جديدة في المجرة الحضارية
-          </p>
+        <div className="page-hero" style={{ marginBottom: 24 }}>
+          <h1>✦ طلب إنشاء مؤسسة جديدة</h1>
+          <p>املأ النموذج التالي لتقديم طلب إنشاء مؤسسة جديدة في المجرة الحضارية</p>
         </div>
 
         {/* النموذج */}

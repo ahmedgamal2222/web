@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -123,10 +123,9 @@ export default function CreateEventPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: COLORS.darkNavy,
+      background: '#281C59',
       color: 'white',
       direction: 'rtl',
-      fontFamily: 'Arial, sans-serif',
       padding: '40px 20px',
     }}>
       <div style={{ maxWidth: 680, margin: '0 auto' }}>
@@ -341,7 +340,7 @@ export default function CreateEventPage() {
                 </label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }}/>
-                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>أو</span>
+                  <span style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.3)' }}>أو</span>
                   <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }}/>
                 </div>
                 <input type="url" value={form.image_url} onChange={set('image_url')} placeholder="أو ألصق رابط صورة مباشرة https://..." style={inputStyle} />

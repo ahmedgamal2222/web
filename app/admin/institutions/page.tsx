@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -198,13 +198,7 @@ export default function AdminInstitutionsPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(160deg, ${C.lightMint}25, white 40%)`,
-      direction: 'rtl',
-      padding: '24px',
-      fontFamily: "'Segoe UI','Cairo','Noto Sans Arabic',sans-serif",
-    }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
 
       {/* ── Header ── */}
       <div style={{
@@ -348,13 +342,13 @@ export default function AdminInstitutionsPage() {
                               {inst.name_ar || inst.name}
                             </div>
                             {inst.name_ar && (
-                              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{inst.name}</div>
+                              <div style={{ fontSize: '0.83rem', color: '#9ca3af' }}>{inst.name}</div>
                             )}
                           </div>
                         </td>
                         {/* Type */}
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: typeMeta.bg, color: typeMeta.color, whiteSpace: 'nowrap' }}>
+                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 600, background: typeMeta.bg, color: typeMeta.color, whiteSpace: 'nowrap' }}>
                             {typeMeta.label}
                           </span>
                         </td>
@@ -364,7 +358,7 @@ export default function AdminInstitutionsPage() {
                         </td>
                         {/* Status */}
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: statusMeta.bg, color: statusMeta.color, whiteSpace: 'nowrap' }}>
+                          <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 600, background: statusMeta.bg, color: statusMeta.color, whiteSpace: 'nowrap' }}>
                             {statusMeta.label}
                           </span>
                         </td>
@@ -382,7 +376,7 @@ export default function AdminInstitutionsPage() {
                             <Link
                               href={`/institutions/${inst.id}`}
                               target="_blank"
-                              style={{ padding: '5px 10px', background: `${C.teal}15`, border: `1px solid ${C.teal}30`, borderRadius: 8, color: C.teal, textDecoration: 'none', fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+                              style={{ padding: '5px 10px', background: `${C.teal}15`, border: `1px solid ${C.teal}30`, borderRadius: 8, color: C.teal, textDecoration: 'none', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
                             >
                               عرض
                             </Link>
@@ -395,7 +389,7 @@ export default function AdminInstitutionsPage() {
                                 border: `1px solid ${inst.status === 'active' ? '#ef444430' : '#16a34a30'}`,
                                 borderRadius: 8,
                                 color: inst.status === 'active' ? '#ef4444' : '#16a34a',
-                                cursor: 'pointer', fontSize: '0.78rem', whiteSpace: 'nowrap',
+                                cursor: 'pointer', fontSize: '0.85rem', whiteSpace: 'nowrap',
                               }}
                             >
                               {actionLoading === inst.id ? '...' : inst.status === 'active' ? 'إيقاف' : 'تفعيل'}
@@ -455,7 +449,7 @@ export default function AdminInstitutionsPage() {
                     {selected.name_ar || selected.name}
                   </div>
                   {selected.name_ar && (
-                    <div style={{ fontSize: '0.75rem', color: `${C.lightMint}80`, marginTop: 4 }}>{selected.name}</div>
+                    <div style={{ fontSize: '0.83rem', color: `${C.lightMint}80`, marginTop: 4 }}>{selected.name}</div>
                   )}
                 </div>
                 <button onClick={() => setSelected(null)}
@@ -464,11 +458,11 @@ export default function AdminInstitutionsPage() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600, background: 'rgba(255,255,255,0.18)', color: 'white' }}>
+                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, background: 'rgba(255,255,255,0.18)', color: 'white' }}>
                   {(TYPE_META[selected.type] || TYPE_META.default).label}
                 </span>
                 {selected.is_verified && (
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600, background: 'rgba(237,247,189,0.25)', color: C.lightMint }}>
+                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, background: 'rgba(237,247,189,0.25)', color: C.lightMint }}>
                     🔰 موثّقة
                   </span>
                 )}
@@ -487,7 +481,7 @@ export default function AdminInstitutionsPage() {
                 <div key={row.label} style={{ display: 'flex', gap: 10, marginBottom: 12, alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{row.icon}</span>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 600 }}>{row.label}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{row.label}</div>
                     <div style={{ fontSize: '0.85rem', color: C.darkNavy, fontWeight: 500, wordBreak: 'break-all' }}>
                       {row.label === 'الموقع الإلكتروني' && selected.website
                         ? <a href={selected.website} target="_blank" rel="noopener noreferrer" style={{ color: C.teal }}>{selected.website}</a>
@@ -499,10 +493,10 @@ export default function AdminInstitutionsPage() {
 
               {/* Status badges */}
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
-                <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, ...(STATUS_META[selected.status] || STATUS_META.inactive) }}>
+                <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 600, ...(STATUS_META[selected.status] || STATUS_META.inactive) }}>
                   {(STATUS_META[selected.status] || STATUS_META.inactive).label}
                 </span>
-                <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, background: selected.screen_active ? '#dcfce7' : '#f3f4f6', color: selected.screen_active ? '#16a34a' : '#6b7280' }}>
+                <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 600, background: selected.screen_active ? '#dcfce7' : '#f3f4f6', color: selected.screen_active ? '#16a34a' : '#6b7280' }}>
                   {selected.screen_active ? '📺 شاشة نشطة' : '📺 شاشة غير نشطة'}
                 </span>
               </div>

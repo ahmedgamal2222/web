@@ -101,74 +101,45 @@ export default function LoginPage() {
         {/* نموذج تسجيل الدخول */}
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{
-              background: '#ff505015', border: '1px solid #ff5050',
-              borderRadius: 10, padding: '12px', marginBottom: 20,
-              color: '#ff5050', textAlign: 'center', fontSize: '0.9rem',
-            }}>
-              {error}
+            <div className="alert alert-error" style={{ marginBottom: 22 }}>
+              ⚠️ {error}
             </div>
           )}
 
-          <div style={{ marginBottom: 18 }}>
-            <label style={{ display: 'block', marginBottom: 7, color: COLORS.darkNavy, fontWeight: 600, fontSize: '0.92rem' }}>
-              البريد الإلكتروني
-            </label>
+          <div className="form-group">
+            <label style={{ color: COLORS.darkNavy }}>البريد الإلكتروني</label>
             <input
               type="email" value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{
-                width: '100%', padding: '12px 16px',
-                border: `2px solid ${COLORS.teal}40`, borderRadius: 12,
-                fontSize: '1rem', outline: 'none', transition: 'all 0.3s',
-                color: COLORS.darkNavy,
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = COLORS.teal}
-              onBlur={e => e.currentTarget.style.borderColor = `${COLORS.teal}40`}
+              placeholder="example@email.com"
             />
           </div>
 
-          <div style={{ marginBottom: 26 }}>
-            <label style={{ display: 'block', marginBottom: 7, color: COLORS.darkNavy, fontWeight: 600, fontSize: '0.92rem' }}>
-              كلمة المرور
-            </label>
+          <div className="form-group" style={{ marginBottom: 28 }}>
+            <label style={{ color: COLORS.darkNavy }}>كلمة المرور</label>
             <input
               type="password" value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{
-                width: '100%', padding: '12px 16px',
-                border: `2px solid ${COLORS.teal}40`, borderRadius: 12,
-                fontSize: '1rem', outline: 'none', transition: 'all 0.3s',
-                color: COLORS.darkNavy,
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = COLORS.teal}
-              onBlur={e => e.currentTarget.style.borderColor = `${COLORS.teal}40`}
+              placeholder="••••••••"
             />
           </div>
 
           <button
             type="submit" disabled={loading}
-            style={{
-              width: '100%', padding: '13px',
-              background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
-              color: 'white', border: 'none', borderRadius: 40,
-              fontSize: '1.05rem', fontWeight: 700,
-              cursor: loading ? 'default' : 'pointer',
-              opacity: loading ? 0.75 : 1, transition: 'all 0.3s',
-              marginBottom: 18, boxShadow: `0 6px 20px ${COLORS.teal}50`,
-            }}
+            className="btn-primary"
+            style={{ width: '100%', padding: '14px', fontSize: '1.05rem', marginBottom: 20, borderRadius: 14 }}
           >
-            {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+            {loading ? '⏳ جاري تسجيل الدخول...' : '✦ تسجيل الدخول'}
           </button>
 
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link href="/register" style={{ color: COLORS.teal, textDecoration: 'none', fontWeight: 600, fontSize: '0.92rem' }}>
-              ليس لديك حساب؟ سجل الآن
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Link href="/register" style={{ color: COLORS.teal, textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem' }}>
+              ليس لديك حساب؟ سجل الآن ←
             </Link>
-            <Link href="/" style={{ color: '#999', textDecoration: 'none', fontSize: '0.82rem' }}>
-              ← العودة للرئيسية
+            <Link href="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: '0.88rem' }}>
+              العودة للرئيسية
             </Link>
           </div>
         </form>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -187,16 +187,10 @@ export default function AdminAdsPage() {
     expired: ads.filter(a => adStatus(a) === 'expired').length,
   };
 
-  const fStyle: React.CSSProperties = {
-    width: '100%', padding: '10px 13px',
-    border: `1.5px solid ${C.teal}40`,
-    borderRadius: 10, background: 'white',
-    color: C.darkNavy, fontSize: '0.92rem',
-    outline: 'none', boxSizing: 'border-box',
-  };
+  const fStyle: React.CSSProperties = { color: C.darkNavy };
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', padding: 20 }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
       {/* هيدر */}
       <div style={{ background: C.darkNavy, borderRadius: 20, padding: '28px 32px', marginBottom: 28, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
@@ -229,7 +223,7 @@ export default function AdminAdsPage() {
         ].map(s => (
           <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '18px 20px', boxShadow: `0 4px 14px ${C.darkNavy}15`, border: `1px solid ${s.color}30` }}>
             <div style={{ fontSize: '1.6rem', marginBottom: 4 }}>{s.icon}</div>
-            <div style={{ fontSize: '0.75rem', color: C.teal }}>{s.label}</div>
+            <div style={{ fontSize: '0.83rem', color: C.teal }}>{s.label}</div>
             <div style={{ fontSize: '1.8rem', fontWeight: 700, color: s.color }}>{s.val}</div>
           </div>
         ))}
@@ -278,19 +272,19 @@ export default function AdminAdsPage() {
                 <div style={{ padding: '16px 18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                     <h3 style={{ margin: 0, color: C.darkNavy, fontSize: '1rem', flex: 1 }}>{ad.title}</h3>
-                    <span style={{ background: `${statusColor}20`, color: statusColor, padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, flexShrink: 0, marginRight: 8 }}>
+                    <span style={{ background: `${statusColor}20`, color: statusColor, padding: '3px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700, flexShrink: 0, marginRight: 8 }}>
                       {statusLabel}
                     </span>
                   </div>
                   {ad.content && <p style={{ margin: '0 0 10px', fontSize: '0.85rem', color: '#666', lineHeight: 1.5 }}>{ad.content.substring(0, 100)}{ad.content.length > 100 ? '...' : ''}</p>}
-                  <div style={{ fontSize: '0.78rem', color: C.teal, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ fontSize: '0.85rem', color: C.teal, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>🏛️</span><span>{instName}</span>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8 }}>
+                  <div style={{ fontSize: '0.83rem', color: '#888', marginBottom: 8 }}>
                     📅 {new Date(ad.start_date).toLocaleDateString('ar-EG')} ← {new Date(ad.end_date).toLocaleDateString('ar-EG')}
                   </div>
                   {ad.target_type && ad.target_type !== 'all' && (
-                    <div style={{ fontSize: '0.75rem', color: C.teal, background: `${C.teal}10`, padding: '4px 10px', borderRadius: 20, display: 'inline-block', marginBottom: 8 }}>
+                    <div style={{ fontSize: '0.83rem', color: C.teal, background: `${C.teal}10`, padding: '4px 10px', borderRadius: 20, display: 'inline-block', marginBottom: 8 }}>
                       {ad.target_type === 'country' ? `🏳️ ${ad.target_value}` : `🏙️ ${ad.target_value}`}
                     </div>
                   )}
@@ -361,7 +355,7 @@ export default function AdminAdsPage() {
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ flex: 1, height: 1, background: `${C.teal}20` }}/>
-                    <span style={{ fontSize: '0.72rem', color: '#999' }}>أو</span>
+                    <span style={{ fontSize: '0.82rem', color: '#999' }}>أو</span>
                     <div style={{ flex: 1, height: 1, background: `${C.teal}20` }}/>
                   </div>
                   <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="الصق رابط صورة https://..." style={fStyle} />
@@ -400,7 +394,7 @@ export default function AdminAdsPage() {
                         {locationLoading ? '⏳ جاري الاكتشاف...' : '📍 اكتشاف موقعك'}
                       </button>
                       {detectedLocation && (
-                        <div style={{ fontSize: '0.78rem', color: '#666', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: '0.85rem', color: '#666', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           {detectedLocation.country && (
                             <button
                               type="button"
@@ -411,7 +405,7 @@ export default function AdminAdsPage() {
                               style={{
                                 padding: '4px 12px', borderRadius: 20, border: `1px solid ${C.softGreen}`,
                                 background: `${C.softGreen}15`, color: C.teal,
-                                cursor: 'pointer', fontSize: '0.78rem',
+                                cursor: 'pointer', fontSize: '0.85rem',
                               }}
                             >
                               {form.target_type === 'country'
@@ -438,7 +432,7 @@ export default function AdminAdsPage() {
                           {detectedLocation.city && <span>🏙️ <b>المدينة:</b> {detectedLocation.city}</span>}
                           {detectedLocation.region && <span>📍 <b>المنطقة:</b> {detectedLocation.region}</span>}
                         </div>
-                        <div style={{ marginTop: 6, color: '#888', fontSize: '0.74rem' }}>
+                        <div style={{ marginTop: 6, color: '#888', fontSize: '0.83rem' }}>
                           ℹ️ يُستخدم هذا الكود للمطابقة مع موقع الزوار عند عرض الإعلانات
                         </div>
                       </div>
@@ -451,7 +445,7 @@ export default function AdminAdsPage() {
                       placeholder={form.target_type === 'country' ? 'مثال: SA أو EG أو AE (كود ISO)' : 'مثال: Riyadh أو Cairo'}
                       style={fStyle}
                     />
-                    <div style={{ fontSize: '0.74rem', color: '#999' }}>
+                    <div style={{ fontSize: '0.83rem', color: '#999' }}>
                       {form.target_type === 'country'
                         ? '⚠️ أدخل كود الدولة بالإنجليزية (ISO): SA، EG، AE، IQ...'
                         : '⚠️ أدخل اسم المدينة بالإنجليزية كما تُعرّفه Cloudflare'}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -57,7 +57,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 const statusBadge = (s: string) => {
   const st = STATUS_LABELS[s] || { label: s, color: '#999' };
   return (
-    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, background: `${st.color}20`, color: st.color, border: `1px solid ${st.color}40` }}>
+    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 700, background: `${st.color}20`, color: st.color, border: `1px solid ${st.color}40` }}>
       {st.label}
     </span>
   );
@@ -188,7 +188,7 @@ function AgreementCard({
 
       {terms.length > 0 && (
         <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: '0.78rem', color: C.teal, fontWeight: 600, marginBottom: 4 }}>البنود ({terms.length})</div>
+          <div style={{ fontSize: '0.85rem', color: C.teal, fontWeight: 600, marginBottom: 4 }}>البنود ({terms.length})</div>
           <ul style={{ margin: 0, paddingRight: 18, fontSize: '0.85rem', color: '#444', lineHeight: 1.8 }}>
             {terms.slice(0, 3).map(t => <li key={t.id}>{t.text}</li>)}
             {terms.length > 3 && <li style={{ color: C.teal }}>و{terms.length - 3} بنود أخرى...</li>}
@@ -248,7 +248,7 @@ function AgreementCard({
         )}
       </div>
 
-      <div style={{ marginTop: 8, fontSize: '0.75rem', color: '#bbb' }}>
+      <div style={{ marginTop: 8, fontSize: '0.83rem', color: '#bbb' }}>
         {new Date(ag.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
       </div>
     </div>
@@ -475,7 +475,7 @@ export default function AdminAgreementsPage() {
 
   // ════════════════════════════════════════════════════════════
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', padding: 20 }}>
+    <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
 
       {/* هيدر */}
       <div style={{ background: C.darkNavy, borderRadius: 20, padding: '28px 32px', marginBottom: 28, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
@@ -505,7 +505,7 @@ export default function AdminAgreementsPage() {
         ].map(s => (
           <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '18px 20px', boxShadow: `0 4px 14px ${C.darkNavy}12`, border: `1px solid ${s.color}30` }}>
             <div style={{ fontSize: '1.8rem', marginBottom: 4 }}>{s.icon}</div>
-            <div style={{ fontSize: '0.78rem', color: C.teal }}>{s.label}</div>
+            <div style={{ fontSize: '0.85rem', color: C.teal }}>{s.label}</div>
             <div style={{ fontSize: '2rem', fontWeight: 700, color: s.color }}>{s.value}</div>
           </div>
         ))}
@@ -614,7 +614,7 @@ export default function AdminAgreementsPage() {
                     )}
                   </div>
                 ))}
-                <p style={{ fontSize: '0.78rem', color: '#aaa', margin: '4px 0 0' }}>يمكن إضافة بنود لاحقاً أو تحريرها قبل التوقيع</p>
+                <p style={{ fontSize: '0.85rem', color: '#aaa', margin: '4px 0 0' }}>يمكن إضافة بنود لاحقاً أو تحريرها قبل التوقيع</p>
               </div>
 
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
@@ -722,7 +722,7 @@ export default function AdminAgreementsPage() {
                 detailModal.is_permanent ? { label: 'المدة', value: 'دائمة' } : null,
               ].filter(Boolean).map((item: any, i) => (
                 <div key={i} style={{ background: '#f8f9ff', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontSize: '0.75rem', color: C.teal, marginBottom: 3 }}>{item.label}</div>
+                  <div style={{ fontSize: '0.83rem', color: C.teal, marginBottom: 3 }}>{item.label}</div>
                   <div style={{ fontWeight: 600, color: C.darkNavy, fontSize: '0.9rem' }}>{item.value}</div>
                 </div>
               ))}
@@ -762,7 +762,7 @@ export default function AdminAgreementsPage() {
                       {s.sig ? (
                         <>
                           <img src={s.sig} alt="توقيع" style={{ maxWidth: '100%', height: 70, objectFit: 'contain' }} />
-                          {s.date && <div style={{ fontSize: '0.72rem', color: '#aaa', marginTop: 4 }}>{new Date(s.date).toLocaleDateString('ar-SA')}</div>}
+                          {s.date && <div style={{ fontSize: '0.82rem', color: '#aaa', marginTop: 4 }}>{new Date(s.date).toLocaleDateString('ar-SA')}</div>}
                         </>
                       ) : (
                         <div style={{ padding: '20px 0', color: '#ccc', fontSize: '0.8rem' }}>لم يوقّع بعد</div>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState,useMemo } from 'react';
 import Link from 'next/link';
@@ -115,237 +115,148 @@ export default function ServicesPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
-      direction: 'rtl',
-      padding: '20px',
-    }}>
+    <div className="page-wrap">
+    <div className="page-inner">
       {/* الهيدر */}
-      <div style={{
-        background: COLORS.darkNavy,
-        borderRadius: 30,
-        padding: '40px',
-        marginBottom: 30,
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: -20,
-          left: -20,
-          width: 200,
-          height: 200,
-          background: COLORS.teal,
-          opacity: 0.2,
-          borderRadius: '50%',
-        }} />
-        <h1 style={{ fontSize: '2.5rem', marginBottom: 15 }}>
-          ✦ سوق الخدمات
-        </h1>
-        <p style={{ maxWidth: 600, opacity: 0.9 }}>
-          منصة تجمع مقدمي الخدمات والمستفيدين في المجرة الحضارية
-        </p>
-        
-        {/* شريط البحث */}
-        <div style={{
-          marginTop: 30,
-          maxWidth: 600,
-        }}>
+      <div className="page-hero">
+        <h1>✦ سوق الخدمات</h1>
+        <p>منصة تجمع مقدمي الخدمات والمستفيدين في المجرة الحضارية</p>
+        <div style={{ marginTop: 28, maxWidth: 560 }}>
           <input
-            type="text"
+            type="search"
             placeholder="🔍 ابحث عن خدمة..."
             value={filters.search}
             onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
             style={{
-              width: '100%',
-              padding: '15px 20px',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1.5px solid rgba(255,255,255,0.35)',
               borderRadius: 40,
-              border: 'none',
+              padding: '13px 22px',
+              color: 'white',
               fontSize: '1rem',
               outline: 'none',
+              width: '100%',
+              backdropFilter: 'blur(8px)',
             }}
           />
         </div>
       </div>
 
       {/* شريط الفلاتر */}
-      <div style={{
-        background: 'white',
-        borderRadius: 20,
-        padding: '20px',
-        marginBottom: 30,
-        boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: 15,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}>
-          <select
-            value={filters.category}
-            onChange={(e) => { setFilters({ ...filters, category: e.target.value }); setPage(1); }}
-            style={filterSelectStyle}
-          >
-            <option value="all">📁 جميع التصنيفات</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+      <div className="filter-bar">
+        <select
+          value={filters.category}
+          onChange={(e) => { setFilters({ ...filters, category: e.target.value }); setPage(1); }}
+          style={{ minWidth: 160 }}
+        >
+          <option value="all">📁 جميع التصنيفات</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
 
-          <input
-            type="number"
-            placeholder="أقل سعر"
-            value={filters.minPrice}
-            onChange={(e) => { setFilters({ ...filters, minPrice: e.target.value }); setPage(1); }}
-            style={filterInputStyle}
-          />
+        <input
+          type="number"
+          placeholder="أقل سعر"
+          value={filters.minPrice}
+          onChange={(e) => { setFilters({ ...filters, minPrice: e.target.value }); setPage(1); }}
+          style={{ width: 120 }}
+        />
 
-          <input
-            type="number"
-            placeholder="أعلى سعر"
-            value={filters.maxPrice}
-            onChange={(e) => { setFilters({ ...filters, maxPrice: e.target.value }); setPage(1); }}
-            style={filterInputStyle}
-          />
+        <input
+          type="number"
+          placeholder="أعلى سعر"
+          value={filters.maxPrice}
+          onChange={(e) => { setFilters({ ...filters, maxPrice: e.target.value }); setPage(1); }}
+          style={{ width: 120 }}
+        />
 
-          <select
-            value={filters.sort}
-            onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-            style={filterSelectStyle}
-          >
-            <option value="newest">🕐 الأحدث</option>
-            <option value="rating">⭐ الأعلى تقييماً</option>
-            <option value="price_asc">💰 السعر: من الأقل</option>
-            <option value="price_desc">💰 السعر: من الأعلى</option>
-          </select>
-<Link href="/services/requests" style={{
-  background: COLORS.softGreen,
-  color: COLORS.darkNavy,
-  padding: '12px 25px',
-  borderRadius: 40,
-  textDecoration: 'none',
-  fontWeight: 600,
-  marginRight: 'auto',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-}}>
-  <span>📋</span>
-  طلباتي
-</Link>
-{/* رابط الطلبات الواردة */}
-<Link href="/services/provider-requests" style={{
-  background: COLORS.teal,
-  color: 'white',
-  padding: '12px 25px',
-  borderRadius: 40,
-  textDecoration: 'none',
-  fontWeight: 600,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-}}>
-  <span>📨</span>
-  الطلبات الواردة
-</Link>
-          <Link href="/services/create" style={{
-            background: COLORS.teal,
-            color: 'white',
-            padding: '12px 25px',
-            borderRadius: 40,
-            textDecoration: 'none',
-            fontWeight: 600,
-            marginRight: 'auto',
-          }}>
-            + إضافة خدمة
-          </Link>
-        </div>
+        <select
+          value={filters.sort}
+          onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
+          style={{ minWidth: 160 }}
+        >
+          <option value="newest">🕐 الأحدث</option>
+          <option value="rating">⭐ الأعلى تقييماً</option>
+          <option value="price_asc">💰 السعر: من الأقل</option>
+          <option value="price_desc">💰 السعر: من الأعلى</option>
+        </select>
+
+        <Link href="/services/requests"
+          className="btn-ghost"
+          style={{ textDecoration: 'none', marginRight: 'auto', fontSize: '0.9rem' }}
+        >
+          📋 طلباتي
+        </Link>
+        <Link href="/services/provider-requests"
+          className="btn-ghost"
+          style={{ textDecoration: 'none', fontSize: '0.9rem' }}
+        >
+          📨 الطلبات الواردة
+        </Link>
+        <Link href="/services/create"
+          className="btn-primary"
+          style={{ textDecoration: 'none', padding: '11px 22px', fontSize: '0.95rem', borderRadius: 12 }}
+        >
+          + إضافة خدمة
+        </Link>
       </div>
 
       {/* شبكة الخدمات */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 50 }}>
-          <div style={{
-            width: 50,
-            height: 50,
-            margin: '0 auto 20px',
-            border: `3px solid ${COLORS.teal}20`,
-            borderTopColor: COLORS.teal,
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-          }} />
-          <p>جاري تحميل الخدمات...</p>
-          <style>{`
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}</style>
+        <div className="loading-page">
+          <div className="spinner" />
+          جاري تحميل الخدمات...
         </div>
       ) : (
         <>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: 20,
-          }}>
+          <div className="cards-grid">
             {services.map(service => (
               <ServiceCard key={service.id} service={service} />
             ))}
           </div>
 
-          {/* إذا لم توجد نتائج */}
           {services.length === 0 && (
             <div style={{
-              textAlign: 'center',
-              padding: '80px 20px',
-              background: 'white',
-              borderRadius: 30,
+              textAlign: 'center', padding: '80px 20px',
+              background: 'white', borderRadius: 24,
+              boxShadow: '0 4px 16px rgba(40,28,89,0.08)',
             }}>
               <span style={{ fontSize: '4rem' }}>🔍</span>
-              <h3 style={{ color: COLORS.darkNavy, margin: '20px 0' }}>لا توجد خدمات</h3>
-              <p style={{ color: '#666' }}>حاول تغيير معايير البحث أو أضف خدمة جديدة</p>
-              <Link href="/services/create" style={{
-                display: 'inline-block',
-                marginTop: 20,
-                padding: '12px 30px',
-                background: COLORS.teal,
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: 40,
-              }}>
+              <h3 style={{ color: '#281C59', margin: '20px 0 8px', fontSize: '1.3rem', fontWeight: 700 }}>لا توجد خدمات</h3>
+              <p style={{ color: '#888', fontSize: '1rem', marginBottom: 24 }}>حاول تغيير معايير البحث أو أضف خدمة جديدة</p>
+              <Link href="/services/create" className="btn-primary" style={{ textDecoration: 'none', padding: '12px 28px' }}>
                 إضافة خدمة جديدة
               </Link>
             </div>
           )}
 
-          {/* أزرار التنقل بين الصفحات */}
           {totalPages > 1 && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 10,
-              marginTop: 40,
-            }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 40, alignItems: 'center' }}>
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                style={paginationButtonStyle(page === 1)}
+                className="btn-outline btn-sm"
+                style={{ borderRadius: 10 }}
               >
                 ←
               </button>
               <span style={{
-                padding: '10px 20px',
-                background: COLORS.lightMint,
-                borderRadius: 40,
-                color: COLORS.darkNavy,
+                padding: '9px 22px',
+                background: 'white',
+                borderRadius: 10,
+                color: '#281C59',
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                boxShadow: '0 2px 8px rgba(40,28,89,0.1)',
               }}>
                 {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                style={paginationButtonStyle(page === totalPages)}
+                className="btn-outline btn-sm"
+                style={{ borderRadius: 10 }}
               >
                 →
               </button>
@@ -353,6 +264,7 @@ export default function ServicesPage() {
           )}
         </>
       )}
+    </div>
     </div>
   );
 }
@@ -406,7 +318,7 @@ function ServiceCard({ service }: { service: Service }) {
             color: service.status === 'active' ? COLORS.darkNavy : '#000',
             padding: '4px 12px',
             borderRadius: 20,
-            fontSize: '0.7rem',
+            fontSize: '0.85rem',
             fontWeight: 600,
           }}>
             {service.status === 'active' ? '✅ نشط' : '⏳ قيد المراجعة'}
@@ -443,18 +355,20 @@ function ServiceCard({ service }: { service: Service }) {
             color: 'white',
             padding: '4px 12px',
             borderRadius: 20,
-            fontSize: '0.7rem',
+            fontSize: '0.85rem',
           }}>
             {service.category}
           </span>
         </div>
 
-        {/* المحتوى */}
-        <div style={{ padding: '20px' }}>
+        {/* محتوى البطاقة */}
+        <div style={{ padding: '22px 24px' }}>
           <h3 style={{
-            color: COLORS.darkNavy,
+            color: '#281C59',
             fontSize: '1.1rem',
+            fontWeight: 700,
             marginBottom: 10,
+            lineHeight: 1.5,
             height: '3.3rem',
             overflow: 'hidden',
             display: '-webkit-box',
@@ -465,11 +379,11 @@ function ServiceCard({ service }: { service: Service }) {
           </h3>
 
           <p style={{
-            color: '#666',
-            fontSize: '0.9rem',
-            marginBottom: 15,
-            lineHeight: 1.6,
-            height: '4.5rem',
+            color: '#555',
+            fontSize: '0.93rem',
+            marginBottom: 16,
+            lineHeight: 1.7,
+            height: '4.7rem',
             overflow: 'hidden',
             display: '-webkit-box',
             WebkitLineClamp: 3,
@@ -480,34 +394,25 @@ function ServiceCard({ service }: { service: Service }) {
 
           {/* مقدم الخدمة */}
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginBottom: 15,
-            padding: '10px 0',
-            borderTop: `1px solid ${COLORS.teal}20`,
-            borderBottom: `1px solid ${COLORS.teal}20`,
+            display: 'flex', alignItems: 'center', gap: 10,
+            marginBottom: 16, padding: '12px 0',
+            borderTop: '1px solid rgba(78,141,156,0.12)',
+            borderBottom: '1px solid rgba(78,141,156,0.12)',
           }}>
             <div style={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: COLORS.teal,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '0.8rem',
-              fontWeight: 600,
+              width: 34, height: 34, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #4E8D9C, #281C59)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: '0.9rem', fontWeight: 700, flexShrink: 0,
             }}>
               {service.provider_name_ar?.charAt(0) || service.provider_name?.charAt(0) || '?'}
             </div>
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: COLORS.darkNavy }}>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#281C59' }}>
                 {service.provider_name_ar || service.provider_name || 'مقدم خدمة'}
               </div>
               {service.institution_name && (
-                <div style={{ fontSize: '0.6rem', color: '#666' }}>
+                <div style={{ fontSize: '0.85rem', color: '#888' }}>
                   {service.institution_name}
                 </div>
               )}
@@ -515,55 +420,43 @@ function ServiceCard({ service }: { service: Service }) {
           </div>
 
           {/* السعر والتقييم */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: COLORS.teal }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#4E8D9C' }}>
                 {service.price} {service.currency}
               </div>
-              <div style={{ fontSize: '0.7rem', color: '#666' }}>
+              <div style={{ fontSize: '0.82rem', color: '#888', marginTop: 2 }}>
                 ⏱️ {service.delivery_time} يوم
               </div>
             </div>
-
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              background: `${COLORS.lightMint}40`,
-              padding: '5px 10px',
-              borderRadius: 20,
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: 'rgba(237,247,189,0.6)',
+              padding: '6px 12px', borderRadius: 20,
             }}>
               <span style={{ color: '#FFD700' }}>⭐</span>
-              <span style={{ fontWeight: 600, color: COLORS.darkNavy }}>
+              <span style={{ fontWeight: 700, color: '#281C59', fontSize: '0.95rem' }}>
                 {service.rating > 0 ? service.rating.toFixed(1) : 'جديد'}
               </span>
               {service.reviews_count > 0 && (
-                <span style={{ fontSize: '0.7rem', color: '#666' }}>
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>
                   ({service.reviews_count})
                 </span>
               )}
             </div>
           </div>
 
-          {/* ✅ عرض الوسوم بعد التحويل */}
+          {/* الوسوم */}
           {tags.length > 0 && (
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 5,
-              marginTop: 15,
-            }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
               {tags.slice(0, 3).map(tag => (
                 <span key={tag} style={{
-                  padding: '2px 8px',
-                  background: COLORS.lightMint,
+                  padding: '3px 10px',
+                  background: 'rgba(237,247,189,0.7)',
                   borderRadius: 12,
-                  fontSize: '0.6rem',
-                  color: COLORS.teal,
+                  fontSize: '0.8rem',
+                  color: '#3a7a8a',
+                  fontWeight: 600,
                 }}>
                   #{tag}
                 </span>
@@ -575,37 +468,16 @@ function ServiceCard({ service }: { service: Service }) {
     </Link>
   );
 }
-const filterSelectStyle = {
-  padding: '10px 15px',
-  borderRadius: 30,
-  border: `2px solid ${COLORS.teal}40`,
-  background: 'white',
-  color: COLORS.darkNavy,
-  fontSize: '0.9rem',
-  outline: 'none',
-  cursor: 'pointer',
-  minWidth: '150px',
-};
-
-const filterInputStyle = {
-  padding: '10px 15px',
-  borderRadius: 30,
-  border: `2px solid ${COLORS.teal}40`,
-  background: 'white',
-  color: COLORS.darkNavy,
-  fontSize: '0.9rem',
-  outline: 'none',
-  width: '120px',
-};
 
 const paginationButtonStyle = (disabled: boolean) => ({
-  padding: '10px 20px',
-  borderRadius: 40,
-  border: `2px solid ${COLORS.teal}`,
-  background: disabled ? 'transparent' : COLORS.teal,
-  color: disabled ? COLORS.teal : 'white',
+  padding: '9px 18px',
+  borderRadius: 10,
+  border: `2px solid #4E8D9C`,
+  background: disabled ? 'transparent' : '#4E8D9C',
+  color: disabled ? '#4E8D9C' : 'white',
   cursor: disabled ? 'default' : 'pointer',
   fontSize: '1rem',
   fontWeight: 600,
-  transition: 'all 0.3s',
+  opacity: disabled ? 0.45 : 1,
+  transition: 'all 0.25s',
 });
