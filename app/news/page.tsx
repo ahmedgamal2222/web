@@ -155,24 +155,30 @@ export default function NewsPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`,
+      background: `linear-gradient(135deg, ${COLORS.lightMint}30, #f8fafc)`,
       direction: 'rtl',
-      padding: '20px',
+      fontFamily: "'Cairo', 'Tahoma', sans-serif",
+    }}>
+    <div style={{
+      maxWidth: 1320,
+      margin: '0 auto',
+      padding: '28px 24px',
     }}>
       {/* الهيدر */}
       <div style={{
-        background: COLORS.darkNavy,
-        borderRadius: 30,
-        padding: '40px',
-        marginBottom: 30,
+        background: `linear-gradient(135deg, ${COLORS.darkNavy}, #1a2a6c)`,
+        borderRadius: 24,
+        padding: '40px 48px',
+        marginBottom: 28,
         color: 'white',
+        boxShadow: `0 8px 32px ${COLORS.darkNavy}50`,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: 15 }}>
+            <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 800, marginBottom: 12, letterSpacing: '0.01em', lineHeight: 1.3 }}>
               ❆ الأخبار والفعاليات والاتفاقيات
             </h1>
-            <p style={{ maxWidth: 600, opacity: 0.9 }}>
+            <p style={{ maxWidth: 580, opacity: 0.85, fontSize: '1.05rem', lineHeight: 1.7, fontWeight: 400 }}>
               تابع آخر أخبار وفعاليات واتفاقيات وإعلانات المؤسسات في المجرة الحضارية
             </p>
           </div>
@@ -180,7 +186,7 @@ export default function NewsPage() {
       </div>
 
       {/* أزرار التبويب */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 30, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
         {([
           { key: 'news', label: '📰 الأخبار' },
           { key: 'events', label: '📅 الفعاليات' },
@@ -192,16 +198,23 @@ export default function NewsPage() {
             onClick={() => setActiveTab(tab.key)}
             style={{
               flex: 1,
-              padding: '15px',
+              padding: '14px 20px',
               borderRadius: 40,
-              border: 'none',
-              background: activeTab === tab.key ? COLORS.teal : 'white',
+              border: activeTab === tab.key ? 'none' : `2px solid ${COLORS.teal}30`,
+              background: activeTab === tab.key
+                ? `linear-gradient(135deg, ${COLORS.teal}, #3a7a8a)`
+                : 'white',
               color: activeTab === tab.key ? 'white' : COLORS.teal,
               fontSize: '1rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-              minWidth: 120,
+              boxShadow: activeTab === tab.key
+                ? `0 6px 20px ${COLORS.teal}40`
+                : `0 2px 8px ${COLORS.darkNavy}10`,
+              minWidth: 130,
+              transition: 'all 0.25s ease',
+              letterSpacing: '0.02em',
+              fontFamily: "'Cairo', sans-serif",
             }}
           >
             {tab.label}
@@ -215,10 +228,11 @@ export default function NewsPage() {
       {(activeTab === 'news' || activeTab === 'events') && (
       <div style={{
         background: 'white',
-        borderRadius: 20,
-        padding: '20px',
-        marginBottom: 30,
-        boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
+        borderRadius: 18,
+        padding: '18px 24px',
+        marginBottom: 28,
+        boxShadow: `0 4px 16px ${COLORS.darkNavy}12`,
+        border: `1px solid ${COLORS.teal}15`,
       }}>
         <div style={{
           display: 'flex',
@@ -233,13 +247,15 @@ export default function NewsPage() {
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             style={{
               flex: 1,
-              padding: '12px 15px',
+              padding: '12px 18px',
               borderRadius: 30,
               border: `2px solid ${COLORS.teal}40`,
               background: 'white',
               color: COLORS.darkNavy,
-              fontSize: '0.9rem',
+              fontSize: '1rem',
               outline: 'none',
+              fontFamily: "'Cairo', sans-serif",
+              minWidth: 0,
             }}
           />
 
@@ -248,15 +264,16 @@ export default function NewsPage() {
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
               style={{
-                padding: '12px 15px',
+                padding: '12px 18px',
                 borderRadius: 30,
                 border: `2px solid ${COLORS.teal}40`,
                 background: 'white',
                 color: COLORS.darkNavy,
-                fontSize: '0.9rem',
+                fontSize: '1rem',
                 outline: 'none',
                 cursor: 'pointer',
-                minWidth: '150px',
+                minWidth: '170px',
+                fontFamily: "'Cairo', sans-serif",
               }}
             >
               <option value="all">📁 جميع التصنيفات</option>
@@ -271,15 +288,16 @@ export default function NewsPage() {
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
               style={{
-                padding: '12px 15px',
+                padding: '12px 18px',
                 borderRadius: 30,
                 border: `2px solid ${COLORS.teal}40`,
                 background: 'white',
                 color: COLORS.darkNavy,
-                fontSize: '0.9rem',
+                fontSize: '1rem',
                 outline: 'none',
                 cursor: 'pointer',
-                minWidth: '150px',
+                minWidth: '170px',
+                fontFamily: "'Cairo', sans-serif",
               }}
             >
               <option value="all">📁 جميع الفعاليات</option>
@@ -291,13 +309,16 @@ export default function NewsPage() {
           )}
 
           <Link href={`/${activeTab === 'news' ? 'news' : 'events'}/create`} style={{
-            background: COLORS.teal,
+            background: `linear-gradient(135deg, ${COLORS.teal}, #3a7a8a)`,
             color: 'white',
-            padding: '12px 25px',
+            padding: '12px 28px',
             borderRadius: 40,
             textDecoration: 'none',
-            fontWeight: 600,
+            fontWeight: 700,
+            fontSize: '1rem',
             whiteSpace: 'nowrap',
+            boxShadow: `0 4px 14px ${COLORS.teal}40`,
+            letterSpacing: '0.02em',
           }}>
             + إضافة {activeTab === 'news' ? 'خبر' : 'فعالية'}
           </Link>
@@ -307,12 +328,12 @@ export default function NewsPage() {
 
       {/* المحتوى */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 50 }}>جاري التحميل...</div>
+        <div style={{ textAlign: 'center', padding: '60px 20px', fontSize: '1.1rem', color: COLORS.teal, fontWeight: 600 }}>⏳ جاري التحميل...</div>
       ) : (
         <>
           {/* الأخبار */}
           {activeTab === 'news' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
               {news.length === 0 ? <EmptyState label="أخبار" /> : news.map(item => (
                 <NewsCard key={item.id} news={item} formatDate={formatDate} />
               ))}
@@ -321,7 +342,7 @@ export default function NewsPage() {
 
           {/* الفعاليات */}
           {activeTab === 'events' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
               {events.length === 0 ? <EmptyState label="فعاليات" /> : events.map(item => (
                 <EventCard key={item.id} event={item} formatDate={formatDate} />
               ))}
@@ -330,7 +351,7 @@ export default function NewsPage() {
 
           {/* الاتفاقيات */}
           {activeTab === 'agreements' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
               {agreements.length === 0 ? <EmptyState label="اتفاقيات" /> : agreements.map(ag => (
                 <AgreementCard key={ag.id} ag={ag} />
               ))}
@@ -391,7 +412,7 @@ export default function NewsPage() {
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
                 {allAds.length === 0 ? <EmptyState label="إعلانات" /> : allAds.map(ad => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}
@@ -411,6 +432,7 @@ export default function NewsPage() {
         </>
       )}
 
+    </div>
     </div>
   );
 }
@@ -441,41 +463,45 @@ function NewsCard({ news, formatDate }: any) {
           }} />
         )}
 
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '22px 24px' }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 10,
+            marginBottom: 12,
+            gap: 8,
           }}>
             <span style={{
-              background: `${COLORS.teal}20`,
+              background: `${COLORS.teal}18`,
               color: COLORS.teal,
-              padding: '4px 12px',
+              padding: '5px 13px',
               borderRadius: 20,
-              fontSize: '0.7rem',
+              fontSize: '0.82rem',
+              fontWeight: 600,
             }}>
               {news.category === 'announcement' ? '📢 إعلان' :
                news.category === 'achievement' ? '🏆 إنجاز' : '📰 خبر'}
             </span>
-            <span style={{ fontSize: '0.7rem', color: '#666' }}>
+            <span style={{ fontSize: '0.82rem', color: '#888', flexShrink: 0 }}>
               {formatDate(news.published_at)}
             </span>
           </div>
 
           <h3 style={{
             color: COLORS.darkNavy,
-            fontSize: '1.1rem',
+            fontSize: '1.15rem',
+            fontWeight: 700,
             marginBottom: 10,
+            lineHeight: 1.5,
           }}>
             {news.title}
           </h3>
 
           <p style={{
-            color: '#666',
-            fontSize: '0.9rem',
-            marginBottom: 15,
-            lineHeight: 1.6,
+            color: '#555',
+            fontSize: '0.95rem',
+            marginBottom: 18,
+            lineHeight: 1.75,
           }}>
             {news.content.substring(0, 120)}...
           </p>
@@ -484,23 +510,25 @@ function NewsCard({ news, formatDate }: any) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            paddingTop: 15,
+            paddingTop: 14,
             borderTop: `1px solid ${COLORS.teal}20`,
           }}>
             <div style={{
-              width: 30,
-              height: 30,
+              width: 36,
+              height: 36,
               borderRadius: '50%',
-              background: COLORS.teal,
+              background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontSize: '0.8rem',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              flexShrink: 0,
             }}>
               {news.institution_name_ar?.charAt(0) || news.institution_name?.charAt(0)}
             </div>
-            <span style={{ fontSize: '0.8rem', color: COLORS.darkNavy }}>
+            <span style={{ fontSize: '0.9rem', color: COLORS.darkNavy, fontWeight: 600 }}>
               {news.institution_name_ar || news.institution_name}
             </span>
           </div>
@@ -537,16 +565,17 @@ function EventCard({ event, formatDate }: any) {
         {/* شريط الحالة */}
         <div style={{
           position: 'absolute',
-          top: 20,
-          right: 20,
-          padding: '4px 12px',
+          top: 14,
+          right: 14,
+          padding: '5px 13px',
           borderRadius: 20,
           background: isOngoing ? COLORS.softGreen :
                       isUpcoming ? COLORS.teal : '#9E9E9E',
           color: 'white',
-          fontSize: '0.7rem',
-          fontWeight: 600,
+          fontSize: '0.82rem',
+          fontWeight: 700,
           zIndex: 2,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
         }}>
           {isOngoing ? '🔴 جاري الآن' :
            isUpcoming ? '⏳ قادم' : '✅ منتهي'}
@@ -556,30 +585,31 @@ function EventCard({ event, formatDate }: any) {
         <div style={{
           background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
           color: 'white',
-          padding: '15px',
+          padding: '18px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+          <div style={{ fontSize: '1.6rem', fontWeight: 800 }}>
             {new Date(event.start_datetime).toLocaleDateString('ar-EG', { day: 'numeric' })}
           </div>
-          <div style={{ fontSize: '0.9rem' }}>
+          <div style={{ fontSize: '0.95rem', opacity: 0.9 }}>
             {new Date(event.start_datetime).toLocaleDateString('ar-EG', { month: 'long' })}
           </div>
         </div>
 
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '22px 24px' }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 10,
+            marginBottom: 12,
           }}>
             <span style={{
-              background: `${COLORS.lightMint}40`,
+              background: `${COLORS.lightMint}60`,
               color: COLORS.teal,
-              padding: '4px 12px',
+              padding: '5px 13px',
               borderRadius: 20,
-              fontSize: '0.7rem',
+              fontSize: '0.82rem',
+              fontWeight: 600,
             }}>
               {event.type === 'conference' ? '🎯 مؤتمر' :
                event.type === 'workshop' ? '🔧 ورشة' :
@@ -589,16 +619,19 @@ function EventCard({ event, formatDate }: any) {
 
           <h3 style={{
             color: COLORS.darkNavy,
-            fontSize: '1.1rem',
+            fontSize: '1.15rem',
+            fontWeight: 700,
             marginBottom: 10,
+            lineHeight: 1.5,
           }}>
             {event.title}
           </h3>
 
           <p style={{
-            color: '#666',
-            fontSize: '0.9rem',
-            marginBottom: 15,
+            color: '#555',
+            fontSize: '0.95rem',
+            marginBottom: 16,
+            lineHeight: 1.7,
           }}>
             {event.description?.substring(0, 100)}...
           </p>
@@ -607,9 +640,9 @@ function EventCard({ event, formatDate }: any) {
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
-            marginBottom: 15,
-            fontSize: '0.8rem',
-            color: '#666',
+            marginBottom: 16,
+            fontSize: '0.9rem',
+            color: '#555',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span>⏰</span>
@@ -626,7 +659,7 @@ function EventCard({ event, formatDate }: any) {
             {event.is_online && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span>🌐</span>
-                <span style={{ color: COLORS.teal }}>عبر الإنترنت</span>
+                <span style={{ color: COLORS.teal, fontWeight: 600 }}>عبر الإنترنت</span>
               </div>
             )}
           </div>
@@ -635,23 +668,25 @@ function EventCard({ event, formatDate }: any) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            paddingTop: 15,
+            paddingTop: 14,
             borderTop: `1px solid ${COLORS.teal}20`,
           }}>
             <div style={{
-              width: 30,
-              height: 30,
+              width: 36,
+              height: 36,
               borderRadius: '50%',
-              background: COLORS.softGreen,
+              background: `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontSize: '0.8rem',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              flexShrink: 0,
             }}>
               {event.institution_name_ar?.charAt(0) || event.institution_name?.charAt(0)}
             </div>
-            <span style={{ fontSize: '0.8rem', color: COLORS.darkNavy }}>
+            <span style={{ fontSize: '0.9rem', color: COLORS.darkNavy, fontWeight: 600 }}>
               {event.institution_name_ar || event.institution_name}
             </span>
           </div>
@@ -685,39 +720,39 @@ function AgreementCard({ ag }: { ag: AgreementItem }) {
     <div style={{
       background: 'white',
       borderRadius: 20,
-      padding: '22px',
-      boxShadow: `0 5px 15px ${COLORS.darkNavy}15`,
+      padding: '24px',
+      boxShadow: `0 4px 16px ${COLORS.darkNavy}12`,
       border: `1px solid ${sc}30`,
       display: 'flex',
       flexDirection: 'column',
-      gap: 10,
+      gap: 12,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <h3 style={{ margin: 0, color: COLORS.darkNavy, fontSize: '1rem', flex: 1, lineHeight: 1.4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+        <h3 style={{ margin: 0, color: COLORS.darkNavy, fontSize: '1.1rem', fontWeight: 700, flex: 1, lineHeight: 1.5 }}>
           🔗 {ag.title || `اتفاقية #${ag.id}`}
         </h3>
-        <span style={{ background: sc + '20', color: sc, padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, flexShrink: 0 }}>
+        <span style={{ background: sc + '20', color: sc, padding: '4px 12px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700, flexShrink: 0 }}>
           {sl}
         </span>
       </div>
       {ag.type && (
-        <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.75rem', display: 'inline-block', width: 'fit-content' }}>
+        <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '4px 12px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 600, display: 'inline-block', width: 'fit-content' }}>
           {ag.type}
         </span>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: '0.82rem', color: '#666' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.9rem', color: '#555' }}>
         {(ag.institution_name_ar || ag.institution_name) ? (
-          <div style={{ display: 'flex', gap: 6 }}><span>🏛️</span><span>{ag.institution_name_ar || ag.institution_name}</span></div>
+          <div style={{ display: 'flex', gap: 8 }}><span>🏛️</span><span>{ag.institution_name_ar || ag.institution_name}</span></div>
         ) : null}
         {(ag.partner_name_ar || ag.partner_name) ? (
-          <div style={{ display: 'flex', gap: 6 }}><span>🤝</span><span>{ag.partner_name_ar || ag.partner_name}</span></div>
+          <div style={{ display: 'flex', gap: 8 }}><span>🤝</span><span>{ag.partner_name_ar || ag.partner_name}</span></div>
         ) : null}
-        <div style={{ display: 'flex', gap: 6, color: COLORS.teal, marginTop: 4 }}>
+        <div style={{ display: 'flex', gap: 8, color: COLORS.teal, fontWeight: 600, marginTop: 2 }}>
           <span>📅</span>
           <span>{new Date(dateField).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
         {ag.end_date && (
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <span>🏁</span>
             <span>تنتهي: {new Date(ag.end_date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
@@ -744,34 +779,34 @@ function AdCard({ ad }: { ad: AdItem }) {
       background: 'white',
       borderRadius: 20,
       overflow: 'hidden',
-      boxShadow: `0 5px 15px ${COLORS.darkNavy}15`,
+      boxShadow: `0 4px 16px ${COLORS.darkNavy}12`,
       border: `1px solid ${statusColor}30`,
     }}>
       {ad.image_url && (
-        <div style={{ height: 160, background: `url(${ad.image_url}) center/cover no-repeat` }} />
+        <div style={{ height: 170, background: `url(${ad.image_url}) center/cover no-repeat` }} />
       )}
-      <div style={{ padding: '18px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-          <h3 style={{ margin: 0, color: COLORS.darkNavy, fontSize: '1rem', flex: 1 }}>{ad.title}</h3>
-          <span style={{ background: statusColor + '20', color: statusColor, padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, flexShrink: 0, marginRight: 8 }}>
+      <div style={{ padding: '20px 22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10, gap: 8 }}>
+          <h3 style={{ margin: 0, color: COLORS.darkNavy, fontSize: '1.1rem', fontWeight: 700, flex: 1, lineHeight: 1.5 }}>{ad.title}</h3>
+          <span style={{ background: statusColor + '20', color: statusColor, padding: '4px 11px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 700, flexShrink: 0, marginRight: 6 }}>
             {statusLabel}
           </span>
         </div>
         {ad.content && (
-          <p style={{ margin: '0 0 10px', fontSize: '0.85rem', color: '#666', lineHeight: 1.5 }}>
+          <p style={{ margin: '0 0 12px', fontSize: '0.92rem', color: '#555', lineHeight: 1.65 }}>
             {ad.content.substring(0, 100)}{ad.content.length > 100 ? '...' : ''}
           </p>
         )}
         {(ad.institution_name_ar || ad.institution_name) && (
-          <div style={{ fontSize: '0.78rem', color: COLORS.teal, marginBottom: 6, display: 'flex', gap: 5 }}>
+          <div style={{ fontSize: '0.88rem', color: COLORS.teal, marginBottom: 8, display: 'flex', gap: 6, fontWeight: 600 }}>
             <span>🏛️</span><span>{ad.institution_name_ar || ad.institution_name}</span>
           </div>
         )}
-        <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 6 }}>
+        <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: 8 }}>
           📅 {new Date(ad.start_date).toLocaleDateString('ar-EG')} ← {new Date(ad.end_date).toLocaleDateString('ar-EG')}
         </div>
         {ad.target_type && ad.target_type !== 'all' && (
-          <div style={{ fontSize: '0.73rem', color: COLORS.teal, background: `${COLORS.teal}10`, padding: '3px 10px', borderRadius: 20, display: 'inline-block' }}>
+          <div style={{ fontSize: '0.82rem', color: COLORS.teal, background: `${COLORS.teal}10`, padding: '4px 12px', borderRadius: 20, display: 'inline-block', fontWeight: 600 }}>
             {ad.target_type === 'country' ? `🏳️ ${ad.target_value}` : `🏙️ ${ad.target_value}`}
           </div>
         )}
@@ -869,11 +904,13 @@ function AdCreateModal({
   };
 
   const iSt: React.CSSProperties = {
-    width: '100%', padding: '10px 13px',
+    width: '100%', padding: '11px 15px',
     background: 'white',
-    border: `1px solid ${COLORS.teal}40`,
-    borderRadius: 10, color: COLORS.darkNavy, fontSize: '0.9rem',
+    border: `1.5px solid ${COLORS.teal}40`,
+    borderRadius: 10, color: COLORS.darkNavy, fontSize: '1rem',
     outline: 'none', boxSizing: 'border-box',
+    fontFamily: "'Cairo', sans-serif",
+    lineHeight: 1.6,
   };
 
   return (
@@ -892,8 +929,8 @@ function AdCreateModal({
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ margin: 0, fontSize: '1.3rem', color: COLORS.darkNavy }}>📢 إنشاء إعلان جديد</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#888' }}>✕</button>
+          <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: COLORS.darkNavy, letterSpacing: '0.01em' }}>📢 إنشاء إعلان جديد</h2>
+          <button onClick={onClose} style={{ background: '#f5f5f5', border: 'none', borderRadius: '50%', width: 36, height: 36, fontSize: '1.1rem', cursor: 'pointer', color: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
         {/* Coins balance */}
@@ -901,8 +938,8 @@ function AdCreateModal({
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: `${COLORS.teal}10`, borderRadius: 12, padding: '12px 16px', marginBottom: 20,
         }}>
-          <span style={{ color: '#666', fontSize: '0.9rem' }}>رصيدك الحالي</span>
-          <span style={{ color: coins >= AD_COST ? COLORS.teal : '#e53935', fontWeight: 700, fontSize: '1rem' }}>
+          <span style={{ color: '#555', fontSize: '0.95rem' }}>رصيدك الحالي</span>
+          <span style={{ color: coins >= AD_COST ? COLORS.teal : '#e53935', fontWeight: 800, fontSize: '1.05rem' }}>
             {coins} كوين
           </span>
         </div>
@@ -929,30 +966,30 @@ function AdCreateModal({
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {err && (
-              <div style={{ background: '#fdecea', border: '1px solid #e53935', borderRadius: 8, padding: '10px 14px', color: '#c62828', fontSize: '0.85rem' }}>
+              <div style={{ background: '#fdecea', border: '1px solid #e53935', borderRadius: 10, padding: '11px 16px', color: '#c62828', fontSize: '0.95rem', fontWeight: 500 }}>
                 {err}
               </div>
             )}
 
             {/* Title */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>عنوان الإعلان *</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>عنوان الإعلان *</label>
               <input type="text" value={form.title} onChange={set('title')} required placeholder="اكتب عنوان الإعلان" style={iSt} />
             </div>
 
             {/* Content */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>نص الإعلان</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>نص الإعلان</label>
               <textarea value={form.content} onChange={set('content')} placeholder="تفاصيل الإعلان..." rows={3} style={{ ...iSt, resize: 'vertical' }} />
             </div>
 
             {/* Image upload */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>صورة الإعلان</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>صورة الإعلان</label>
               {imagePreview && (
                 <div style={{ height: 140, background: `url(${imagePreview}) center/cover`, borderRadius: 10, marginBottom: 6 }} />
               )}
-              <input type="file" accept="image/*" onChange={handleFile} style={{ fontSize: '0.85rem' }} />
+              <input type="file" accept="image/*" onChange={handleFile} style={{ fontSize: '0.92rem', fontFamily: "'Cairo', sans-serif" }} />
               {uploadProgress > 0 && uploadProgress < 100 && (
                 <div style={{ background: '#e0e0e0', borderRadius: 10, height: 6, overflow: 'hidden' }}>
                   <div style={{ background: COLORS.teal, height: '100%', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
@@ -960,27 +997,27 @@ function AdCreateModal({
               )}
               {!imageFile && (
                 <>
-                  <label style={{ fontSize: '0.75rem', color: '#999', marginTop: 2 }}>أو ادخل رابط الصورة مباشرة</label>
+                  <label style={{ fontSize: '0.85rem', color: '#888', marginTop: 2 }}>أو ادخل رابط الصورة مباشرة</label>
                   <input type="url" value={form.image_url} onChange={set('image_url')} placeholder="https://..." style={iSt} />
                 </>
               )}
             </div>
 
             {/* Dates */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>تاريخ البداية *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>تاريخ البداية *</label>
                 <input type="date" value={form.start_date} onChange={set('start_date')} required style={iSt} />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>تاريخ النهاية *</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>تاريخ النهاية *</label>
                 <input type="date" value={form.end_date} onChange={set('end_date')} required style={iSt} />
               </div>
             </div>
 
             {/* Targeting */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>نطاق الاستهداف</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>نطاق الاستهداف</label>
               <select value={form.target_type} onChange={e => setForm(p => ({ ...p, target_type: e.target.value as any, target_value: '' }))} style={iSt}>
                 <option value="all">🌍 الكل</option>
                 <option value="country">🏳️ دولة محددة</option>
@@ -990,7 +1027,7 @@ function AdCreateModal({
 
             {form.target_type !== 'all' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 600 }}>
+                <label style={{ fontSize: '0.9rem', color: COLORS.teal, fontWeight: 700 }}>
                   {form.target_type === 'country' ? 'كود الدولة (ISO)' : 'اسم المدينة'}
                 </label>
 
@@ -1001,11 +1038,12 @@ function AdCreateModal({
                     onClick={fetchLocation}
                     disabled={locationLoading}
                     style={{
-                      padding: '7px 14px', borderRadius: 20,
+                      padding: '8px 16px', borderRadius: 20,
                       border: `1.5px solid ${COLORS.teal}`,
                       background: locationLoading ? `${COLORS.teal}10` : `${COLORS.teal}15`,
                       color: COLORS.teal, cursor: locationLoading ? 'default' : 'pointer',
-                      fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      fontSize: '0.88rem', fontWeight: 700, whiteSpace: 'nowrap',
+                      fontFamily: "'Cairo', sans-serif",
                     }}
                   >
                     {locationLoading ? '⏳ جاري الاكتشاف...' : '📍 اكتشاف موقعك'}
@@ -1020,10 +1058,11 @@ function AdCreateModal({
                           : (detectedLocation.city || ''),
                       }))}
                       style={{
-                        padding: '5px 12px', borderRadius: 20,
+                        padding: '6px 14px', borderRadius: 20,
                         border: `1px solid ${COLORS.softGreen}`,
                         background: `${COLORS.softGreen}15`,
-                        color: COLORS.teal, cursor: 'pointer', fontSize: '0.78rem',
+                        color: COLORS.teal, cursor: 'pointer', fontSize: '0.88rem',
+                        fontFamily: "'Cairo', sans-serif",
                       }}
                     >
                       {form.target_type === 'country'
@@ -1039,7 +1078,7 @@ function AdCreateModal({
                 {detectedLocation && (
                   <div style={{
                     background: `${COLORS.teal}08`, border: `1px solid ${COLORS.teal}30`,
-                    borderRadius: 10, padding: '10px 14px', fontSize: '0.78rem', color: COLORS.teal,
+                    borderRadius: 10, padding: '10px 14px', fontSize: '0.9rem', color: COLORS.teal,
                   }}>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>📡 موقعك المكتشف:</div>
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', color: '#555' }}>
@@ -1057,7 +1096,7 @@ function AdCreateModal({
                   placeholder={form.target_type === 'country' ? 'مثال: SA أو EG أو AE' : 'مثال: Riyadh أو Cairo'}
                   style={iSt}
                 />
-                <div style={{ fontSize: '0.72rem', color: '#999' }}>
+                <div style={{ fontSize: '0.85rem', color: '#888' }}>
                   {form.target_type === 'country'
                     ? '⚠️ أدخل كود الدولة ISO: SA، EG، AE، IQ...'
                     : '⚠️ أدخل اسم المدينة بالإنجليزية'}
@@ -1071,8 +1110,8 @@ function AdCreateModal({
               background: '#fffde7', borderRadius: 10, padding: '10px 14px',
               border: '1px solid #ffe082',
             }}>
-              <span style={{ fontSize: '0.85rem', color: '#666' }}>تكلفة الإعلان</span>
-              <span style={{ color: '#f9a825', fontWeight: 700 }}>{AD_COST} كوين → يتبقى {coins - AD_COST} كوين</span>
+              <span style={{ fontSize: '0.9rem', color: '#555' }}>تكلفة الإعلان</span>
+              <span style={{ color: '#f9a825', fontWeight: 800, fontSize: '0.95rem' }}>{AD_COST} كوين ← يتبقى {coins - AD_COST} كوين</span>
             </div>
 
             <button
@@ -1101,10 +1140,10 @@ function AdCreateModal({
 // ============================================================
 function EmptyState({ label }: { label: string }) {
   return (
-    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: 30, gridColumn: '1/-1' }}>
+    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: 24, gridColumn: '1/-1', boxShadow: `0 4px 16px ${COLORS.darkNavy}10` }}>
       <span style={{ fontSize: '4rem' }}>📭</span>
-      <h3 style={{ color: COLORS.darkNavy }}>لا توجد {label}</h3>
-      <p style={{ color: '#888' }}>لا يوجد محتوى متاح حالياً</p>
+      <h3 style={{ color: COLORS.darkNavy, fontSize: '1.3rem', fontWeight: 700, marginTop: 16, marginBottom: 8 }}>لا توجد {label}</h3>
+      <p style={{ color: '#888', fontSize: '1rem' }}>لا يوجد محتوى متاح حالياً</p>
     </div>
   );
 }
