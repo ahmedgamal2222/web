@@ -243,6 +243,8 @@ export default function ScreenPage() {
         master.gain.setValueAtTime(0, ctx.currentTime);
         master.connect(ctx.destination);
         masterGainRef.current = master;
+        // استئناف السياق فوراً بعد الإنشاء (بعض المتصفحات تُوقفه تلقائياً)
+        ctx.resume().catch(() => {});
         // White noise — space static
         const bufSz = ctx.sampleRate * 2;
         const buf = ctx.createBuffer(1, bufSz, ctx.sampleRate);
@@ -281,9 +283,16 @@ export default function ScreenPage() {
     const ctx = audioCtxRef.current;
     const master = masterGainRef.current;
     if (!ctx || !master) return;
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 2);
+    const ramp = () => {
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 2);
+    };
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(ramp).catch(() => {});
+    } else {
+      ramp();
+    }
   };
 
   const stopSpaceSound = () => {
