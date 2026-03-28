@@ -244,6 +244,27 @@ export default function AdminDashboard() {
           color="#FF9800"
           link="/admin/ads"
         />
+        <StatCard
+          title="المكتبة"
+          value="📚"
+          icon="📚"
+          color="#4E8D9C"
+          link="/admin/library"
+        />
+        <StatCard
+          title="المنتدى"
+          value="💬"
+          icon="💬"
+          color="#C084FC"
+          link="/admin/forum"
+        />
+        <StatCard
+          title="البودكاست"
+          value="🎙️"
+          icon="🎙️"
+          color="#FF6B6B"
+          link="/admin/podcast"
+        />
       </div>
 
       {/* أقسام سريعة */}

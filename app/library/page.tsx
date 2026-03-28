@@ -284,11 +284,25 @@ export default function LibraryPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: '', title_en: '', author: '', description: '',
+    file_url: '', external_url: '', cover_url: '',
+    year: '', pages: '', tags: '', is_free: true,
+    language: 'ar',
+  });
+  const [creating, setCreating] = useState(false);
+  const [createErr, setCreateErr] = useState('');
   const limit = 24;
 
   useEffect(() => {
+    const uStr = localStorage.getItem('user');
+    if (uStr) { try { setUser(JSON.parse(uStr)); } catch { /* */ } }
     fetchBooks();
   }, [activeCategory, search, page]);
+
+  const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -313,7 +327,46 @@ export default function LibraryPage() {
     setPage(1);
   };
 
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.title.trim()) { setCreateErr('العنوان مطلوب'); return; }
+    setCreating(true); setCreateErr('');
+    try {
+      const tagsArr = createForm.tags ? createForm.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+      const res = await fetch(`${API_BASE}/api/library`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({
+          title: createForm.title,
+          title_en: createForm.title_en || undefined,
+          author: createForm.author || undefined,
+          description: createForm.description || undefined,
+          category: 'institution_book',
+          institution_id: user?.institution_id || undefined,
+          file_url: createForm.file_url || undefined,
+          external_url: createForm.external_url || undefined,
+          cover_url: createForm.cover_url || undefined,
+          year: createForm.year ? Number(createForm.year) : undefined,
+          pages: createForm.pages ? Number(createForm.pages) : undefined,
+          language: createForm.language,
+          tags: tagsArr,
+          is_free: createForm.is_free,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'فشل الإضافة');
+      setShowCreate(false);
+      setCreateForm({ title: '', title_en: '', author: '', description: '', file_url: '', external_url: '', cover_url: '', year: '', pages: '', tags: '', is_free: true, language: 'ar' });
+      fetchBooks();
+    } catch (ex: any) {
+      setCreateErr(ex.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const totalPages = Math.ceil(total / limit);
+  const canAddBook = user && (user.role === 'institution_admin' || user.role === 'admin');
 
   return (
     <div style={{ minHeight: '100dvh', background: '#080520', color: '#fff', fontFamily: "'Cairo', sans-serif", direction: 'rtl' }}>
@@ -327,13 +380,21 @@ export default function LibraryPage() {
       </div>
 
       {/* Nav */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', background: 'rgba(8,5,32,0.95)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(78,141,156,0.2)', boxShadow: '0 2px 32px rgba(0,0,0,0.5)' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', background: 'rgba(8,5,32,0.95)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(78,141,156,0.2)', boxShadow: '0 2px 32px rgba(0,0,0,0.5)', gap: 12 }}>
         <GalaxyLogo />
-        <nav style={{ display: 'flex', gap: 6 }}>
+        <nav style={{ display: 'flex', gap: 6, flex: 1, justifyContent: 'center' }}>
           {[{ href: '/news', label: 'الأخبار' }, { href: '/services', label: 'الخدمات' }, { href: '/library', label: 'المكتبة', active: true }, { href: '/forum', label: 'المنتدى' }, { href: '/podcast', label: 'البودكاست' }].map(link => (
-            <Link key={link.href} href={link.href} style={{ padding: '8px 16px', borderRadius: 24, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, color: (link as any).active ? COLORS.darkNavy : '#9ca3af', background: (link as any).active ? `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})` : 'transparent', border: (link as any).active ? 'none' : '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s' }}>{link.label}</Link>
+            <Link key={link.href} href={link.href} style={{ padding: '8px 16px', borderRadius: 24, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, color: (link as any).active ? COLORS.darkNavy : '#9ca3af', background: (link as any).active ? `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})` : 'transparent', border: (link as any).active ? 'none' : '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>{link.label}</Link>
           ))}
         </nav>
+        {canAddBook && (
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{ padding: '9px 20px', borderRadius: 30, background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', color: COLORS.darkNavy, fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'Cairo', sans-serif" }}
+          >
+            + إضافة كتاب
+          </button>
+        )}
       </header>
 
       <main style={{ position: 'relative', zIndex: 1, maxWidth: 1320, margin: '0 auto', padding: '48px 24px 80px' }}>
@@ -372,7 +433,7 @@ export default function LibraryPage() {
             <div style={{ position: 'absolute', right: 130, top: '50%', transform: 'translateY(-50%)', color: '#4E8D9C', pointerEvents: 'none' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </div>
-            <button type="submit" style={{ padding: '14px 24px', background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', borderRadius: 50, cursor: 'pointer', color: '#1a1240', fontWeight: 800, fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif', whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(78,141,156,0.4)'" }}>بحث</button>
+            <button type="submit" style={{ padding: '14px 24px', background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', borderRadius: 50, cursor: 'pointer', color: '#1a1240', fontWeight: 800, fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(78,141,156,0.4)' }}>بحث</button>
           </div>
         </form>
 
@@ -432,6 +493,76 @@ export default function LibraryPage() {
       </main>
 
       {selectedBook && <BookModal book={selectedBook} onClose={() => setSelectedBook(null)} />}
+
+      {/* Create Book Modal (institution_admin) */}
+      {showCreate && (
+        <div onClick={e => e.target === e.currentTarget && setShowCreate(false)} style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: 'linear-gradient(145deg, #1a1240, #0f0a2e)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 24, maxWidth: 580, width: '100%', maxHeight: '88vh', overflow: 'auto', boxShadow: '0 32px 100px rgba(0,0,0,0.7)' }}>
+            <div style={{ height: 4, background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.softGreen})` }} />
+            <div style={{ padding: '28px 32px 32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2 style={{ color: '#fff', margin: 0, fontSize: '1.2rem' }}>📚 إضافة كتاب لمؤسستك</h2>
+                <button onClick={() => setShowCreate(false)} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '7px 14px', cursor: 'pointer', color: '#fff', fontSize: '1rem' }}>✕</button>
+              </div>
+              {createErr && <div style={{ background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: 10, padding: '10px 14px', color: '#ff8080', marginBottom: 16, fontSize: '0.85rem' }}>{createErr}</div>}
+              <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {[
+                  { label: 'العنوان بالعربية *', key: 'title', placeholder: 'عنوان الكتاب', required: true },
+                  { label: 'العنوان بالإنجليزية', key: 'title_en', placeholder: 'Title in English' },
+                  { label: 'المؤلف', key: 'author', placeholder: 'اسم المؤلف' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>{f.label}</label>
+                    <input
+                      value={(createForm as any)[f.key]}
+                      onChange={e => setCreateForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                      placeholder={f.placeholder}
+                      required={f.required}
+                      style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>الوصف</label>
+                  <textarea value={createForm.description} onChange={e => setCreateForm(prev => ({ ...prev, description: e.target.value }))} rows={3} placeholder="وصف مختصر..." style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {[
+                    { label: 'سنة النشر', key: 'year', placeholder: '2024', type: 'number' },
+                    { label: 'عدد الصفحات', key: 'pages', placeholder: '200', type: 'number' },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>{f.label}</label>
+                      <input type={f.type} value={(createForm as any)[f.key]} onChange={e => setCreateForm(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  ))}
+                </div>
+                {[
+                  { label: 'رابط الملف (PDF)', key: 'file_url', placeholder: 'https://...' },
+                  { label: 'رابط خارجي', key: 'external_url', placeholder: 'https://...' },
+                  { label: 'رابط صورة الغلاف', key: 'cover_url', placeholder: 'https://...' },
+                  { label: 'الوسوم (مفصولة بفاصلة)', key: 'tags', placeholder: 'قيادة، إدارة...' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>{f.label}</label>
+                    <input value={(createForm as any)[f.key]} onChange={e => setCreateForm(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(133,199,154,0.06)', borderRadius: 10, border: '1px solid rgba(133,199,154,0.2)' }}>
+                  <input type="checkbox" id="is_free" checked={createForm.is_free} onChange={e => setCreateForm(prev => ({ ...prev, is_free: e.target.checked }))} />
+                  <label htmlFor="is_free" style={{ color: COLORS.softGreen, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>كتاب مجاني للجميع</label>
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                  <button type="submit" disabled={creating} style={{ flex: 1, padding: '13px', borderRadius: 12, background: creating ? 'rgba(78,141,156,0.3)' : `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', color: creating ? '#aaa' : COLORS.darkNavy, fontWeight: 800, fontSize: '0.95rem', cursor: creating ? 'default' : 'pointer', fontFamily: "'Cairo', sans-serif" }}>
+                    {creating ? 'جاري الإضافة...' : '+ إضافة الكتاب'}
+                  </button>
+                  <button type="button" onClick={() => setShowCreate(false)} style={{ padding: '13px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', cursor: 'pointer', fontWeight: 600, fontFamily: "'Cairo', sans-serif" }}>إلغاء</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes twinkle { from { opacity: 0.1; transform: scale(1); } to { opacity: 0.6; transform: scale(1.2); } }

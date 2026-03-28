@@ -426,14 +426,10 @@ function QuickActions({ user }: { user: any }) {
     );
   }
 
-  // إجراءات مشتركة للجميع
+  // إجراءات مشتركة للجميع (الناف بار يحتوي الأخبار/المكتبة/المنتدى/البودكاست)
   actions.push(
     { icon: '🛠️', label: 'الخدمات', href: '/services', color: '#FF9B4E' },
     { icon: '📋', label: 'طلباتي', href: '/services/requests', color: '#9C27B0' },
-    { icon: '📰', label: 'الأخبار', href: '/news', color: '#E91E63' },
-    { icon: '📚', label: 'المكتبة', href: '/library', color: '#4E8D9C' },
-    { icon: '💬', label: 'المنتدى', href: '/forum', color: '#C084FC' },
-    { icon: '🎙️', label: 'البودكاست', href: '/podcast', color: '#FF6B6B' },
   );
 
   if (user.role === 'explorer' || !user.institution_id) {

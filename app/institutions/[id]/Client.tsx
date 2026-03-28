@@ -126,15 +126,28 @@ function InfoCard({ icon, label, value }: { icon: string; label: string; value: 
   );
 }
 
+// ── Compute effective weight from institution metrics ─────────
+function computeEffectiveWeight(institution: Institution, agreementsCount: number): number {
+  const raw =
+    (institution.employees_count    || 0) * 0.5  +
+    (institution.projects_count     || 0) * 5    +
+    (institution.beneficiaries_count|| 0) * 0.1  +
+    agreementsCount                               * 15;
+  return Math.min(1, raw / 500);
+}
+
 // ── Stats Grid ───────────────────────────────────────────────
-function StatsGrid({ institution }: { institution: Institution }) {
+function StatsGrid({ institution, agreementsCount }: { institution: Institution; agreementsCount: number }) {
+  const effectiveWeight = institution.weight > 0
+    ? institution.weight
+    : computeEffectiveWeight(institution, agreementsCount);
   return (
     <div style={{ maxWidth: 1200, margin: '-40px auto 40px', padding: '0 20px', position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
-      <InfoCard icon="👥" label="عدد الموظفين"  value={institution.employees_count?.toLocaleString()   || 'غير محدد'} />
-      <InfoCard icon="📊" label="المشاريع"       value={institution.projects_count?.toLocaleString()    || 'غير محدد'} />
+      <InfoCard icon="👥" label="عدد الموظفين"  value={institution.employees_count?.toLocaleString()    || 'غير محدد'} />
+      <InfoCard icon="📊" label="المشاريع"       value={institution.projects_count?.toLocaleString()     || 'غير محدد'} />
       <InfoCard icon="🎯" label="المستفيدين"     value={institution.beneficiaries_count?.toLocaleString() || 'غير محدد'} />
-      <InfoCard icon="⭐" label="وزن التأثير"    value={institution.weight?.toFixed(2)                  || 'غير محدد'} />
-      <InfoCard icon="📅" label="تأسست عام"      value={institution.founded_year                        || 'غير محدد'} />
+      <InfoCard icon="⭐" label="وزن التأثير"    value={effectiveWeight.toFixed(2)} />
+      <InfoCard icon="📅" label="تأسست عام"      value={institution.founded_year                         || 'غير محدد'} />
     </div>
   );
 }
@@ -418,7 +431,7 @@ export default function InstitutionClient() {
   return (
     <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${COLORS.lightMint}20 0%, white 100%)`, direction: 'rtl', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
       <HeroSection institution={institution} />
-      <StatsGrid institution={institution} />
+      <StatsGrid institution={institution} agreementsCount={agreements.length} />
       <div style={{ maxWidth: 1260, margin: '0 auto', padding: '0 20px 40px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 24, height: 'fit-content' }}>
           <SidebarNav institutionId={id} isOwner={isOwner} isAdmin={isAdmin} />
