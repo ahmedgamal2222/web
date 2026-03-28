@@ -232,49 +232,67 @@ export default function ScreenPage() {
     };
   }, [authenticated, institution]);
 
-  // ─── صوت الفضاء للمجرة ────────────────────────────────────────────────────
+  // ─── صوت الفضاء — يُهيَّأ عند أول نقرة (متطلب المتصفح) ─────────────────
+  useEffect(() => {
+    const unlock = () => {
+      if (audioCtxRef.current) return;
+      try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioCtxRef.current = ctx;
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(0, ctx.currentTime);
+        master.connect(ctx.destination);
+        masterGainRef.current = master;
+        // White noise — space static
+        const bufSz = ctx.sampleRate * 2;
+        const buf = ctx.createBuffer(1, bufSz, ctx.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < bufSz; i++) ch[i] = (Math.random() * 2 - 1) * 0.35;
+        const noise = ctx.createBufferSource();
+        noise.buffer = buf; noise.loop = true;
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 280;
+        const ng = ctx.createGain(); ng.gain.value = 0.1;
+        noise.connect(lp); lp.connect(ng); ng.connect(master);
+        noise.start();
+        // Deep space drones
+        [36, 54, 72, 108].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          osc.type = 'sine'; osc.frequency.value = freq;
+          const lfo = ctx.createOscillator();
+          lfo.type = 'sine'; lfo.frequency.value = 0.07 + i * 0.04;
+          const lg = ctx.createGain(); lg.gain.value = 0.5;
+          lfo.connect(lg); lg.connect(osc.frequency); lfo.start();
+          const og = ctx.createGain(); og.gain.value = 0.065;
+          osc.connect(og); og.connect(master); osc.start();
+        });
+      } catch (_) {}
+    };
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true });
+    return () => {
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('touchstart', unlock);
+    };
+  }, []);
+
+  // رفع/خفض الصوت عند دخول/خروج ربع المجرة
   const startSpaceSound = () => {
-    if (audioCtxRef.current) return;
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      audioCtxRef.current = ctx;
-      const master = ctx.createGain();
-      master.gain.setValueAtTime(0, ctx.currentTime);
-      master.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 2);
-      master.connect(ctx.destination);
-      masterGainRef.current = master;
-      // White noise — space static
-      const bufSz = ctx.sampleRate * 2;
-      const buf = ctx.createBuffer(1, bufSz, ctx.sampleRate);
-      const ch = buf.getChannelData(0);
-      for (let i = 0; i < bufSz; i++) ch[i] = (Math.random() * 2 - 1) * 0.35;
-      const noise = ctx.createBufferSource();
-      noise.buffer = buf; noise.loop = true;
-      const lp = ctx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 280;
-      const ng = ctx.createGain(); ng.gain.value = 0.1;
-      noise.connect(lp); lp.connect(ng); ng.connect(master);
-      noise.start();
-      // Deep space drones
-      [36, 54, 72, 108].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        osc.type = 'sine'; osc.frequency.value = freq;
-        const lfo = ctx.createOscillator();
-        lfo.type = 'sine'; lfo.frequency.value = 0.07 + i * 0.04;
-        const lg = ctx.createGain(); lg.gain.value = 0.5;
-        lfo.connect(lg); lg.connect(osc.frequency); lfo.start();
-        const og = ctx.createGain(); og.gain.value = 0.065;
-        osc.connect(og); og.connect(master); osc.start();
-      });
-    } catch (_) {}
+    const ctx = audioCtxRef.current;
+    const master = masterGainRef.current;
+    if (!ctx || !master) return;
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 2);
   };
 
   const stopSpaceSound = () => {
     const ctx = audioCtxRef.current;
     const master = masterGainRef.current;
     if (!ctx || !master) return;
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
     master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
-    setTimeout(() => { try { ctx.close(); } catch (_) {} audioCtxRef.current = null; masterGainRef.current = null; }, 2500);
   };
 
   // ─── شاشة تسجيل الدخول ───────────────────────────────────────────────────
@@ -859,6 +877,78 @@ export default function ScreenPage() {
         /* عناصر القائمة قابلة للنقر */
         .news-list-item, .feed-item { cursor: pointer; }
         .news-list-item:hover { background: rgba(255,215,0,0.09) !important; border-radius: 8px; }
+        /* ── ربع 1: تخطيط عمودي بدون تداخل ── */
+        .q1-layout {
+          display: flex; flex-direction: column;
+          width: 100%; height: 100%;
+        }
+        .q1-topbar {
+          display: flex; align-items: center;
+          justify-content: space-between;
+          padding: 9px 14px;
+          background: rgba(6,6,18,0.97);
+          backdrop-filter: blur(8px);
+          border-bottom: 1px solid rgba(255,215,0,0.25);
+          flex-shrink: 0;
+          min-height: 48px;
+          gap: 10px;
+          direction: rtl;
+          z-index: 10;
+        }
+        .q1-badge-group {
+          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .q1-viewers-pill {
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.18);
+          color: rgba(255,255,255,0.88);
+          padding: 3px 11px; border-radius: 20px;
+          font-size: 0.83rem; font-weight: 600;
+        }
+        .q1-no-stream {
+          color: rgba(255,255,255,0.48);
+          font-size: 0.88rem; font-weight: 500;
+        }
+        .q-expand-inline {
+          position: static !important;
+          top: unset !important; left: unset !important;
+          flex-shrink: 0;
+        }
+        .q1-video-wrap {
+          flex: 1;
+          position: relative;
+          overflow: hidden;
+          background: #000;
+          min-height: 0;
+        }
+        .q1-video-wrap iframe,
+        .q1-video-wrap video {
+          width: 100% !important; height: 100% !important;
+          display: block; border: none;
+        }
+        .q1-info-bar {
+          background: rgba(6,6,18,0.97);
+          backdrop-filter: blur(10px);
+          border-top: 1px solid rgba(255,215,0,0.22);
+          padding: 10px 16px 12px;
+          flex-shrink: 0;
+          direction: rtl;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .q1-title {
+          color: #fff;
+          font-size: 1rem;
+          font-weight: 700;
+          line-height: 1.45;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+        .q1-time {
+          font-size: 0.84rem;
+          color: rgba(255,215,0,0.82);
+          font-weight: 500;
+        }
       `}</style>
 
       {/* شريط المؤسسة */}
@@ -874,99 +964,108 @@ export default function ScreenPage() {
 
       {/* الربع 1: بث المحاضرات */}
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}`}>
-        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 1 ? null : 1)} title={expandedQuadrant === 1 ? 'تصغير' : 'تكبير'}>
-          {expandedQuadrant === 1 ? '⊡' : '⊞'}
-        </button>
-        <div className="q-header">
-          {liveLecture ? (
-            <span className="badge-live"><span className="badge-live-dot" />🔴 بث مباشر</span>
-          ) : recentRecorded ? (
-            recentRecorded.stream_type === 'external' || parseExternalVideoUrl(recentRecorded.stream_url || '') ? (
-              <span className="badge-recorded">🎥 بث خارجي</span>
-            ) : (
-              <span className="badge-recorded">🎬 محاضرة مسجّلة</span>
-            )
-          ) : (
-            <span style={{ opacity: 0.65, fontSize: '0.85rem' }}>📺 لا يوجد بث حالياً</span>
-          )}
-        </div>
+        <div className="q1-layout">
 
-        {displayLecture ? (
-          <>
-            {liveLecture && displayLecture.cf_live_input_id ? (
-              /* بث مباشر عبر CF Live Input */
-              <iframe
-                src={`https://iframe.cloudflarestream.com/${displayLecture.cf_live_input_id}?autoplay=true&muted=true`}
-                className="lecture-video"
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%' }}
-              />
-            ) : displayLecture.cf_video_id ? (
-              /* فيديو مسجّل محفوظ على CF Stream */
-              <iframe
-                src={`https://iframe.cloudflarestream.com/${displayLecture.cf_video_id}?autoplay=true&muted=false&loop=true`}
-                className="lecture-video"
-                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%' }}
-              />
-            ) : displayLecture.cf_live_input_id && !displayLecture.cf_video_id && !liveLecture ? (
-              /* التسجيل قيد المعالجة على Cloudflare */
-              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a1a', color: 'rgba(255,255,255,0.6)', gap: 12 }}>
-                <div style={{ fontSize: '2.5rem' }}>⏳</div>
-                <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 20px' }}>جاري معالجة التسجيل على Cloudflare Stream</div>
-                <div style={{ fontSize: '0.83rem', opacity: 0.5 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
-              </div>
-            ) : externalEmbed ? (
-              /* فيديو خارجي (YouTube / Vimeo / Dailymotion) */
-              <iframe
-                src={externalEmbed.embedUrl}
-                className="lecture-video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%' }}
-              />
-            ) : (
-              /* Fallback: native video element for direct HLS/MP4 URLs */
-              <video
-                ref={videoRef}
-                className="lecture-video"
-                src={displayLecture.stream_url || displayLecture.video_url}
-                autoPlay
-                muted={!!liveLecture}
-                loop={!liveLecture}
-                controls={!liveLecture}
-              />
-            )}
-            {liveLecture?.viewer_count !== undefined && liveLecture.viewer_count > 0 && (
-              <div className="viewer-count">👁️ {liveLecture.viewer_count} مشاهد</div>
-            )}
-            <div className="lecture-info">
-              <div style={{ marginBottom: 6 }}>
-                {liveLecture ? (
-                  <span style={{ background: '#e03030', color: 'white', padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 800, letterSpacing: 0.5 }}>● بث حي مباشر</span>
-                ) : recentRecorded?.stream_type === 'external' || (recentRecorded?.stream_url && parseExternalVideoUrl(recentRecorded.stream_url)) ? (
-                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>🎥 بث خارجي مسجّل</span>
-                ) : recentRecorded ? (
-                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>🎬 محاضرة مسجّلة</span>
-                ) : null}
-              </div>
-              <strong>{displayLecture.title}</strong>
-              {liveLecture && displayLecture.started_at && (
-                <span style={{ fontSize: '0.83rem', opacity: 0.7, marginRight: 8 }}>
-                  بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}
-                </span>
+          {/* ─ شريط علوي: البادج + المشاهدين + زر التكبير ─ */}
+          <div className="q1-topbar">
+            <div className="q1-badge-group">
+              {liveLecture ? (
+                <span className="badge-live"><span className="badge-live-dot" />بث مباشر</span>
+              ) : recentRecorded ? (
+                recentRecorded.stream_type === 'external' || parseExternalVideoUrl(recentRecorded.stream_url || '') ? (
+                  <span className="badge-recorded">🎥 بث خارجي</span>
+                ) : (
+                  <span className="badge-recorded">🎬 محاضرة مسجّلة</span>
+                )
+              ) : (
+                <span className="q1-no-stream">📺 لا يوجد بث حالياً</span>
+              )}
+              {liveLecture?.viewer_count !== undefined && liveLecture.viewer_count > 0 && (
+                <span className="q1-viewers-pill">👁️ {liveLecture.viewer_count} مشاهد</span>
               )}
             </div>
-          </>
-        ) : (
-          <div className="empty-state" style={{ paddingTop: 40 }}>
-            <span className="empty-icon">📺</span>
-            <span>لا يوجد بث حالياً</span>
-            <span style={{ fontSize: '0.8rem' }}>سيبدأ البث قريباً</span>
+            <button
+              className="q-expand-btn q-expand-inline"
+              onClick={() => setExpandedQuadrant(expandedQuadrant === 1 ? null : 1)}
+              title={expandedQuadrant === 1 ? 'تصغير' : 'تكبير'}
+            >
+              {expandedQuadrant === 1 ? '⊡' : '⊞'}
+            </button>
           </div>
-        )}
+
+          {/* ─ منطقة الفيديو ─ */}
+          <div className="q1-video-wrap">
+            {displayLecture ? (
+              liveLecture && displayLecture.cf_live_input_id ? (
+                <iframe
+                  src={`https://iframe.cloudflarestream.com/${displayLecture.cf_live_input_id}?autoplay=true&muted=true`}
+                  className="lecture-video"
+                  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                  allowFullScreen
+                  style={{ border: 'none', width: '100%', height: '100%' }}
+                />
+              ) : displayLecture.cf_video_id ? (
+                <iframe
+                  src={`https://iframe.cloudflarestream.com/${displayLecture.cf_video_id}?autoplay=true&muted=false&loop=true`}
+                  className="lecture-video"
+                  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                  allowFullScreen
+                  style={{ border: 'none', width: '100%', height: '100%' }}
+                />
+              ) : displayLecture.cf_live_input_id && !displayLecture.cf_video_id && !liveLecture ? (
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a1a', color: 'rgba(255,255,255,0.6)', gap: 14 }}>
+                  <div style={{ fontSize: '2.8rem' }}>⏳</div>
+                  <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 24px', lineHeight: 1.6 }}>جاري معالجة التسجيل على Cloudflare Stream</div>
+                  <div style={{ fontSize: '0.83rem', opacity: 0.45 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
+                </div>
+              ) : externalEmbed ? (
+                <iframe
+                  src={externalEmbed.embedUrl}
+                  className="lecture-video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ border: 'none', width: '100%', height: '100%' }}
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  className="lecture-video"
+                  src={displayLecture.stream_url || displayLecture.video_url}
+                  autoPlay
+                  muted={!!liveLecture}
+                  loop={!liveLecture}
+                  controls={!liveLecture}
+                />
+              )
+            ) : (
+              <div className="empty-state">
+                <span style={{ fontSize: '2.5rem' }}>📺</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600 }}>لا يوجد بث حالياً</span>
+                <span style={{ fontSize: '0.85rem', opacity: 0.5 }}>سيبدأ البث قريباً</span>
+              </div>
+            )}
+          </div>
+
+          {/* ─ شريط معلومات سفلي ─ */}
+          {displayLecture && (
+            <div className="q1-info-bar">
+              <div className="q1-title">{displayLecture.title}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                {liveLecture ? (
+                  <span style={{ background: '#e03030', color: 'white', padding: '2px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 800 }}>● بث حيّ مباشر</span>
+                ) : recentRecorded?.stream_type === 'external' || (recentRecorded?.stream_url && parseExternalVideoUrl(recentRecorded.stream_url)) ? (
+                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '2px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>🎥 خارجي</span>
+                ) : recentRecorded ? (
+                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '2px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>🎬 مسجّلة</span>
+                ) : null}
+                {liveLecture && displayLecture.started_at && (
+                  <span className="q1-time">🕐 بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}</span>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
 
       {/* الربع 2: المجرة مع إبراز المؤسسة */}
