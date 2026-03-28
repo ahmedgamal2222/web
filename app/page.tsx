@@ -265,7 +265,49 @@ function TopBar({
       boxShadow: '0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(133,199,154,0.08)',
     }}>
       <GalaxyLogo />
-      
+
+      {/* ── Global Nav ── */}
+      <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {[
+          { href: '/news',    icon: '📰', label: 'الأخبار' },
+          { href: '/library', icon: '📚', label: 'المكتبة' },
+          { href: '/forum',   icon: '💬', label: 'المنتدى' },
+          { href: '/podcast', icon: '🎙️', label: 'البودكاست' },
+        ].map(link => (
+          <Link
+            key={link.href}
+            href={link.href}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '7px 14px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 40,
+              color: '#9ca3af',
+              fontSize: '0.82rem',
+              textDecoration: 'none',
+              fontWeight: 600,
+              transition: 'all 0.2s',
+              letterSpacing: '0.01em',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLAnchorElement).style.color = '#EDF7BD';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(237,247,189,0.25)';
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(237,247,189,0.06)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLAnchorElement).style.color = '#9ca3af';
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.07)';
+              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.03)';
+            }}
+          >
+            <span style={{ fontSize: '0.9rem' }}>{link.icon}</span>
+            <span className="topbar-nav-label">{link.label}</span>
+          </Link>
+        ))}
+      </nav>
+
       <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
         {/* Institutions toggle */}
@@ -389,6 +431,9 @@ function QuickActions({ user }: { user: any }) {
     { icon: '🛠️', label: 'الخدمات', href: '/services', color: '#FF9B4E' },
     { icon: '📋', label: 'طلباتي', href: '/services/requests', color: '#9C27B0' },
     { icon: '📰', label: 'الأخبار', href: '/news', color: '#E91E63' },
+    { icon: '📚', label: 'المكتبة', href: '/library', color: '#4E8D9C' },
+    { icon: '💬', label: 'المنتدى', href: '/forum', color: '#C084FC' },
+    { icon: '🎙️', label: 'البودكاست', href: '/podcast', color: '#FF6B6B' },
   );
 
   if (user.role === 'explorer' || !user.institution_id) {
@@ -1406,6 +1451,11 @@ export default function HomePage() {
           .topbar-right { gap: 5px !important; }
           .inst-btn-label { display: none !important; }
           .user-name { display: none !important; }
+          .topbar-nav-label { display: none !important; }
+          .topbar-nav { gap: 2px !important; }
+        }
+        @media (max-width: 480px) {
+          .topbar-nav { display: none !important; }
         }
 
         /* --- Quick Actions: icon-only circular dock on mobile --- */
