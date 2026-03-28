@@ -237,7 +237,7 @@ export default function ScreenPage() {
     const unlock = () => {
       if (audioRef.current) return;
       try {
-        const audio = new Audio('/sound/virtualzero-whoosh-sci-fi-portal-hd-374800.mp3');
+        const audio = new Audio('/sound/idoberg-space-chords-loop-310493.mp3');
         audio.loop = true;
         audio.volume = 0;
         audioRef.current = audio;
