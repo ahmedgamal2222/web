@@ -40,9 +40,13 @@ export default function ScreenPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expandedQuadrant, setExpandedQuadrant] = useState<number | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
 
   // تخطي المصادقة للأدمن تلقائياً
   useEffect(() => {
@@ -228,6 +232,51 @@ export default function ScreenPage() {
     };
   }, [authenticated, institution]);
 
+  // ─── صوت الفضاء للمجرة ────────────────────────────────────────────────────
+  const startSpaceSound = () => {
+    if (audioCtxRef.current) return;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioCtxRef.current = ctx;
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 2);
+      master.connect(ctx.destination);
+      masterGainRef.current = master;
+      // White noise — space static
+      const bufSz = ctx.sampleRate * 2;
+      const buf = ctx.createBuffer(1, bufSz, ctx.sampleRate);
+      const ch = buf.getChannelData(0);
+      for (let i = 0; i < bufSz; i++) ch[i] = (Math.random() * 2 - 1) * 0.35;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf; noise.loop = true;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 280;
+      const ng = ctx.createGain(); ng.gain.value = 0.1;
+      noise.connect(lp); lp.connect(ng); ng.connect(master);
+      noise.start();
+      // Deep space drones
+      [36, 54, 72, 108].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const lfo = ctx.createOscillator();
+        lfo.type = 'sine'; lfo.frequency.value = 0.07 + i * 0.04;
+        const lg = ctx.createGain(); lg.gain.value = 0.5;
+        lfo.connect(lg); lg.connect(osc.frequency); lfo.start();
+        const og = ctx.createGain(); og.gain.value = 0.065;
+        osc.connect(og); og.connect(master); osc.start();
+      });
+    } catch (_) {}
+  };
+
+  const stopSpaceSound = () => {
+    const ctx = audioCtxRef.current;
+    const master = masterGainRef.current;
+    if (!ctx || !master) return;
+    master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
+    setTimeout(() => { try { ctx.close(); } catch (_) {} audioCtxRef.current = null; masterGainRef.current = null; }, 2500);
+  };
+
   // ─── شاشة تسجيل الدخول ───────────────────────────────────────────────────
   if (!authenticated) {
     return (
@@ -346,15 +395,21 @@ export default function ScreenPage() {
   const combinedFeed = [
     ...news.map((n: any) => ({
       type: 'news' as const,
+      id: n.id,
       date: n.published_at,
       title: n.title,
+      content: n.content,
+      image_url: n.image_url,
       icon: '📰',
       subtitle: null,
     })),
     ...events.map((e: any) => ({
       type: 'event' as const,
+      id: e.id,
       date: e.start_datetime || e.created_at,
       title: e.title,
+      content: e.description,
+      image_url: e.image_url,
       icon: '📅',
       subtitle: e.start_datetime
         ? new Date(e.start_datetime).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })
@@ -362,8 +417,11 @@ export default function ScreenPage() {
     })),
     ...agreements.map((a: any) => ({
       type: 'agreement' as const,
+      id: a.id,
       date: a.signed_at || a.start_date || a.created_at,
       title: a.title || 'اتفاقية',
+      content: a.description,
+      image_url: null,
       icon: '🤝',
       subtitle: a.status === 'active' ? 'اتفاقية نشطة' : a.status === 'signed' ? 'تم توقيع الاتفاقية' : 'اتفاقية جديدة',
     })),
@@ -721,6 +779,86 @@ export default function ScreenPage() {
         }
         .feed-event .feed-title { color: #87CEEB; }
         .feed-agreement .feed-title { color: #90EE90; }
+        /* ── ربع مكبَّر ── */
+        .quadrant.expanded {
+          position: fixed !important;
+          top: 0 !important; left: 0 !important;
+          width: 100vw !important; height: 100vh !important;
+          z-index: 300 !important;
+          border-radius: 0 !important;
+        }
+        /* زر التكبير / التصغير */
+        .q-expand-btn {
+          position: absolute;
+          top: 12px; left: 12px;
+          background: rgba(0,0,0,0.6);
+          border: 1px solid rgba(255,215,0,0.35);
+          border-radius: 8px;
+          color: rgba(255,215,0,0.65);
+          width: 32px; height: 32px;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; z-index: 20;
+          font-size: 1.05rem;
+          transition: all 0.2s;
+          backdrop-filter: blur(4px);
+          padding: 0;
+        }
+        .q-expand-btn:hover { background: rgba(255,215,0,0.2); color: #FFD700; border-color: #FFD700; }
+        /* Backdrop خلف الربع المكبَّر */
+        .expand-backdrop {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.65);
+          z-index: 290;
+          cursor: pointer;
+        }
+        /* ── مودال تفاصيل العنصر ── */
+        .item-modal-overlay {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.88);
+          z-index: 500;
+          display: flex; align-items: center; justify-content: center;
+          padding: 20px; direction: rtl;
+        }
+        .item-modal {
+          background: #0d0d22;
+          border: 1px solid rgba(255,215,0,0.45);
+          border-radius: 20px;
+          max-width: 640px; width: 100%;
+          max-height: 82vh; overflow-y: auto;
+          position: relative;
+          animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.95) translateY(12px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .item-modal-img { width: 100%; height: 200px; object-fit: cover; border-radius: 20px 20px 0 0; display: block; }
+        .item-modal-body { padding: 22px 26px 28px; }
+        .item-modal-tag { display: inline-block; font-size: 0.78rem; color: #FFD700; letter-spacing: 0.8px; margin-bottom: 8px; font-weight: 600; }
+        .item-modal-title { font-size: 1.3rem; color: #fff; font-weight: 800; margin: 0 0 8px; line-height: 1.5; }
+        .item-modal-date { font-size: 0.83rem; color: rgba(255,215,0,0.65); margin-bottom: 14px; }
+        .item-modal-content { font-size: 0.95rem; color: rgba(255,255,255,0.82); line-height: 1.85; white-space: pre-wrap; }
+        .item-modal-close {
+          position: absolute; top: 14px; left: 14px;
+          background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.18);
+          color: #fff; border-radius: 50%;
+          width: 34px; height: 34px; font-size: 1rem;
+          cursor: pointer; display: flex; align-items: center; justify-content: center;
+          z-index: 10; transition: background 0.2s;
+        }
+        .item-modal-close:hover { background: rgba(210,40,40,0.55); }
+        /* إصلاح إعلان بلا صورة — النص مقصوص */
+        .ad-no-image { overflow-y: auto; justify-content: flex-start !important; padding-top: 44px; }
+        .ad-no-image .ad-full-body {
+          display: block !important;
+          -webkit-line-clamp: unset !important;
+          overflow: visible !important;
+          color: rgba(255,255,255,0.78);
+          text-shadow: none;
+        }
+        /* عناصر القائمة قابلة للنقر */
+        .news-list-item, .feed-item { cursor: pointer; }
+        .news-list-item:hover { background: rgba(255,215,0,0.09) !important; border-radius: 8px; }
       `}</style>
 
       {/* شريط المؤسسة */}
@@ -735,18 +873,21 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 1: بث المحاضرات */}
-      <div className="quadrant">
+      <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}`}>
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 1 ? null : 1)} title={expandedQuadrant === 1 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 1 ? '⊡' : '⊞'}
+        </button>
         <div className="q-header">
           {liveLecture ? (
-            <span className="badge-live"><span className="badge-live-dot" />LIVE</span>
+            <span className="badge-live"><span className="badge-live-dot" />🔴 بث مباشر</span>
           ) : recentRecorded ? (
             recentRecorded.stream_type === 'external' || parseExternalVideoUrl(recentRecorded.stream_url || '') ? (
-              <span className="badge-recorded">🎥 خارجي</span>
+              <span className="badge-recorded">🎥 بث خارجي</span>
             ) : (
-              <span className="badge-recorded">🎬 مسجّل</span>
+              <span className="badge-recorded">🎬 محاضرة مسجّلة</span>
             )
           ) : (
-            '✦ بث مباشر ✦'
+            <span style={{ opacity: 0.65, fontSize: '0.85rem' }}>📺 لا يوجد بث حالياً</span>
           )}
         </div>
 
@@ -802,14 +943,20 @@ export default function ScreenPage() {
               <div className="viewer-count">👁️ {liveLecture.viewer_count} مشاهد</div>
             )}
             <div className="lecture-info">
+              <div style={{ marginBottom: 6 }}>
+                {liveLecture ? (
+                  <span style={{ background: '#e03030', color: 'white', padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 800, letterSpacing: 0.5 }}>● بث حي مباشر</span>
+                ) : recentRecorded?.stream_type === 'external' || (recentRecorded?.stream_url && parseExternalVideoUrl(recentRecorded.stream_url)) ? (
+                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>🎥 بث خارجي مسجّل</span>
+                ) : recentRecorded ? (
+                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '3px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700 }}>🎬 محاضرة مسجّلة</span>
+                ) : null}
+              </div>
               <strong>{displayLecture.title}</strong>
               {liveLecture && displayLecture.started_at && (
                 <span style={{ fontSize: '0.83rem', opacity: 0.7, marginRight: 8 }}>
                   بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}
                 </span>
-              )}
-              {recentRecorded && (
-                <span style={{ fontSize: '0.83rem', opacity: 0.6, marginRight: 8 }}>محاضرة مسجّلة</span>
               )}
             </div>
           </>
@@ -823,7 +970,14 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 2: المجرة مع إبراز المؤسسة */}
-      <div className="quadrant">
+      <div
+        className={`quadrant${expandedQuadrant === 2 ? ' expanded' : ''}`}
+        onMouseEnter={startSpaceSound}
+        onMouseLeave={stopSpaceSound}
+      >
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 2 ? null : 2)} title={expandedQuadrant === 2 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 2 ? '⊡' : '⊞'}
+        </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
         {galaxyData ? (
           <GalaxyCanvas
@@ -841,11 +995,14 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 3: الأخبار + الفعاليات + الاتفاقيات */}
-      <div className="quadrant">
+      <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}>
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 3 ? '⊡' : '⊞'}
+        </button>
         <div className="q-header">✦ أخبار المجرة ✦</div>
         <div className="news-list">
           {combinedFeed.length > 0 ? combinedFeed.map((item, i) => (
-            <div key={i} className={`news-list-item feed-item feed-${item.type}`}>
+            <div key={i} className={`news-list-item feed-item feed-${item.type}`} onClick={() => setSelectedItem(item)}>
               <div className="feed-top">
                 <span className="feed-icon">{item.icon}</span>
                 <span className="news-date">
@@ -878,7 +1035,10 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 4: إعلانات — عرض إعلان واحد في كل مرة */}
-      <div className="quadrant">
+      <div className={`quadrant${expandedQuadrant === 4 ? ' expanded' : ''}`}>
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 4 ? '⊡' : '⊞'}
+        </button>
         {currentAd ? (
           <div key={currentAd.id} className="ad-full">
             {currentAd.image_url ? (
@@ -925,6 +1085,42 @@ export default function ScreenPage() {
           </div>
         )}
       </div>
+
+      {/* Backdrop — إغلاق الربع المكبَّر بالنقر خارجه */}
+      {expandedQuadrant !== null && (
+        <div className="expand-backdrop" onClick={() => setExpandedQuadrant(null)} />
+      )}
+
+      {/* مودال تفاصيل العنصر */}
+      {selectedItem && (
+        <div className="item-modal-overlay" onClick={() => setSelectedItem(null)}>
+          <div className="item-modal" onClick={e => e.stopPropagation()}>
+            <button className="item-modal-close" onClick={() => setSelectedItem(null)}>✕</button>
+            {selectedItem.image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selectedItem.image_url} alt={selectedItem.title} className="item-modal-img" />
+            )}
+            <div className="item-modal-body">
+              <div className="item-modal-tag">
+                {selectedItem.icon}{' '}
+                {selectedItem.type === 'news' ? 'خبر' : selectedItem.type === 'event' ? 'فعالية' : 'اتفاقية'}
+              </div>
+              <h2 className="item-modal-title">{selectedItem.title}</h2>
+              <div className="item-modal-date">
+                {new Date(selectedItem.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+              {selectedItem.subtitle && (
+                <div style={{ color: '#85C79A', marginBottom: 12, fontSize: '0.9rem' }}>{selectedItem.subtitle}</div>
+              )}
+              {selectedItem.content ? (
+                <div className="item-modal-content">{selectedItem.content}</div>
+              ) : (
+                <div style={{ color: 'rgba(255,255,255,0.38)', fontStyle: 'italic', fontSize: '0.9rem' }}>لا توجد تفاصيل إضافية</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

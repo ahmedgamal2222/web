@@ -185,24 +185,12 @@ export default function ScreensManagementPage() {
       </div>
 
       {/* فلاتر البحث */}
-      <div style={{
-        background: 'white',
-        borderRadius: 20,
-        padding: '20px',
-        marginBottom: 30,
-        boxShadow: `0 5px 15px ${COLORS.darkNavy}20`,
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: 15,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}>
+      <div className="filter-bar">
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             style={{
-              padding: '10px 15px',
+              padding: '10px 16px',
               borderRadius: 30,
               border: `2px solid ${COLORS.teal}40`,
               background: 'white',
@@ -210,7 +198,8 @@ export default function ScreensManagementPage() {
               fontSize: '0.9rem',
               outline: 'none',
               cursor: 'pointer',
-              minWidth: '150px',
+              minWidth: '160px',
+              fontFamily: 'inherit',
             }}
           >
             <option value="all">📺 جميع الشاشات</option>
@@ -218,23 +207,44 @@ export default function ScreensManagementPage() {
             <option value="inactive">⚪ غير النشطة</option>
           </select>
 
-          <input
-            type="text"
-            placeholder="🔍 بحث باسم المؤسسة أو المدينة..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            style={{
-              flex: 1,
-              padding: '10px 15px',
-              borderRadius: 30,
-              border: `2px solid ${COLORS.teal}40`,
-              background: 'white',
-              color: COLORS.darkNavy,
-              fontSize: '0.9rem',
-              outline: 'none',
-            }}
-          />
-        </div>
+          <div style={{
+            flex: 1,
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 220,
+          }}>
+            <span style={{
+              position: 'absolute',
+              right: 14,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '1rem',
+              color: COLORS.teal,
+              pointerEvents: 'none',
+              lineHeight: 1,
+            }}>🔍</span>
+            <input
+              type="text"
+              placeholder="بحث باسم المؤسسة أو المدينة..."
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '10px 42px 10px 16px',
+                borderRadius: 30,
+                border: `2px solid ${COLORS.teal}40`,
+                background: `${COLORS.lightMint}30`,
+                color: COLORS.darkNavy,
+                fontSize: '0.9rem',
+                outline: 'none',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = COLORS.teal; e.currentTarget.style.background = 'white'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = `${COLORS.teal}40`; e.currentTarget.style.background = `${COLORS.lightMint}30`; }}
+            />
+          </div>
       </div>
 
       {/* جدول الشاشات */}
