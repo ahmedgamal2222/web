@@ -18,6 +18,7 @@ interface Episode {
   title: string;
   description?: string;
   audio_url?: string;
+  video_url?: string;
   cover_url?: string;
   duration?: number;
   episode_number: number;
@@ -34,6 +35,7 @@ const emptyForm = {
   title: '',
   description: '',
   audio_url: '',
+  video_url: '',
   cover_url: '',
   duration: '',
   episode_number: '',
@@ -76,6 +78,8 @@ export default function AdminPodcastPage() {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [err, setErr] = useState('');
   const [success, setSuccess] = useState('');
   const [search, setSearch] = useState('');
@@ -134,6 +138,35 @@ export default function AdminPodcastPage() {
     }
   };
 
+  const handleVideoUpload = async (file: File) => {
+    if (!file.type.startsWith('video/')) { setErr('يرجى اختيار ملف فيديو'); return; }
+    if (file.size > 500 * 1024 * 1024) { setErr('الملف أكبر من 500 ميجا'); return; }
+    setUploadingVideo(true); setVideoUploadProgress(0); setErr('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = e => e.lengthComputable && setVideoUploadProgress(Math.round((e.loaded / e.total) * 100));
+      await new Promise<void>((res, rej) => {
+        xhr.onload = () => {
+          try {
+            const d = JSON.parse(xhr.responseText);
+            if (d.url) { setForm(f => ({ ...f, video_url: d.url })); res(); }
+            else rej(new Error(d.message || 'فشل الرفع'));
+          } catch { rej(new Error('استجابة غير صالحة')); }
+        };
+        xhr.onerror = () => rej(new Error('فشل الاتصال'));
+        xhr.open('POST', `${API_BASE}/api/podcast/upload`);
+        xhr.setRequestHeader('X-Session-ID', sid);
+        xhr.send(fd);
+      });
+    } catch (ex: any) {
+      setErr('فشل رفع الفيديو: ' + ex.message);
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) { setErr('العنوان مطلوب'); return; }
@@ -147,6 +180,7 @@ export default function AdminPodcastPage() {
           title: form.title,
           description: form.description || undefined,
           audio_url: form.audio_url || undefined,
+          video_url: form.video_url || undefined,
           cover_url: form.cover_url || undefined,
           duration: form.duration ? Number(form.duration) : undefined,
           episode_number: form.episode_number ? Number(form.episode_number) : undefined,
@@ -295,9 +329,23 @@ export default function AdminPodcastPage() {
                 <div style={{ display: 'flex', gap: 12, fontSize: '0.82rem', color: '#888', marginBottom: 10 }}>
                   <span>▶️ {ep.plays} استماع</span>
                   {ep.duration && <span>⏱ {fmtDuration(ep.duration)}</span>}
+                  {ep.audio_url && <span style={{ color: C.red, fontWeight: 700 }}>🎵 صوتي</span>}
+                  {ep.video_url && <span style={{ color: '#7c3aed', fontWeight: 700 }}>🎬 مرئي</span>}
                 </div>
                 {ep.audio_url && (
                   <audio controls style={{ width: '100%', height: 32, marginBottom: 10 }} src={ep.audio_url} />
+                )}
+                {ep.video_url && !ep.audio_url && (
+                  <video controls style={{ width: '100%', borderRadius: 8, marginBottom: 10, maxHeight: 120 }} src={ep.video_url.includes('youtube.com') || ep.video_url.includes('youtu.be') || ep.video_url.includes('vimeo.com') ? undefined : ep.video_url}>
+                    {(ep.video_url.includes('youtube.com') || ep.video_url.includes('youtu.be') || ep.video_url.includes('vimeo.com')) && (
+                      <a href={ep.video_url} target="_blank" rel="noreferrer" style={{ display: 'block', padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, color: '#7c3aed', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 600 }}>🔗 {ep.video_url.includes('youtube') ? 'يوتيوب' : 'فيميو'}</a>
+                    )}
+                  </video>
+                )}
+                {ep.video_url && (ep.video_url.includes('youtube.com') || ep.video_url.includes('youtu.be') || ep.video_url.includes('vimeo.com')) && (
+                  <a href={ep.video_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', marginBottom: 8, background: '#f5f3ff', borderRadius: 8, color: '#7c3aed', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 600 }}>
+                    🔗 فتح {ep.video_url.includes('youtube') ? 'يوتيوب' : 'فيميو'}
+                  </a>
                 )}
                 <button
                   onClick={() => handleDelete(ep.id, ep.title)}
@@ -396,6 +444,42 @@ export default function AdminPodcastPage() {
 
               <Field label="صورة الغلاف (رابط)">
                 <input value={form.cover_url} onChange={e => setForm({ ...form, cover_url: e.target.value })} placeholder="https://..." style={iStyle} />
+              </Field>
+
+              {/* Video upload */}
+              <Field label="ملف الفيديو (MP4 / WebM / MOV — حتى 500 ميجا)">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {form.video_url && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, border: '1px solid #c4b5fd' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#7c3aed"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      <span style={{ fontSize: '0.82rem', color: '#7c3aed', flex: 1, wordBreak: 'break-all' }}>{form.video_url.slice(0, 60)}{form.video_url.length > 60 ? '...' : ''}</span>
+                      <button type="button" onClick={() => setForm(f => ({ ...f, video_url: '' }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', fontSize: '1rem' }}>✕</button>
+                    </div>
+                  )}
+                  {uploadingVideo && (
+                    <div style={{ background: '#f5f3ff', borderRadius: 8, padding: '8px 12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#7c3aed', marginBottom: 4 }}>
+                        <span>جاري رفع الفيديو...</span><span>{videoUploadProgress}%</span>
+                      </div>
+                      <div style={{ height: 4, background: '#e9d5ff', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${videoUploadProgress}%`, background: '#7c3aed', borderRadius: 4, transition: 'width 0.3s' }} />
+                      </div>
+                    </div>
+                  )}
+                  {!form.video_url && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#f5f3ff', border: '1.5px dashed #a78bfa', borderRadius: 10, cursor: uploadingVideo ? 'default' : 'pointer', fontSize: '0.88rem', color: '#7c3aed' }}>
+                      <input type="file" accept="video/*" style={{ display: 'none' }} disabled={uploadingVideo} onChange={e => e.target.files?.[0] && handleVideoUpload(e.target.files[0])} />
+                      <span style={{ fontSize: '1.3rem' }}>🎬</span>
+                      <span>{uploadingVideo ? 'جاري الرفع...' : 'اختر ملف فيديو من الجهاز'}</span>
+                    </label>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 1, background: '#e9d5ff' }} />
+                    <span style={{ fontSize: '0.78rem', color: '#999' }}>أو أدخل رابطاً (YouTube / Vimeo / مباشر)</span>
+                    <div style={{ flex: 1, height: 1, background: '#e9d5ff' }} />
+                  </div>
+                  <input value={form.video_url} onChange={e => setForm({ ...form, video_url: e.target.value })} placeholder="https://youtube.com/... أو https://vimeo.com/... أو رابط مباشر" style={iStyle} />
+                </div>
               </Field>
 
               <Field label="الوسوم (مفصولة بفاصلة)">

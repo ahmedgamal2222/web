@@ -71,6 +71,22 @@ function formatDate(dateStr?: string): string {
   } catch { return ''; }
 }
 
+function getVideoType(url: string): 'youtube' | 'vimeo' | 'direct' {
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+  if (url.includes('vimeo.com')) return 'vimeo';
+  return 'direct';
+}
+
+function getYouTubeId(url: string): string {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([^&\n?#]+)/);
+  return m?.[1] || '';
+}
+
+function getVimeoId(url: string): string {
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return m?.[1] || '';
+}
+
 // ============================================================
 // Audio Player (full-featured)
 // ============================================================
@@ -235,17 +251,87 @@ function AudioPlayer({ episode, onClose }: { episode: Episode; onClose: () => vo
   );
 }
 
-function EpisodeCard({ episode, onClick }: { episode: Episode; onClick: () => void }) {
+// ============================================================
+// Video Player (YouTube / Vimeo / direct video)
+// ============================================================
+function VideoPlayer({ episode, onClose }: { episode: Episode; onClose: () => void }) {
+  const url = episode.video_url!;
+  const type = getVideoType(url);
+
+  let embedSrc = '';
+  if (type === 'youtube') {
+    embedSrc = `https://www.youtube.com/embed/${getYouTubeId(url)}?autoplay=1&rel=0`;
+  } else if (type === 'vimeo') {
+    embedSrc = `https://player.vimeo.com/video/${getVimeoId(url)}?autoplay=1`;
+  }
+
+  return (
+    <div
+      onClick={e => e.target === e.currentTarget && onClose()}
+      style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+    >
+      <div style={{ background: 'linear-gradient(145deg, #1a1240, #0f0a2e)', border: '1px solid rgba(192,132,252,0.25)', borderRadius: 24, maxWidth: 900, width: '100%', overflow: 'hidden', boxShadow: '0 24px 80px rgba(192,132,252,0.15), 0 0 120px rgba(0,0,0,0.8)' }}>
+        <div style={{ height: 4, background: 'linear-gradient(90deg, #C084FC, #FF6B6B, #4E8D9C)' }} />
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          {episode.cover_url && (
+            <div style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
+              <Image src={episode.cover_url} alt={episode.title} width={52} height={52} style={{ objectFit: 'cover' }} />
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+              <span style={{ background: 'rgba(192,132,252,0.15)', color: '#C084FC', padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>🎬 مرئي</span>
+              {episode.episode_number && <span style={{ background: 'rgba(255,107,107,0.15)', color: COLORS.coral, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>الحلقة #{episode.episode_number}</span>}
+            </div>
+            <h3 style={{ margin: 0, color: '#fff', fontSize: '1rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{episode.title}</h3>
+            {episode.guest_name && <p style={{ margin: 0, fontSize: '0.82rem', color: COLORS.teal }}>🎤 {episode.guest_name}</p>}
+          </div>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '8px 14px', cursor: 'pointer', color: '#94a3b8', flexShrink: 0 }}>✕</button>
+        </div>
+
+        {/* Video content */}
+        <div style={{ position: 'relative', paddingBottom: '56.25%', background: '#000' }}>
+          {embedSrc ? (
+            <iframe
+              src={embedSrc}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+              allow="autoplay; fullscreen; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              src={url}
+              controls
+              autoPlay
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: '#000' }}
+            />
+          )}
+        </div>
+
+        {/* Description */}
+        {episode.description && (
+          <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: 1.7 }}>{episode.description}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EpisodeCard({ episode, onClick, onVideoClick }: { episode: Episode; onClick: () => void; onVideoClick?: () => void }) {
   const tags: string[] = (() => { try { return JSON.parse(episode.tags || '[]'); } catch { return []; } })();
   const hasAudio = !!episode.audio_url;
   const hasVideo = !!episode.video_url;
 
   return (
     <div
-      onClick={hasAudio || hasVideo ? onClick : undefined}
-      style={{ background: 'linear-gradient(160deg, rgba(26,18,64,0.97), rgba(15,10,46,0.9))', border: '1px solid rgba(255,107,107,0.15)', borderRadius: 20, overflow: 'hidden', cursor: hasAudio || hasVideo ? 'pointer' : 'default', transition: 'all 0.28s cubic-bezier(0.4,0,0.2,1)', boxShadow: '0 4px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
-      onMouseEnter={e => { if (!hasAudio && !hasVideo) return; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(255,107,107,0.2), 0 4px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,107,107,0.4)'; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,107,107,0.15)'; }}
+      onClick={hasAudio ? onClick : hasVideo ? onClick : undefined}
+      style={{ background: 'linear-gradient(160deg, rgba(26,18,64,0.97), rgba(15,10,46,0.9))', border: `1px solid ${hasVideo && !hasAudio ? 'rgba(192,132,252,0.2)' : 'rgba(255,107,107,0.15)'}`, borderRadius: 20, overflow: 'hidden', cursor: hasAudio || hasVideo ? 'pointer' : 'default', transition: 'all 0.28s cubic-bezier(0.4,0,0.2,1)', boxShadow: '0 4px 24px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column' }}
+      onMouseEnter={e => { if (!hasAudio && !hasVideo) return; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(255,107,107,0.2), 0 4px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = hasVideo && !hasAudio ? 'rgba(192,132,252,0.5)' : 'rgba(255,107,107,0.4)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = hasVideo && !hasAudio ? 'rgba(192,132,252,0.2)' : 'rgba(255,107,107,0.15)'; }}
     >
       {/* Cover */}
       <div style={{ position: 'relative', paddingBottom: '56%', background: 'rgba(255,255,255,0.03)' }}>
@@ -306,7 +392,17 @@ function EpisodeCard({ episode, onClick }: { episode: Episode; onClick: () => vo
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.75rem', color: '#4b5563' }}>
           <span>{formatDate(episode.published_at || episode.created_at)}</span>
-          <span>▶ {episode.plays}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {hasAudio && hasVideo && onVideoClick && (
+              <button
+                onClick={e => { e.stopPropagation(); onVideoClick(); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 20, background: 'rgba(192,132,252,0.12)', border: '1px solid rgba(192,132,252,0.3)', color: '#C084FC', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                🎬 شاهد
+              </button>
+            )}
+            <span>▶ {episode.plays}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -321,6 +417,7 @@ export default function PodcastPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [playingEpisode, setPlayingEpisode] = useState<Episode | null>(null);
+  const [videoEpisode, setVideoEpisode] = useState<Episode | null>(null);
   const [latestEpisode, setLatestEpisode] = useState<Episode | null>(null);
   const limit = 12;
 
@@ -389,7 +486,7 @@ export default function PodcastPage() {
         {/* Featured latest episode */}
         {latestEpisode && (
           <div
-            onClick={() => (latestEpisode.audio_url || latestEpisode.video_url) && setPlayingEpisode(latestEpisode)}
+            onClick={() => { if (latestEpisode.audio_url) setPlayingEpisode(latestEpisode); else if (latestEpisode.video_url) setVideoEpisode(latestEpisode); }}
             style={{ background: 'linear-gradient(135deg, rgba(255,107,107,0.12), rgba(192,132,252,0.08), rgba(78,141,156,0.1))', border: '1px solid rgba(255,107,107,0.25)', borderRadius: 28, padding: '36px 40px', marginBottom: 60, cursor: (latestEpisode.audio_url || latestEpisode.video_url) ? 'pointer' : 'default', transition: 'all 0.3s', boxShadow: '0 8px 40px rgba(255,107,107,0.1)', display: 'grid', gridTemplateColumns: '160px 1fr', gap: 32, alignItems: 'center' }}
             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 16px 60px rgba(255,107,107,0.2)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 8px 40px rgba(255,107,107,0.1)'; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -409,11 +506,21 @@ export default function PodcastPage() {
               {latestEpisode.description && <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '0 0 16px', lineHeight: 1.7, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden' }}>{latestEpisode.description}</p>}
               {latestEpisode.guest_name && <p style={{ fontSize: '0.88rem', color: COLORS.teal, margin: '0 0 16px', fontWeight: 700 }}>🎤 ضيف الحلقة: {latestEpisode.guest_name}</p>}
               {(latestEpisode.audio_url || latestEpisode.video_url) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg, #FF6B6B, #e91e63)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(255,107,107,0.5)' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg, #FF6B6B, #e91e63)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(255,107,107,0.5)' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>{latestEpisode.audio_url ? 'اضغط للاستماع' : 'اضغط للمشاهدة'}</span>
                   </div>
-                  <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>اضغط للاستماع</span>
+                  {latestEpisode.audio_url && latestEpisode.video_url && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setVideoEpisode(latestEpisode); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 30, background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.35)', color: '#C084FC', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem', fontFamily: "'Cairo', sans-serif" }}
+                    >
+                      🎬 مشاهدة الفيديو
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -446,7 +553,12 @@ export default function PodcastPage() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
             {(otherEpisodes.length > 0 ? otherEpisodes : episodes).map(ep => (
-              <EpisodeCard key={ep.id} episode={ep} onClick={() => setPlayingEpisode(ep)} />
+              <EpisodeCard
+                key={ep.id}
+                episode={ep}
+                onClick={() => { if (ep.audio_url) setPlayingEpisode(ep); else if (ep.video_url) setVideoEpisode(ep); }}
+                onVideoClick={ep.video_url ? () => setVideoEpisode(ep) : undefined}
+              />
             ))}
           </div>
         )}
@@ -461,6 +573,7 @@ export default function PodcastPage() {
       </main>
 
       {playingEpisode && <AudioPlayer episode={playingEpisode} onClose={() => setPlayingEpisode(null)} />}
+      {videoEpisode && <VideoPlayer episode={videoEpisode} onClose={() => setVideoEpisode(null)} />}
 
       <style>{`
         @keyframes twinkle { from { opacity: 0.1; transform: scale(1); } to { opacity: 0.6; transform: scale(1.2); } }
