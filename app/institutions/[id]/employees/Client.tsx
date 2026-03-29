@@ -338,7 +338,7 @@ export default function EmployeesPage() {
       });
       const data = await res.json() as any;
       if (!data.success) throw new Error(data.error || 'فشل التحميل');
-      setEmployees(data.data ?? []);
+      setEmployees((data.data ?? []).filter((e: any) => e != null && e.id != null));
     } catch (err: any) {
       setError(err.message || 'فشل في تحميل الموظفين');
     } finally {
