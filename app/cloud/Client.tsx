@@ -34,8 +34,8 @@ function GalaxyLogo() {
         <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92"/>
       </svg>
       <div>
-        <div style={{ fontSize:'1.3rem',fontWeight:900,background:'linear-gradient(130deg,#EDF7BD 0%,#85C79A 48%,#4E8D9C 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>المجرة الحضارية</div>
-        <div style={{ fontSize:'0.7rem',color:'#4E8D9C',letterSpacing:'0.3em',fontWeight:700,textTransform:'uppercase' }}>Civilization Galaxy</div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>المجرة الحضارية</div>
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>كوكبة المؤسسات المضيئة</div>
       </div>
     </Link>
   );
@@ -133,7 +133,7 @@ export default function CloudClient() {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.bg, fontFamily: 'Cairo, sans-serif', direction: 'rtl' }}>
       {/* ─── Nav ─── */}
-      <header style={{ position:'sticky',top:0,zIndex:50,height:72,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 32px',background:'rgba(8,5,32,0.96)',backdropFilter:'blur(24px)',borderBottom:`1px solid ${COLORS.teal}30`,boxShadow:'0 2px 32px rgba(0,0,0,0.5)',fontFamily:'Cairo, sans-serif' }}>
+      <header style={{ position:'sticky',top:0,zIndex:50,height:72,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 32px',background:'rgba(8,5,32,0.96)',backdropFilter:'blur(24px)',borderBottom:`1px solid ${COLORS.teal}30`,boxShadow:'0 2px 32px rgba(0,0,0,0.5)',fontFamily:"'Tajawal', sans-serif" }}>
         <GalaxyLogo />
         <nav style={{ display:'flex',gap:6 }}>
           {CLOUD_NAV.map(l=>(

@@ -83,8 +83,8 @@ function GalaxyLogo() {
         <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
       </svg>
       <div>
-        <div style={{ fontSize: '1.3rem', fontWeight: 900, background: 'linear-gradient(130deg,#EDF7BD 0%,#85C79A 48%,#4E8D9C 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>المجرة الحضارية</div>
-        <div style={{ fontSize: '0.7rem', color: '#4E8D9C', letterSpacing: '0.3em', fontWeight: 700, textTransform: 'uppercase' }}>Civilization Galaxy</div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>المجرة الحضارية</div>
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>كوكبة المؤسسات المضيئة</div>
       </div>
     </Link>
   );
@@ -185,7 +185,7 @@ export default function NewsPage() {
             { href: '/news', label: 'الأخبار', active: true },
             { href: '/campaigns', label: 'الحملات' },
             { href: '/marketplace', label: 'السوق الرقمي' },
-            { href: '/cloud', label: '☁️ SAAS' },
+            { href: '/cloud', label: '☁️ السحابة' },
             { href: '/services', label: 'الخدمات' },
             { href: '/library', label: 'المكتبة' },
             { href: '/forum', label: 'المنتدى' },

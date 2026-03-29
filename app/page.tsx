@@ -88,7 +88,7 @@ function GalaxyLogo() {
       </div>
       <div>
         <div className="logo-title" style={{
-          fontSize: '1.55rem', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.03em',
+          fontSize: '1.50rem', fontWeight: 900, lineHeight: 1.00, letterSpacing: '-0.03em',
           background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>
