@@ -387,14 +387,7 @@ export default function LibraryPage() {
             <Link key={link.href} href={link.href} style={{ padding: '8px 16px', borderRadius: 24, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, color: (link as any).active ? COLORS.darkNavy : '#9ca3af', background: (link as any).active ? `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})` : 'transparent', border: (link as any).active ? 'none' : '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>{link.label}</Link>
           ))}
         </nav>
-        {canAddBook && (
-          <button
-            onClick={() => setShowCreate(true)}
-            style={{ padding: '9px 20px', borderRadius: 30, background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', color: COLORS.darkNavy, fontWeight: 800, cursor: 'pointer', fontSize: '0.88rem', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'Cairo', sans-serif" }}
-          >
-            + إضافة كتاب
-          </button>
-        )}
+
       </header>
 
       <main style={{ position: 'relative', zIndex: 1, maxWidth: 1320, margin: '0 auto', padding: '48px 24px 80px' }}>
@@ -419,21 +412,53 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} style={{ maxWidth: 560, margin: '0 auto 40px' }}>
-          <div style={{ position: 'relative', display: 'flex', gap: 10 }}>
+        {/* Search + Add Book */}
+        <form onSubmit={handleSearch} style={{ maxWidth: canAddBook ? 780 : 620, margin: '0 auto 40px' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'stretch', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(78,141,156,0.28)', borderRadius: 60, padding: '6px 6px 6px 10px', boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', transition: 'box-shadow 0.2s, border-color 0.2s' }}
+            onFocusCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = COLORS.teal; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 40px rgba(0,0,0,0.35), 0 0 0 3px ${COLORS.teal}22, inset 0 1px 0 rgba(255,255,255,0.05)`; }}
+            onBlurCapture={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(78,141,156,0.28)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)'; }}
+          >
+            {/* Icon */}
+            <div style={{ display: 'flex', alignItems: 'center', paddingRight: 4, paddingLeft: 2, flexShrink: 0 }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={COLORS.teal} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              </svg>
+            </div>
+            {/* Input */}
             <input
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              placeholder="ابحث في الكتب والتقارير..."
-              style={{ flex: 1, padding: '14px 20px 14px 46px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 50, color: '#fff', fontSize: '0.95rem', fontFamily: "'Cairo', sans-serif", outline: 'none', transition: 'all 0.2s' }}
-              onFocus={e => { e.target.style.borderColor = COLORS.teal; e.target.style.boxShadow = `0 0 0 3px ${COLORS.teal}20`; }}
-              onBlur={e => { e.target.style.borderColor = 'rgba(78,141,156,0.3)'; e.target.style.boxShadow = 'none'; }}
+              placeholder="ابحث في الكتب والتقارير والمصادر المعرفية..."
+              style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: "'Cairo', sans-serif", outline: 'none', minWidth: 0 }}
             />
-            <div style={{ position: 'absolute', right: 130, top: '50%', transform: 'translateY(-50%)', color: '#4E8D9C', pointerEvents: 'none' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            </div>
-            <button type="submit" style={{ padding: '14px 24px', background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', borderRadius: 50, cursor: 'pointer', color: '#1a1240', fontWeight: 800, fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(78,141,156,0.4)' }}>بحث</button>
+            {/* Search btn */}
+            <button
+              type="submit"
+              style={{ padding: '11px 22px', background: `linear-gradient(135deg, ${COLORS.teal} 0%, ${COLORS.softGreen} 100%)`, border: 'none', borderRadius: 50, cursor: 'pointer', color: COLORS.darkNavy, fontWeight: 800, fontSize: '0.88rem', fontFamily: "'Cairo', sans-serif", whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 4px 16px rgba(78,141,156,0.35)', display: 'flex', alignItems: 'center', gap: 7, transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 22px rgba(78,141,156,0.55)'; e.currentTarget.style.transform = 'scale(1.03)'; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(78,141,156,0.35)'; e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              </svg>
+              بحث
+            </button>
+            {/* Add Book btn */}
+            {canAddBook && (
+              <>
+                <div style={{ width: 1, background: 'rgba(78,141,156,0.25)', margin: '6px 2px', flexShrink: 0 }} />
+                <button
+                  type="button"
+                  onClick={() => setShowCreate(true)}
+                  style={{ padding: '11px 20px', background: `linear-gradient(135deg, ${COLORS.darkNavy} 0%, #3a2a8a 100%)`, border: `1px solid rgba(133,199,154,0.35)`, borderRadius: 50, cursor: 'pointer', color: COLORS.softGreen, fontWeight: 800, fontSize: '0.88rem', fontFamily: "'Cairo', sans-serif", whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7, transition: 'all 0.22s', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${COLORS.softGreen} 0%, ${COLORS.teal} 100%)`; e.currentTarget.style.color = COLORS.darkNavy; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.boxShadow = `0 6px 22px rgba(133,199,154,0.4)`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${COLORS.darkNavy} 0%, #3a2a8a 100%)`; e.currentTarget.style.color = COLORS.softGreen; e.currentTarget.style.borderColor = 'rgba(133,199,154,0.35)'; e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.08)'; }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  إضافة كتاب
+                </button>
+              </>
+            )}
           </div>
         </form>
 
