@@ -401,40 +401,17 @@ function TopBar({
 // ============================================================
 // Quick Actions Panel (للمستخدمين المسجلين)
 // ============================================================
-const SAAS_ROUTE_MAP: Record<string, { icon: string; label: string; href: string }> = {
-  erp:          { icon: '🏭', label: 'ERP',           href: '/cloud/apps/erp' },
-  crm:          { icon: '🤝', label: 'CRM',           href: '/cloud/apps/crm' },
-  hr:           { icon: '👥', label: 'HR',            href: '/cloud/apps/hr' },
-  form:         { icon: '📋', label: 'النماذج',       href: '/cloud/apps/forms' },
-  funnel:       { icon: '🌪️', label: 'قمع المبيعات', href: '/cloud/apps/funnel' },
-  landing_page: { icon: '🖥️', label: 'صفحات الهبوط', href: '/cloud/apps/landing' },
-};
+// const SAAS_ROUTE_MAP: Record<string, { icon: string; label: string; href: string }> = {
+//   erp:          { icon: '🏭', label: 'ERP',           href: '/cloud/apps/erp' },
+//   crm:          { icon: '🤝', label: 'CRM',           href: '/cloud/apps/crm' },
+//   hr:           { icon: '👥', label: 'HR',            href: '/cloud/apps/hr' },
+//   form:         { icon: '📋', label: 'النماذج',       href: '/cloud/apps/forms' },
+//   funnel:       { icon: '🌪️', label: 'قمع المبيعات', href: '/cloud/apps/funnel' },
+//   landing_page: { icon: '🖥️', label: 'صفحات الهبوط', href: '/cloud/apps/landing' },
+// };
 
 function QuickActions({ user }: { user: any }) {
-  const [saasApps, setSaasApps] = useState<{ icon: string; label: string; href: string; color: string }[]>([]);
-
-  useEffect(() => {
-    const sid = localStorage.getItem('sessionId');
-    if (!sid || !user.institution_id) return;
-    // Fetch subscribed apps, then fetch their categories
-    Promise.all([
-      fetch(`${API_BASE}/api/saas/my-subscriptions`, { headers: { 'X-Session-ID': sid } }).then(r => r.json()),
-      fetch(`${API_BASE}/api/saas?page=1&limit=100`).then(r => r.json()),
-    ]).then(([subsData, appsData]) => {
-      const subIds: number[] = subsData.success ? (subsData.data || []) : [];
-      const allApps: any[] = appsData.data || [];
-      const mapped = subIds
-        .map(id => allApps.find((a: any) => a.id === id))
-        .filter(Boolean)
-        .map((a: any) => {
-          const route = SAAS_ROUTE_MAP[a.category];
-          if (!route) return null;
-          return { icon: route.icon, label: a.name_ar || route.label, href: route.href, color: '#4E8D9C' };
-        })
-        .filter(Boolean) as { icon: string; label: string; href: string; color: string }[];
-      setSaasApps(mapped);
-    }).catch(() => {});
-  }, [user.institution_id]);
+  // SAAS quick actions disabled for now
 
   const actions: { icon: string; label: string; href: string; color: string }[] = [];
 
@@ -463,7 +440,6 @@ function QuickActions({ user }: { user: any }) {
 
   // إجراءات مشتركة للجميع (الناف بار يحتوي الأخبار/المكتبة/المنتدى/البودكاست)
   actions.push(
-    { icon: '🛠️', label: 'الخدمات', href: '/services', color: '#FF9B4E' },
     { icon: '📋', label: 'طلباتي', href: '/services/requests', color: '#9C27B0' },
   );
 
@@ -479,11 +455,6 @@ function QuickActions({ user }: { user: any }) {
     { icon: '💬', label: 'المنتدى', href: '/forum', color: '#EDF7BD' },
     { icon: '🎙️', label: 'البودكاست', href: '/podcast', color: '#f59e0b' },
   );
-
-  // Subscribed SAAS apps
-  if (saasApps.length > 0) {
-    actions.push(...saasApps);
-  }
 
   return (
     <div className="quick-actions" style={{
