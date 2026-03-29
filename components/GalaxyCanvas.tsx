@@ -360,6 +360,62 @@ export default function GalaxyCanvas({
     });
     masterGroup.add(new THREE.Points(dustGeo, dustMat));
 
+    // 4.5 Colorful Nebulae Clouds
+    const nebulaeData = [
+      { pos: [180, 40, -80]  as [number,number,number], color: new THREE.Color(0x4fc3f7), size: 55 },
+      { pos: [-200, -30, 60] as [number,number,number], color: new THREE.Color(0x7c4dff), size: 70 },
+      { pos: [60, 80, -220]  as [number,number,number], color: new THREE.Color(0xff6b9d), size: 45 },
+      { pos: [-100, 60, -160]as [number,number,number], color: new THREE.Color(0x26c6da), size: 40 },
+      { pos: [250, -40, -40] as [number,number,number], color: new THREE.Color(0xab47bc), size: 50 },
+      { pos: [-160, 50, 140] as [number,number,number], color: new THREE.Color(0x00e676), size: 42 },
+    ];
+
+    const nebulaMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        attribute vec3 customColor;
+        varying vec3 vColor;
+        void main() {
+          vColor = customColor;
+          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = 18.0 * (200.0 / -mvPos.z);
+          gl_Position  = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        void main() {
+          float dist = length(gl_PointCoord.xy - vec2(0.5));
+          if (dist > 0.5) discard;
+          float alpha = smoothstep(0.5, 0.0, dist) * 0.14;
+          gl_FragColor = vec4(vColor, alpha);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      transparent: true,
+    });
+
+    nebulaeData.forEach(n => {
+      const count = 600;
+      const nPos  = new Float32Array(count * 3);
+      const nCol  = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi   = Math.acos(2 * Math.random() - 1);
+        const r     = Math.pow(Math.random(), 0.5) * n.size;
+        nPos[i * 3]     = n.pos[0] + r * Math.sin(phi) * Math.cos(theta);
+        nPos[i * 3 + 1] = n.pos[1] + r * Math.sin(phi) * Math.sin(theta) * 0.35;
+        nPos[i * 3 + 2] = n.pos[2] + r * Math.cos(phi);
+        nCol[i * 3]     = n.color.r;
+        nCol[i * 3 + 1] = n.color.g;
+        nCol[i * 3 + 2] = n.color.b;
+      }
+      const nGeo = new THREE.BufferGeometry();
+      nGeo.setAttribute('position',    new THREE.BufferAttribute(nPos, 3));
+      nGeo.setAttribute('customColor', new THREE.BufferAttribute(nCol, 3));
+      scene.add(new THREE.Points(nGeo, nebulaMat));
+    });
+
     // 5. Institution Stars (spread across spiral arms)
     const N      = data.stars.length;
     const iPos   = new Float32Array(N * 3);
