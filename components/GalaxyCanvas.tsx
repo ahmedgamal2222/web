@@ -309,6 +309,71 @@ export default function GalaxyCanvas({
     scene.add(glowSystem);
     scene.add(coreSystem);
 
+    // ── Connection Lines between linked institutions ───────────
+    // Build index map: institution id → array index
+    const idToIdx = new Map<number, number>();
+    data.stars.forEach((star, i) => idToIdx.set(star.id, i));
+
+    // Collect unique edges (avoid duplicates A→B / B→A)
+    const edges = new Set<string>();
+    const lineVerts: number[] = [];
+    const lineColors: number[] = [];
+
+    data.stars.forEach((star, i) => {
+      if (!star.connections?.length) return;
+      const pA = placeOnArm(i, N);
+      star.connections.forEach(connId => {
+        const j = idToIdx.get(connId);
+        if (j === undefined) return;
+        const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+        if (edges.has(key)) return;
+        edges.add(key);
+        const pB = placeOnArm(j, N);
+        // Start vertex
+        lineVerts.push(pA.x, pA.y, pA.z);
+        // Colour: blend of the two star colours
+        const cA = new THREE.Color(star.color || '#4fc3f7');
+        lineColors.push(cA.r, cA.g, cA.b);
+        // End vertex
+        lineVerts.push(pB.x, pB.y, pB.z);
+        const cB = new THREE.Color(data.stars[j].color || '#4fc3f7');
+        lineColors.push(cB.r, cB.g, cB.b);
+      });
+    });
+
+    const linksMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `
+        attribute vec3 color;
+        varying vec3 vColor;
+        void main() {
+          vColor      = color;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec3 vColor;
+        void main() {
+          float pulse = 0.35 + 0.20 * sin(uTime * 1.8);
+          gl_FragColor = vec4(vColor, pulse);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+      linewidth: 1,
+    });
+
+    let linksSystem: THREE.LineSegments | null = null;
+    if (lineVerts.length > 0) {
+      const linksGeo = new THREE.BufferGeometry();
+      linksGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVerts),  3));
+      linksGeo.setAttribute('color',    new THREE.BufferAttribute(new Float32Array(lineColors), 3));
+      linksSystem = new THREE.LineSegments(linksGeo, linksMat);
+      scene.add(linksSystem);
+    }
+
     // Highlight ring
     if (highlightStarId !== undefined) {
       const hlIdx = data.stars.findIndex(s => s.id === highlightStarId);
@@ -378,7 +443,6 @@ export default function GalaxyCanvas({
             <strong style="color:${s.color||'#4fc3f7'};display:block;margin-bottom:4px">${s.name_ar || s.name}</strong>
             <span style="display:block;font-size:0.75rem;color:#8aa4bc">${s.type || ''}</span>
             ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
-            <span style="display:block;font-size:0.75rem;color:#aac">🤝 ${agreements} اتفاقية</span>
             <span style="display:block;font-size:0.75rem;color:#aac">🔗 ${links} ارتباط</span>
           `;
         }
@@ -434,6 +498,7 @@ export default function GalaxyCanvas({
       // Animate institution stars
       coreMat.uniforms.uTime.value = time;
       glowMat.uniforms.uTime.value = time;
+      if (linksSystem) linksMat.uniforms.uTime.value = time;
       const szArr = coreGeo.attributes.size.array as Float32Array;
       for (let i = 0; i < N; i++) {
         szArr[i] = iBaseSz[i] + Math.sin(time * 2.5 + i * 0.7) * iBaseSz[i] * 0.15;
