@@ -26,3 +26,14 @@
 
 /tv/:id/                       /tv/default/                       200
 /tv/:id                        /tv/default/                       200
+
+/marketplace/:id/              /marketplace/default/              200
+/marketplace/:id               /marketplace/default/              200
+
+/campaigns/:id/                /campaigns/default/                200
+/campaigns/:id                 /campaigns/default/                200
+
+/cloud/apps/forms/public/:id/  /cloud/apps/forms/public/default/  200
+/cloud/apps/forms/public/:id   /cloud/apps/forms/public/default/  200
+/cloud/apps/forms/:id/         /cloud/apps/forms/default/         200
+/cloud/apps/forms/:id          /cloud/apps/forms/default/         200
