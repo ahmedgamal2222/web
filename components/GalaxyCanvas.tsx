@@ -206,64 +206,108 @@ export default function GalaxyCanvas({
     const ptLight = new THREE.PointLight(0xff8c30, 3, 200);
     scene.add(ptLight);
 
-    // ── Institution Stars (3D spheres matching reference) ────
-    type InstMesh = {
-      mesh: THREE.Mesh;
-      glow: THREE.Mesh;
-      mid:  THREE.Mesh;
-      ring: THREE.Mesh | null;
-      star: GalaxyStar;
-      phase: number;
-    };
-    const instMeshes: InstMesh[] = [];
-    const rayTargets: THREE.Mesh[]  = []; // only core meshes for raycasting
+    // ── Institution Stars (shader point-based — real star look) ──
+    const N       = data.stars.length;
+    const iPos    = new Float32Array(N * 3);
+    const iCol    = new Float32Array(N * 3);
+    const iSz     = new Float32Array(N);
+    const iBaseSz = new Float32Array(N);
+    const iOp     = new Float32Array(N);
+    const glowSz  = new Float32Array(N);
 
     data.stars.forEach((star, i) => {
-      const impact = Math.min((star.size || 5) / 10, 1);
-      const s3d    = 3 + impact * 22;                          // 3–25
-      const color  = new THREE.Color(star.color || '#4fc3f7');
-      const { x, y, z } = placeOnArm(i, data.stars.length);
-
-      // Core sphere
-      const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(s3d, 16, 16),
-        new THREE.MeshBasicMaterial({ color }),
-      );
-      mesh.position.set(x, y, z);
-      (mesh as any).__star = star;
-      scene.add(mesh);
-      rayTargets.push(mesh);
-
-      // Outer glow
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(s3d * 3.5, 16, 16),
-        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false }),
-      );
-      glow.position.set(x, y, z);
-      scene.add(glow);
-
-      // Mid glow
-      const mid = new THREE.Mesh(
-        new THREE.SphereGeometry(s3d * 2, 16, 16),
-        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false }),
-      );
-      mid.position.set(x, y, z);
-      scene.add(mid);
-
-      // Orbital ring for high-impact stars
-      let ring: THREE.Mesh | null = null;
-      if (impact > 0.6) {
-        ring = new THREE.Mesh(
-          new THREE.RingGeometry(s3d * 3, s3d * 4, 32),
-          new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.2, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }),
-        );
-        ring.position.set(x, y, z);
-        ring.rotation.x = Math.PI / 3;
-        scene.add(ring);
-      }
-
-      instMeshes.push({ mesh, glow, mid, ring, star, phase: Math.random() * Math.PI * 2 });
+      const p = placeOnArm(i, N);
+      iPos[i*3] = p.x; iPos[i*3+1] = p.y; iPos[i*3+2] = p.z;
+      const c = new THREE.Color(star.color || '#4fc3f7');
+      iCol[i*3] = c.r; iCol[i*3+1] = c.g; iCol[i*3+2] = c.b;
+      const base = (star.size || 5) * 3.5;
+      iSz[i]     = base;
+      iBaseSz[i] = base;
+      glowSz[i]  = base * 2.5;
+      iOp[i]     = 1.0;
     });
+
+    const coreGeo = new THREE.BufferGeometry();
+    coreGeo.setAttribute('position',    new THREE.BufferAttribute(iPos.slice(), 3));
+    coreGeo.setAttribute('customColor', new THREE.BufferAttribute(iCol, 3));
+    coreGeo.setAttribute('size',        new THREE.BufferAttribute(iSz, 1));
+    coreGeo.setAttribute('opacity',     new THREE.BufferAttribute(iOp, 1));
+
+    const glowGeo = new THREE.BufferGeometry();
+    glowGeo.setAttribute('position',    new THREE.BufferAttribute(iPos, 3));
+    glowGeo.setAttribute('customColor', new THREE.BufferAttribute(iCol, 3));
+    glowGeo.setAttribute('size',        new THREE.BufferAttribute(glowSz, 1));
+
+    const coreMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `
+        attribute float size;
+        attribute vec3  customColor;
+        attribute float opacity;
+        varying vec3  vColor;
+        varying float vOp;
+        void main() {
+          vColor = customColor;
+          vOp    = opacity;
+          vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPos.z);
+          gl_Position  = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec3  vColor;
+        varying float vOp;
+        void main() {
+          vec2  uv   = gl_PointCoord.xy - vec2(0.5);
+          float dist = length(uv);
+          if (dist > 0.5) discard;
+          float pulse = 0.85 + 0.15 * sin(uTime * 3.0);
+          float core  = smoothstep(0.18 * pulse, 0.0, dist);
+          float halo  = smoothstep(0.5, 0.08, dist) * 0.55 * pulse;
+          float alpha = clamp(core + halo, 0.0, 1.0) * vOp;
+          vec3  col   = mix(vColor, vec3(1.0), core * 0.8);
+          gl_FragColor = vec4(col, alpha);
+        }
+      `,
+      blending: THREE.AdditiveBlending, depthTest: false, transparent: true,
+    });
+
+    const glowMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `
+        attribute float size;
+        attribute vec3  customColor;
+        varying vec3 vColor;
+        void main() {
+          vColor = customColor;
+          vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPos.z);
+          gl_Position  = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec3 vColor;
+        void main() {
+          float dist = length(gl_PointCoord.xy - vec2(0.5));
+          if (dist > 0.5) discard;
+          float pulse = 0.60 + 0.40 * sin(uTime * 2.0);
+          float glow  = (0.5 - dist) * 2.0 * pulse;
+          float alpha = glow * 0.85;
+          if (alpha < 0.01) discard;
+          vec3 cyanTint = vec3(0.0, 0.93, 1.0);
+          vec3 finalCol = mix(vColor, cyanTint, 0.45);
+          gl_FragColor  = vec4(finalCol, alpha);
+        }
+      `,
+      blending: THREE.AdditiveBlending, depthTest: false, transparent: true,
+    });
+
+    const coreSystem = new THREE.Points(coreGeo, coreMat);
+    const glowSystem = new THREE.Points(glowGeo, glowMat);
+    scene.add(glowSystem);
+    scene.add(coreSystem);
 
     // Highlight ring
     if (highlightStarId !== undefined) {
@@ -289,6 +333,7 @@ export default function GalaxyCanvas({
     const drag   = { active: false, downX: 0, downY: 0, moved: false };
     let lastX = 0, lastY = 0;
     const raycaster = new THREE.Raycaster();
+    raycaster.params.Points!.threshold = 5;
     const mouse     = new THREE.Vector2();
 
     const onPointerDown = (e: PointerEvent) => {
@@ -318,21 +363,23 @@ export default function GalaxyCanvas({
       mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObjects(rayTargets);
+      const hits = raycaster.intersectObject(coreSystem);
       if (hits.length > 0) {
-        const s: GalaxyStar = (hits[0].object as any).__star;
+        const s = data.stars[hits[0].index!];
         renderer.domElement.style.cursor = 'pointer';
         if (tooltipRef.current && s) {
           tooltipRef.current.style.display = 'block';
           tooltipRef.current.style.left = (e.clientX + 16) + 'px';
           tooltipRef.current.style.top  = (e.clientY - 10) + 'px';
-          const emp  = ((s as any).employees || 0).toLocaleString('ar-SA');
-          const proj = ((s as any).projects  || 0).toLocaleString('ar-SA');
+          const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
+          const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
+          const location   = [s.city, s.country].filter(Boolean).join('، ');
           tooltipRef.current.innerHTML = `
             <strong style="color:${s.color||'#4fc3f7'};display:block;margin-bottom:4px">${s.name_ar || s.name}</strong>
-            <span style="display:block;font-size:0.75rem;color:#8aa4bc">${(s as any).category || s.type || ''}</span>
-            <span style="display:block;font-size:0.75rem;color:#aac">👥 ${emp} موظف</span>
-            <span style="display:block;font-size:0.75rem;color:#aac">📁 ${proj} مشروع</span>
+            <span style="display:block;font-size:0.75rem;color:#8aa4bc">${s.type || ''}</span>
+            ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
+            <span style="display:block;font-size:0.75rem;color:#aac">🤝 ${agreements} اتفاقية</span>
+            <span style="display:block;font-size:0.75rem;color:#aac">🔗 ${links} ارتباط</span>
           `;
         }
       } else {
@@ -351,9 +398,9 @@ export default function GalaxyCanvas({
         mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
         mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        const hits = raycaster.intersectObjects(rayTargets);
+        const hits = raycaster.intersectObject(coreSystem);
         if (hits.length > 0) {
-          onStarClickRef.current?.((hits[0].object as any).__star);
+          onStarClickRef.current?.(data.stars[hits[0].index!]);
         }
       }
     };
@@ -384,16 +431,14 @@ export default function GalaxyCanvas({
       // Rotate milky way slowly
       milkyWay.rotation.y = time * 0.02;
 
-      // Pulse institution stars
-      instMeshes.forEach(m => {
-        const pulse = 1 + Math.sin(time * 2.5 + m.phase) * 0.08;
-        m.mesh.scale.setScalar(pulse);
-        m.glow.scale.setScalar(pulse * 1.05);
-        if (m.ring) {
-          m.ring.rotation.z = time * 0.4;
-          m.ring.rotation.x = Math.PI / 3 + Math.sin(time * 0.3) * 0.1;
-        }
-      });
+      // Animate institution stars
+      coreMat.uniforms.uTime.value = time;
+      glowMat.uniforms.uTime.value = time;
+      const szArr = coreGeo.attributes.size.array as Float32Array;
+      for (let i = 0; i < N; i++) {
+        szArr[i] = iBaseSz[i] + Math.sin(time * 2.5 + i * 0.7) * iBaseSz[i] * 0.15;
+      }
+      coreGeo.attributes.size.needsUpdate = true;
 
       // Auto rotate
       if (autoRotate) sph.theta -= 0.0003;
