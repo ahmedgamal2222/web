@@ -60,7 +60,7 @@ export default function MarketplaceCreatePage() {
     const sid = getSessionId();
     if (!sid) { setAuthLoading(false); return; }
     fetch(`${API_BASE}/api/auth/me`, { headers:{'X-Session-ID':sid} })
-      .then(r=>r.json()).then(d=>{ if(d.success) setSession(d.data); })
+      .then(r=>r.json()).then(d=>{ if(d.success && d.user) setSession(d.user); })
       .catch(()=>{}).finally(()=>setAuthLoading(false));
   },[]);
 
