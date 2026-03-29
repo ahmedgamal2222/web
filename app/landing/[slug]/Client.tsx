@@ -160,12 +160,20 @@ function renderBlock(block: Block, i: number) {
   }
 }
 
-export default function LandingPageClient({ slug }: { slug: string }) {
+export default function LandingPageClient({ slug: _slug }: { slug: string }) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    // With static export + _redirects rewrite, params.slug is always "default".
+    // Read the real slug from the browser URL instead.
+    const pathSlug = typeof window !== 'undefined'
+      ? window.location.pathname.replace(/\/$/, '').split('/').pop()
+      : _slug;
+    const slug = (!pathSlug || pathSlug === 'default') ? _slug : pathSlug;
+    if (!slug || slug === 'default') { setNotFound(true); setLoading(false); return; }
+
     fetch(`${API}/api/public/landing/${slug}`)
       .then(r => r.json())
       .then(d => {
@@ -174,7 +182,7 @@ export default function LandingPageClient({ slug }: { slug: string }) {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, []);
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
