@@ -23,6 +23,31 @@ const COLORS = {
   bg: '#080520',
 };
 
+function GalaxyLogo() {
+  return (
+    <Link href="/" style={{ display:'flex',alignItems:'center',gap:14,textDecoration:'none',userSelect:'none' }}>
+      <svg width="42" height="42" viewBox="0 0 54 54" fill="none">
+        <defs><radialGradient id="rg_cloud" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#EDF7BD"/><stop offset="42%" stopColor="#85C79A"/><stop offset="100%" stopColor="#4E8D9C"/></radialGradient></defs>
+        <circle cx="27" cy="27" r="26" fill="rgba(78,141,156,0.1)"/>
+        <ellipse cx="27" cy="27" rx="24.5" ry="9.5" stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3" fill="none" opacity="0.6" transform="rotate(-22 27 27)"/>
+        <path d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z" fill="url(#rg_cloud)"/>
+        <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92"/>
+      </svg>
+      <div>
+        <div style={{ fontSize:'1.3rem',fontWeight:900,background:'linear-gradient(130deg,#EDF7BD 0%,#85C79A 48%,#4E8D9C 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>المجرة الحضارية</div>
+        <div style={{ fontSize:'0.7rem',color:'#4E8D9C',letterSpacing:'0.3em',fontWeight:700,textTransform:'uppercase' }}>Civilization Galaxy</div>
+      </div>
+    </Link>
+  );
+}
+
+const CLOUD_NAV = [
+  { href:'/news', label:'الأخبار' }, { href:'/campaigns', label:'الحملات' },
+  { href:'/marketplace', label:'السوق الرقمي' }, { href:'/cloud', label:'☁️ SAAS', active:true },
+  { href:'/services', label:'الخدمات' }, { href:'/library', label:'المكتبة' },
+  { href:'/forum', label:'المنتدى' }, { href:'/podcast', label:'البودكاست' },
+];
+
 const CATEGORIES = [
   { id: '',            icon: '🌐', label: 'الكل' },
   { id: 'erp',         icon: '🏭', label: 'ERP' },
@@ -108,32 +133,14 @@ export default function CloudClient() {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.bg, fontFamily: 'Cairo, sans-serif', direction: 'rtl' }}>
       {/* ─── Nav ─── */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(8,5,32,0.95)', backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${COLORS.teal}30`,
-        padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      }}>
-        <Link href="/" style={{ color: COLORS.lightMint, textDecoration: 'none', fontSize: '1.1rem', fontWeight: 700 }}>
-          ✦ المجرة الحضارية
-        </Link>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {[
-            { href: '/campaigns',   label: '🚀 الحملات' },
-            { href: '/marketplace', label: '🛒 الماركت' },
-            { href: '/cloud',       label: '☁️ SAAS' },
-            { href: '/news',        label: '📰 الأخبار' },
-            { href: '/services',    label: '🛠️ الخدمات' },
-          ].map(link => (
-            <Link key={link.href} href={link.href} style={{
-              color: link.href === '/cloud' ? COLORS.lightMint : 'rgba(255,255,255,0.7)',
-              textDecoration: 'none', fontSize: '0.85rem',
-              borderBottom: link.href === '/cloud' ? `2px solid ${COLORS.teal}` : 'none',
-              paddingBottom: 2,
-            }}>{link.label}</Link>
+      <header style={{ position:'sticky',top:0,zIndex:50,height:72,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 32px',background:'rgba(8,5,32,0.96)',backdropFilter:'blur(24px)',borderBottom:`1px solid ${COLORS.teal}30`,boxShadow:'0 2px 32px rgba(0,0,0,0.5)',fontFamily:'Cairo, sans-serif' }}>
+        <GalaxyLogo />
+        <nav style={{ display:'flex',gap:6 }}>
+          {CLOUD_NAV.map(l=>(
+            <Link key={l.href} href={l.href} style={{ padding:'8px 16px',borderRadius:24,textDecoration:'none',fontSize:'0.85rem',fontWeight:600,color:(l as any).active?'#fff':'#9ca3af',background:(l as any).active?`linear-gradient(135deg,${COLORS.teal},${COLORS.softGreen})`:'transparent',border:(l as any).active?'none':'1px solid rgba(255,255,255,0.06)',transition:'all 0.2s' }}>{l.label}</Link>
           ))}
-        </div>
-      </nav>
+        </nav>
+      </header>
 
       {/* ─── Hero ─── */}
       <div style={{

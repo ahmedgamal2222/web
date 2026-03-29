@@ -12,16 +12,17 @@ function getSessionId() {
 
 function GalaxyLogo() {
   return (
-    <Link href="/" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',userSelect:'none' }}>
-      <svg width="38" height="38" viewBox="0 0 54 54" fill="none">
+    <Link href="/" style={{ display:'flex',alignItems:'center',gap:14,textDecoration:'none',userSelect:'none' }}>
+      <svg width="42" height="42" viewBox="0 0 54 54" fill="none">
         <defs><radialGradient id="rg_mkt" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#EDF7BD"/><stop offset="42%" stopColor="#85C79A"/><stop offset="100%" stopColor="#4E8D9C"/></radialGradient></defs>
         <circle cx="27" cy="27" r="26" fill="rgba(78,141,156,0.1)"/>
+        <ellipse cx="27" cy="27" rx="24.5" ry="9.5" stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3" fill="none" opacity="0.6" transform="rotate(-22 27 27)"/>
         <path d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z" fill="url(#rg_mkt)"/>
-        <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.9"/>
+        <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92"/>
       </svg>
       <div>
-        <div style={{ fontSize:'1.1rem',fontWeight:900,background:'linear-gradient(130deg,#EDF7BD 0%,#85C79A 48%,#4E8D9C 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>المجرة الحضارية</div>
-        <div style={{ fontSize:'0.6rem',color:'#4E8D9C',letterSpacing:'0.3em',fontWeight:700,textTransform:'uppercase' }}>Civilization Galaxy</div>
+        <div style={{ fontSize:'1.3rem',fontWeight:900,background:'linear-gradient(130deg,#EDF7BD 0%,#85C79A 48%,#4E8D9C 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>المجرة الحضارية</div>
+        <div style={{ fontSize:'0.7rem',color:'#4E8D9C',letterSpacing:'0.3em',fontWeight:700,textTransform:'uppercase' }}>Civilization Galaxy</div>
       </div>
     </Link>
   );
@@ -29,8 +30,9 @@ function GalaxyLogo() {
 
 const NAV_LINKS = [
   { href:'/news', label:'الأخبار' }, { href:'/campaigns', label:'الحملات' },
-  { href:'/marketplace', label:'السوق الرقمي', active:true }, { href:'/services', label:'الخدمات' },
-  { href:'/library', label:'المكتبة' }, { href:'/forum', label:'المنتدى' },
+  { href:'/marketplace', label:'السوق الرقمي', active:true }, { href:'/cloud', label:'☁️ SAAS' },
+  { href:'/services', label:'الخدمات' }, { href:'/library', label:'المكتبة' },
+  { href:'/forum', label:'المنتدى' }, { href:'/podcast', label:'البودكاست' },
 ];
 
 const CATEGORIES = [
@@ -110,11 +112,11 @@ export default function MarketplacePage() {
       </div>
 
       {/* Nav */}
-      <header style={{ position:'sticky',top:0,zIndex:100,height:64,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 24px',background:'rgba(8,5,32,.96)',backdropFilter:'blur(24px)',borderBottom:'1px solid rgba(78,141,156,.2)' }}>
+      <header style={{ position:'sticky',top:0,zIndex:100,height:72,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 32px',background:'rgba(8,5,32,.96)',backdropFilter:'blur(24px)',borderBottom:'1px solid rgba(78,141,156,.2)',boxShadow:'0 2px 32px rgba(0,0,0,0.5)' }}>
         <GalaxyLogo />
-        <nav style={{ display:'flex',gap:4,flexWrap:'nowrap',overflowX:'auto' }}>
+        <nav style={{ display:'flex',gap:6 }}>
           {NAV_LINKS.map(l=>(
-            <Link key={l.href} href={l.href} style={{ padding:'6px 13px',borderRadius:20,textDecoration:'none',fontSize:'.81rem',fontWeight:600,whiteSpace:'nowrap',color:(l as any).active?C.navy:'#9ca3af',background:(l as any).active?`linear-gradient(135deg,${C.teal},${C.green})`:'transparent',border:(l as any).active?'none':'1px solid rgba(255,255,255,.07)' }}>{l.label}</Link>
+            <Link key={l.href} href={l.href} style={{ padding:'8px 16px',borderRadius:24,textDecoration:'none',fontSize:'0.85rem',fontWeight:600,color:(l as any).active?'#fff':'#9ca3af',background:(l as any).active?`linear-gradient(135deg,${C.teal},${C.green})`:'transparent',border:(l as any).active?'none':'1px solid rgba(255,255,255,.06)',transition:'all 0.2s' }}>{l.label}</Link>
           ))}
         </nav>
         <div style={{ display:'flex',gap:8 }}>

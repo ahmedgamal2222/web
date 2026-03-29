@@ -142,6 +142,7 @@ export default function ServicesPage() {
             { href: '/news', label: 'الأخبار' },
             { href: '/campaigns', label: 'الحملات' },
             { href: '/marketplace', label: 'السوق الرقمي' },
+            { href: '/cloud', label: '☁️ SAAS' },
             { href: '/services', label: 'الخدمات', active: true },
             { href: '/library', label: 'المكتبة' },
             { href: '/forum', label: 'المنتدى' },

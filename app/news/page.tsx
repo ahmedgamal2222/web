@@ -185,6 +185,7 @@ export default function NewsPage() {
             { href: '/news', label: 'الأخبار', active: true },
             { href: '/campaigns', label: 'الحملات' },
             { href: '/marketplace', label: 'السوق الرقمي' },
+            { href: '/cloud', label: '☁️ SAAS' },
             { href: '/services', label: 'الخدمات' },
             { href: '/library', label: 'المكتبة' },
             { href: '/forum', label: 'المنتدى' },
