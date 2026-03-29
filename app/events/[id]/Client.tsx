@@ -12,7 +12,7 @@ const COLORS = {
   darkCard: '#1e1650',
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   lecture: '🎤 محاضرة',

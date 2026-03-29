@@ -12,7 +12,7 @@ const C = {
   darkNavy:  '#281C59',
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 interface User {
   id: number;

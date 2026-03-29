@@ -228,7 +228,7 @@ export default function InstitutionAgreementsPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+      const API = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
       const [instRes, agRes, allAgRes] = await Promise.all([
         fetch(`${API}/api/institutions?limit=200`).then(r => r.json()),
         fetchAgreements({ institution_id: institutionId, limit: 100 }) as Promise<any>,

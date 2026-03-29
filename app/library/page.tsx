@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { uploadImage } from '@/lib/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 const COLORS = {
   lightMint: '#EDF7BD',
@@ -314,7 +314,7 @@ export default function LibraryPage() {
       const fd = new FormData();
       fd.append('file', file);
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE}/api/upload/file`);
+      xhr.open('POST', `${API_BASE}/api/library/upload`);
       xhr.setRequestHeader('X-Session-ID', sid);
       xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100)); });
       xhr.onload = () => {

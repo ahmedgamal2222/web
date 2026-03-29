@@ -3,7 +3,7 @@
 import { useEffect, useState,useMemo } from 'react';
 import Link from 'next/link';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 const COLORS = {
   lightMint: '#EDF7BD',

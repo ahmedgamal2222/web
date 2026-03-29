@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { uploadImage } from '@/lib/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 const COLORS = {
   lightMint: '#EDF7BD',
@@ -881,7 +881,7 @@ function AdCreateModal({
   const [detectedLocation, setDetectedLocation] = useState<{ country: string | null; city: string | null; region: string | null } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
-  const API_BASE_MODAL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const API_BASE_MODAL = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
   const canAfford = coins >= AD_COST;
 
   const set = (f: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>

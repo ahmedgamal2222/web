@@ -365,7 +365,7 @@ export default function AdminAgreementsPage() {
     setLoading(true);
     try {
       const [instRes, agRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'}/api/institutions?limit=200`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev'}/api/institutions?limit=200`)
           .then(r => r.json()),
         fetchAgreements({ limit: 100 }) as Promise<any>,
       ]);
