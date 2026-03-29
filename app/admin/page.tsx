@@ -265,6 +265,13 @@ export default function AdminDashboard() {
           color="#FF6B6B"
           link="/admin/podcast"
         />
+        <StatCard
+          title="الأخبار والفعاليات"
+          value="📰"
+          icon="📰"
+          color="#38BDF8"
+          link="/admin/news"
+        />
       </div>
 
       {/* أقسام سريعة */}

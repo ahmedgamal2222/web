@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { uploadImage } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
@@ -294,6 +295,10 @@ export default function LibraryPage() {
   });
   const [creating, setCreating] = useState(false);
   const [createErr, setCreateErr] = useState('');
+  const [pdfUpload, setPdfUpload]   = useState<{ file: File | null; progress: number; uploading: boolean }>({ file: null, progress: 0, uploading: false });
+  const [coverUpload, setCoverUpload] = useState<{ file: File | null; progress: number; uploading: boolean; preview: string }>({ file: null, progress: 0, uploading: false, preview: '' });
+  const [fileTab, setFileTab]   = useState<'upload' | 'url'>('upload');
+  const [coverTab, setCoverTab] = useState<'upload' | 'url'>('url');
   const limit = 24;
 
   useEffect(() => {
@@ -303,6 +308,29 @@ export default function LibraryPage() {
   }, [activeCategory, search, page]);
 
   const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+
+  const uploadFileToServer = (file: File, onProgress: (p: number) => void): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE}/api/upload/file`);
+      xhr.setRequestHeader('X-Session-ID', sid);
+      xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100)); });
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { const d = JSON.parse(xhr.responseText); if (d.url) resolve(d.url); else reject(new Error(d.error || 'لا يوجد رابط')); }
+          catch { reject(new Error('استجابة غير صالحة')); }
+        } else {
+          try { const er = JSON.parse(xhr.responseText); reject(new Error(er.error || `HTTP ${xhr.status}`)); }
+          catch { reject(new Error(`فشل HTTP ${xhr.status}`)); }
+        }
+      };
+      xhr.onerror   = () => reject(new Error('فشل الاتصال'));
+      xhr.timeout   = 120000;
+      xhr.ontimeout = () => reject(new Error('انتهت مهلة الرفع'));
+      xhr.send(fd);
+    });
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -357,6 +385,9 @@ export default function LibraryPage() {
       if (!data.success) throw new Error(data.message || 'فشل الإضافة');
       setShowCreate(false);
       setCreateForm({ title: '', title_en: '', author: '', description: '', file_url: '', external_url: '', cover_url: '', year: '', pages: '', tags: '', is_free: true, language: 'ar' });
+      setPdfUpload({ file: null, progress: 0, uploading: false });
+      setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' });
+      setFileTab('upload'); setCoverTab('url');
       fetchBooks();
     } catch (ex: any) {
       setCreateErr(ex.message);
@@ -520,74 +551,254 @@ export default function LibraryPage() {
       {selectedBook && <BookModal book={selectedBook} onClose={() => setSelectedBook(null)} />}
 
       {/* Create Book Modal (institution_admin) */}
-      {showCreate && (
-        <div onClick={e => e.target === e.currentTarget && setShowCreate(false)} style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: 'linear-gradient(145deg, #1a1240, #0f0a2e)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 24, maxWidth: 580, width: '100%', maxHeight: '88vh', overflow: 'auto', boxShadow: '0 32px 100px rgba(0,0,0,0.7)' }}>
-            <div style={{ height: 4, background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.softGreen})` }} />
-            <div style={{ padding: '28px 32px 32px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ color: '#fff', margin: 0, fontSize: '1.2rem' }}>📚 إضافة كتاب لمؤسستك</h2>
-                <button onClick={() => setShowCreate(false)} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '7px 14px', cursor: 'pointer', color: '#fff', fontSize: '1rem' }}>✕</button>
-              </div>
-              {createErr && <div style={{ background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.3)', borderRadius: 10, padding: '10px 14px', color: '#ff8080', marginBottom: 16, fontSize: '0.85rem' }}>{createErr}</div>}
-              <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {[
-                  { label: 'العنوان بالعربية *', key: 'title', placeholder: 'عنوان الكتاب', required: true },
-                  { label: 'العنوان بالإنجليزية', key: 'title_en', placeholder: 'Title in English' },
-                  { label: 'المؤلف', key: 'author', placeholder: 'اسم المؤلف' },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>{f.label}</label>
-                    <input
-                      value={(createForm as any)[f.key]}
-                      onChange={e => setCreateForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                      placeholder={f.placeholder}
-                      required={f.required}
-                      style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', boxSizing: 'border-box' }}
-                    />
-                  </div>
-                ))}
+      {showCreate && (() => {
+        const iS: React.CSSProperties = { width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.28)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo',sans-serif", outline: 'none', boxSizing: 'border-box' };
+        const lS: React.CSSProperties = { fontSize: '0.78rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block', letterSpacing: '0.03em' };
+        const busy = pdfUpload.uploading || coverUpload.uploading || creating;
+
+        const resetModal = () => {
+          setShowCreate(false); setCreateErr('');
+          setCreateForm({ title: '', title_en: '', author: '', description: '', file_url: '', external_url: '', cover_url: '', year: '', pages: '', tags: '', is_free: true, language: 'ar' });
+          setPdfUpload({ file: null, progress: 0, uploading: false });
+          setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' });
+          setFileTab('upload'); setCoverTab('url');
+        };
+
+        const TabPill = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+          <button type="button" onClick={onClick} style={{ padding: '5px 14px', borderRadius: 20, border: `1px solid ${active ? COLORS.teal : 'rgba(78,141,156,0.25)'}`, background: active ? `${COLORS.teal}22` : 'transparent', color: active ? COLORS.teal : '#6b7280', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Cairo',sans-serif", transition: 'all 0.18s' }}>{children}</button>
+        );
+
+        const ProgressBar = ({ pct, color }: { pct: number; color: string }) => (
+          <div style={{ marginTop: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 6, height: 5, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${COLORS.softGreen})`, borderRadius: 6, transition: 'width 0.3s ease' }} />
+          </div>
+        );
+
+        return (
+          <div onClick={e => e.target === e.currentTarget && resetModal()} style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(14px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ background: 'linear-gradient(160deg, #1a1240 0%, #0d0820 100%)', border: '1px solid rgba(78,141,156,0.28)', borderRadius: 26, maxWidth: 620, width: '100%', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 40px 120px rgba(0,0,0,0.8), 0 0 60px rgba(78,141,156,0.08)' }}>
+
+              {/* top accent */}
+              <div style={{ height: 3, background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.softGreen}, ${COLORS.teal})`, borderRadius: '26px 26px 0 0' }} />
+
+              {/* Header */}
+              <div style={{ padding: '26px 30px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>الوصف</label>
-                  <textarea value={createForm.description} onChange={e => setCreateForm(prev => ({ ...prev, description: e.target.value }))} rows={3} placeholder="وصف مختصر..." style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+                  <h2 style={{ color: '#fff', margin: 0, fontSize: '1.25rem', fontWeight: 900 }}>📚 إضافة كتاب لمؤسستك</h2>
+                  <p style={{ color: '#4b5563', margin: '5px 0 0', fontSize: '0.82rem' }}>ارفع ملفاتك مباشرة أو أدخل الروابط</p>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {[
-                    { label: 'سنة النشر', key: 'year', placeholder: '2024', type: 'number' },
-                    { label: 'عدد الصفحات', key: 'pages', placeholder: '200', type: 'number' },
-                  ].map(f => (
-                    <div key={f.key}>
-                      <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>{f.label}</label>
-                      <input type={f.type} value={(createForm as any)[f.key]} onChange={e => setCreateForm(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', boxSizing: 'border-box' }} />
-                    </div>
-                  ))}
-                </div>
-                {[
-                  { label: 'رابط الملف (PDF)', key: 'file_url', placeholder: 'https://...' },
-                  { label: 'رابط خارجي', key: 'external_url', placeholder: 'https://...' },
-                  { label: 'رابط صورة الغلاف', key: 'cover_url', placeholder: 'https://...' },
-                  { label: 'الوسوم (مفصولة بفاصلة)', key: 'tags', placeholder: 'قيادة، إدارة...' },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700, marginBottom: 6, display: 'block' }}>{f.label}</label>
-                    <input value={(createForm as any)[f.key]} onChange={e => setCreateForm(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} style={{ width: '100%', padding: '11px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 10, color: '#fff', fontSize: '0.9rem', fontFamily: "'Cairo', sans-serif", outline: 'none', boxSizing: 'border-box' }} />
+                <button onClick={resetModal} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, width: 36, height: 36, color: '#9ca3af', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+              </div>
+
+              <div style={{ padding: '20px 30px 30px' }}>
+                {createErr && (
+                  <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '11px 16px', color: '#f87171', marginBottom: 18, fontSize: '0.85rem', display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span>⚠️</span>{createErr}
                   </div>
-                ))}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(133,199,154,0.06)', borderRadius: 10, border: '1px solid rgba(133,199,154,0.2)' }}>
-                  <input type="checkbox" id="is_free" checked={createForm.is_free} onChange={e => setCreateForm(prev => ({ ...prev, is_free: e.target.checked }))} />
-                  <label htmlFor="is_free" style={{ color: COLORS.softGreen, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>كتاب مجاني للجميع</label>
-                </div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                  <button type="submit" disabled={creating} style={{ flex: 1, padding: '13px', borderRadius: 12, background: creating ? 'rgba(78,141,156,0.3)' : `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', color: creating ? '#aaa' : COLORS.darkNavy, fontWeight: 800, fontSize: '0.95rem', cursor: creating ? 'default' : 'pointer', fontFamily: "'Cairo', sans-serif" }}>
-                    {creating ? 'جاري الإضافة...' : '+ إضافة الكتاب'}
-                  </button>
-                  <button type="button" onClick={() => setShowCreate(false)} style={{ padding: '13px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', cursor: 'pointer', fontWeight: 600, fontFamily: "'Cairo', sans-serif" }}>إلغاء</button>
-                </div>
-              </form>
+                )}
+
+                <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* ── Basic Info ── */}
+                  <div style={{ background: 'rgba(78,141,156,0.06)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 16, overflow: 'hidden' }}>
+                    <div style={{ padding: '11px 18px', borderBottom: '1px solid rgba(78,141,156,0.15)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '0.95rem' }}>📋</span>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: COLORS.teal }}>المعلومات الأساسية</span>
+                    </div>
+                    <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label style={lS}>العنوان بالعربية *</label>
+                          <input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} required placeholder="عنوان الكتاب" style={iS} />
+                        </div>
+                        <div>
+                          <label style={lS}>العنوان بالإنجليزية</label>
+                          <input value={createForm.title_en} onChange={e => setCreateForm(p => ({ ...p, title_en: e.target.value }))} placeholder="Book Title" style={iS} />
+                        </div>
+                        <div>
+                          <label style={lS}>المؤلف</label>
+                          <input value={createForm.author} onChange={e => setCreateForm(p => ({ ...p, author: e.target.value }))} placeholder="اسم المؤلف" style={iS} />
+                        </div>
+                        <div>
+                          <label style={lS}>اللغة</label>
+                          <select value={createForm.language} onChange={e => setCreateForm(p => ({ ...p, language: e.target.value }))} style={{ ...iS, cursor: 'pointer' }}>
+                            <option value="ar" style={{ background: '#1a1240' }}>العربية</option>
+                            <option value="en" style={{ background: '#1a1240' }}>الإنجليزية</option>
+                            <option value="other" style={{ background: '#1a1240' }}>أخرى</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label style={lS}>الوصف</label>
+                        <textarea value={createForm.description} onChange={e => setCreateForm(p => ({ ...p, description: e.target.value }))} rows={2} placeholder="وصف مختصر للكتاب..." style={{ ...iS, resize: 'vertical' }} />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                        <div>
+                          <label style={lS}>سنة النشر</label>
+                          <input type="number" value={createForm.year} onChange={e => setCreateForm(p => ({ ...p, year: e.target.value }))} placeholder={String(new Date().getFullYear())} min="1800" max="2099" style={iS} />
+                        </div>
+                        <div>
+                          <label style={lS}>عدد الصفحات</label>
+                          <input type="number" value={createForm.pages} onChange={e => setCreateForm(p => ({ ...p, pages: e.target.value }))} placeholder="200" min="1" style={iS} />
+                        </div>
+                        <div>
+                          <label style={lS}>النوع</label>
+                          <select value={createForm.is_free ? 'free' : 'paid'} onChange={e => setCreateForm(p => ({ ...p, is_free: e.target.value === 'free' }))} style={{ ...iS, cursor: 'pointer' }}>
+                            <option value="free" style={{ background: '#1a1240' }}>🆓 مجاني</option>
+                            <option value="paid" style={{ background: '#1a1240' }}>🔒 اشتراك</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label style={lS}>الوسوم (مفصولة بفاصلة)</label>
+                        <input value={createForm.tags} onChange={e => setCreateForm(p => ({ ...p, tags: e.target.value }))} placeholder="قيادة، إدارة، ثقافة..." style={iS} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── PDF Upload ── */}
+                  <div style={{ background: 'rgba(255,155,78,0.05)', border: '1px solid rgba(255,155,78,0.2)', borderRadius: 16, overflow: 'hidden' }}>
+                    <div style={{ padding: '11px 18px', borderBottom: '1px solid rgba(255,155,78,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: '0.95rem' }}>📄</span>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FF9B4E' }}>ملف الكتاب</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <TabPill active={fileTab === 'upload'} onClick={() => setFileTab('upload')}>⬆️ رفع</TabPill>
+                        <TabPill active={fileTab === 'url'} onClick={() => setFileTab('url')}>🔗 رابط</TabPill>
+                      </div>
+                    </div>
+                    <div style={{ padding: '16px 18px' }}>
+                      {fileTab === 'url' ? (
+                        <input value={createForm.file_url} onChange={e => setCreateForm(p => ({ ...p, file_url: e.target.value }))} placeholder="https://..." style={iS} />
+                      ) : createForm.file_url && pdfUpload.file ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(133,199,154,0.08)', border: '1px solid rgba(133,199,154,0.3)', borderRadius: 12 }}>
+                          <span style={{ fontSize: '1.5rem' }}>✅</span>
+                          <div style={{ flex: 1, overflow: 'hidden' }}>
+                            <div style={{ fontWeight: 700, color: '#85C79A', fontSize: '0.85rem' }}>تم الرفع بنجاح</div>
+                            <div style={{ fontSize: '0.72rem', color: '#4ade80', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{createForm.file_url}</div>
+                          </div>
+                          <button type="button" onClick={() => { setPdfUpload({ file: null, progress: 0, uploading: false }); setCreateForm(p => ({ ...p, file_url: '' })); }} style={{ padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>تغيير</button>
+                        </div>
+                      ) : pdfUpload.uploading ? (
+                        <div style={{ padding: '16px', background: 'rgba(255,155,78,0.06)', border: '1px dashed rgba(255,155,78,0.3)', borderRadius: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                            <span style={{ fontSize: '1.1rem' }}>📤</span>
+                            <span style={{ fontSize: '0.85rem', color: '#FF9B4E', fontWeight: 600 }}>جاري الرفع... {pdfUpload.progress}%</span>
+                          </div>
+                          <ProgressBar pct={pdfUpload.progress} color="#FF9B4E" />
+                        </div>
+                      ) : (
+                        <label style={{ display: 'block', cursor: 'pointer' }}>
+                          <input type="file" accept=".pdf,.doc,.docx,.epub" style={{ display: 'none' }} onChange={async e => {
+                            const f = e.target.files?.[0]; if (!f) return;
+                            e.target.value = '';
+                            setPdfUpload({ file: f, progress: 0, uploading: true });
+                            try {
+                              const url = await uploadFileToServer(f, p => setPdfUpload(prev => ({ ...prev, progress: p })));
+                              setCreateForm(prev => ({ ...prev, file_url: url }));
+                              setPdfUpload(prev => ({ ...prev, uploading: false, progress: 100 }));
+                            } catch (ex: any) {
+                              setCreateErr('فشل رفع الملف: ' + ex.message);
+                              setPdfUpload({ file: null, progress: 0, uploading: false });
+                            }
+                          }} />
+                          <div style={{ padding: '24px 16px', border: '2px dashed rgba(255,155,78,0.3)', borderRadius: 12, textAlign: 'center', transition: 'all 0.2s', background: 'rgba(255,155,78,0.03)' }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF9B4E'; e.currentTarget.style.background = 'rgba(255,155,78,0.07)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,155,78,0.3)'; e.currentTarget.style.background = 'rgba(255,155,78,0.03)'; }}
+                          >
+                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>📄</div>
+                            <div style={{ fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, marginBottom: 4 }}>اسحب الملف هنا أو انقر للاختيار</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>PDF · DOC · EPUB — حتى 50MB</div>
+                          </div>
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Cover Upload ── */}
+                  <div style={{ background: 'rgba(133,199,154,0.05)', border: '1px solid rgba(133,199,154,0.2)', borderRadius: 16, overflow: 'hidden' }}>
+                    <div style={{ padding: '11px 18px', borderBottom: '1px solid rgba(133,199,154,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: '0.95rem' }}>🖼️</span>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: COLORS.softGreen }}>صورة الغلاف</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <TabPill active={coverTab === 'upload'} onClick={() => setCoverTab('upload')}>⬆️ رفع</TabPill>
+                        <TabPill active={coverTab === 'url'} onClick={() => setCoverTab('url')}>🔗 رابط</TabPill>
+                      </div>
+                    </div>
+                    <div style={{ padding: '16px 18px' }}>
+                      {coverTab === 'url' ? (
+                        <input value={createForm.cover_url} onChange={e => setCreateForm(p => ({ ...p, cover_url: e.target.value }))} placeholder="https://..." style={iS} />
+                      ) : createForm.cover_url && coverUpload.file ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          {coverUpload.preview && <img src={coverUpload.preview} alt="غلاف" style={{ width: 64, height: 90, objectFit: 'cover', borderRadius: 8, border: '2px solid rgba(133,199,154,0.4)', flexShrink: 0 }} />}
+                          <div style={{ flex: 1, padding: '12px 14px', background: 'rgba(133,199,154,0.08)', border: '1px solid rgba(133,199,154,0.3)', borderRadius: 12 }}>
+                            <div style={{ fontWeight: 700, color: '#85C79A', fontSize: '0.85rem', marginBottom: 4 }}>✅ تم رفع الغلاف</div>
+                            <div style={{ fontSize: '0.72rem', color: '#4ade80', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{createForm.cover_url}</div>
+                            <button type="button" onClick={() => { setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' }); setCreateForm(p => ({ ...p, cover_url: '' })); }} style={{ marginTop: 8, padding: '3px 12px', borderRadius: 20, border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}>تغيير</button>
+                          </div>
+                        </div>
+                      ) : coverUpload.uploading ? (
+                        <div style={{ padding: '16px', background: 'rgba(133,199,154,0.06)', border: '1px dashed rgba(133,199,154,0.3)', borderRadius: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                            <span style={{ fontSize: '1.1rem' }}>🖼️</span>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.softGreen, fontWeight: 600 }}>جاري رفع الصورة... {coverUpload.progress}%</span>
+                          </div>
+                          <ProgressBar pct={coverUpload.progress} color={COLORS.softGreen} />
+                        </div>
+                      ) : (
+                        <label style={{ display: 'block', cursor: 'pointer' }}>
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+                            const f = e.target.files?.[0]; if (!f) return;
+                            e.target.value = '';
+                            const preview = URL.createObjectURL(f);
+                            setCoverUpload({ file: f, progress: 0, uploading: true, preview });
+                            try {
+                              const result = await uploadImage(f, p => setCoverUpload(prev => ({ ...prev, progress: p })));
+                              setCreateForm(prev => ({ ...prev, cover_url: result.url }));
+                              setCoverUpload(prev => ({ ...prev, uploading: false, progress: 100 }));
+                            } catch (ex: any) {
+                              setCreateErr('فشل رفع الصورة: ' + ex.message);
+                              setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' });
+                            }
+                          }} />
+                          <div style={{ padding: '20px 16px', border: '2px dashed rgba(133,199,154,0.3)', borderRadius: 12, textAlign: 'center', transition: 'all 0.2s', background: 'rgba(133,199,154,0.03)' }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = COLORS.softGreen; e.currentTarget.style.background = 'rgba(133,199,154,0.07)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(133,199,154,0.3)'; e.currentTarget.style.background = 'rgba(133,199,154,0.03)'; }}
+                          >
+                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>🖼️</div>
+                            <div style={{ fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, marginBottom: 4 }}>اختر صورة الغلاف</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>JPG · PNG · WebP — حتى 5MB</div>
+                          </div>
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── External URL ── */}
+                  <div>
+                    <label style={lS}>رابط خارجي (اشتراك / مصدر)</label>
+                    <input value={createForm.external_url} onChange={e => setCreateForm(p => ({ ...p, external_url: e.target.value }))} placeholder="https://..." style={iS} />
+                  </div>
+
+                  {/* Submit */}
+                  <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+                    <button type="submit" disabled={busy}
+                      style={{ flex: 1, padding: '13px 20px', borderRadius: 14, background: busy ? 'rgba(78,141,156,0.2)' : `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', color: busy ? '#6b7280' : COLORS.darkNavy, fontWeight: 800, fontSize: '0.95rem', cursor: busy ? 'default' : 'pointer', fontFamily: "'Cairo',sans-serif", transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      {pdfUpload.uploading ? `📤 رفع الملف ${pdfUpload.progress}%` : coverUpload.uploading ? `🖼️ رفع الصورة ${coverUpload.progress}%` : creating ? '⏳ جاري الإضافة...' : '+ إضافة الكتاب'}
+                    </button>
+                    <button type="button" onClick={resetModal}
+                      style={{ padding: '13px 20px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', cursor: 'pointer', fontWeight: 600, fontFamily: "'Cairo',sans-serif" }}>إلغاء</button>
+                  </div>
+
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <style>{`
         @keyframes twinkle { from { opacity: 0.1; transform: scale(1); } to { opacity: 0.6; transform: scale(1.2); } }
