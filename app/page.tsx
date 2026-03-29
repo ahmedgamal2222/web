@@ -271,11 +271,9 @@ function TopBar({
         {[
           { href: '/news',        icon: '📰', label: 'الأخبار' },
           { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
-          { href: '/marketplace', icon: '🛒', label: 'السوق الرقمي' },
+          { href: '/marketplace', icon: '🛒', label: 'السوق' },
           { href: '/cloud',       icon: '☁️', label: 'SAAS' },
-          { href: '/library',     icon: '📚', label: 'المكتبة' },
-          { href: '/forum',       icon: '💬', label: 'المنتدى' },
-          { href: '/podcast',     icon: '🎙️', label: 'البودكاست' },
+          { href: '/services',    icon: '🛠️', label: 'الخدمات' },
         ].map(link => (
           <Link
             key={link.href}
@@ -403,8 +401,42 @@ function TopBar({
 // ============================================================
 // Quick Actions Panel (للمستخدمين المسجلين)
 // ============================================================
+const SAAS_ROUTE_MAP: Record<string, { icon: string; label: string; href: string }> = {
+  erp:          { icon: '🏭', label: 'ERP',           href: '/cloud/apps/erp' },
+  crm:          { icon: '🤝', label: 'CRM',           href: '/cloud/apps/crm' },
+  hr:           { icon: '👥', label: 'HR',            href: '/cloud/apps/hr' },
+  form:         { icon: '📋', label: 'النماذج',       href: '/cloud/apps/forms' },
+  funnel:       { icon: '🌪️', label: 'قمع المبيعات', href: '/cloud/apps/funnel' },
+  landing_page: { icon: '🖥️', label: 'صفحات الهبوط', href: '/cloud/apps/landing' },
+};
+
 function QuickActions({ user }: { user: any }) {
-  const actions = [];
+  const [saasApps, setSaasApps] = useState<{ icon: string; label: string; href: string; color: string }[]>([]);
+
+  useEffect(() => {
+    const sid = localStorage.getItem('sessionId');
+    if (!sid || !user.institution_id) return;
+    // Fetch subscribed apps, then fetch their categories
+    Promise.all([
+      fetch(`${API_BASE}/api/saas/my-subscriptions`, { headers: { 'X-Session-ID': sid } }).then(r => r.json()),
+      fetch(`${API_BASE}/api/saas?page=1&limit=100`).then(r => r.json()),
+    ]).then(([subsData, appsData]) => {
+      const subIds: number[] = subsData.success ? (subsData.data || []) : [];
+      const allApps: any[] = appsData.data || [];
+      const mapped = subIds
+        .map(id => allApps.find((a: any) => a.id === id))
+        .filter(Boolean)
+        .map((a: any) => {
+          const route = SAAS_ROUTE_MAP[a.category];
+          if (!route) return null;
+          return { icon: route.icon, label: a.name_ar || route.label, href: route.href, color: '#4E8D9C' };
+        })
+        .filter(Boolean) as { icon: string; label: string; href: string; color: string }[];
+      setSaasApps(mapped);
+    }).catch(() => {});
+  }, [user.institution_id]);
+
+  const actions: { icon: string; label: string; href: string; color: string }[] = [];
 
   if (user.role === 'admin') {
     actions.push(
@@ -439,6 +471,18 @@ function QuickActions({ user }: { user: any }) {
     actions.push(
       { icon: '✨', label: 'طلب إنشاء مؤسسة', href: '/institution-request', color: '#FFD700' },
     );
+  }
+
+  // Static nav items moved from topbar
+  actions.push(
+    { icon: '📚', label: 'المكتبة', href: '/library', color: '#85C79A' },
+    { icon: '💬', label: 'المنتدى', href: '/forum', color: '#EDF7BD' },
+    { icon: '🎙️', label: 'البودكاست', href: '/podcast', color: '#f59e0b' },
+  );
+
+  // Subscribed SAAS apps
+  if (saasApps.length > 0) {
+    actions.push(...saasApps);
   }
 
   return (

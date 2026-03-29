@@ -56,6 +56,14 @@ export default function AdminSaas() {
     setLoading(false);
   };
 
+  const deleteApp = async (id: number, name: string) => {
+    if (!confirm(`هل أنت متأكد من حذف التطبيق "${name}"؟\nسيتم حذف جميع الاشتراكات المرتبطة به أيضاً.`)) return;
+    const res = await fetch(`${API_BASE}/api/saas/${id}`, { method: 'DELETE', headers });
+    const data = await res.json();
+    if (data.success) fetchApps();
+    else alert(data.error || 'حدث خطأ');
+  };
+
   const addFeature = () => {
     if (!featureInput.trim()) return;
     setForm(f => ({ ...f, features: [...f.features, featureInput.trim()] }));
@@ -259,7 +267,7 @@ export default function AdminSaas() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: `${COLORS.darkNavy}08`, borderBottom: `2px solid ${COLORS.teal}20` }}>
-                {['#', 'التطبيق', 'التصنيف', 'التسعير', 'السعر', 'مميز', 'الاشتراكات'].map(h => (
+                {['#', 'التطبيق', 'التصنيف', 'التسعير', 'السعر', 'مميز', 'الاشتراكات', ''].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'right', color: COLORS.darkNavy, fontWeight: 700, fontSize: '0.88rem' }}>{h}</th>
                 ))}
               </tr>
@@ -301,6 +309,14 @@ export default function AdminSaas() {
                   </td>
                   <td style={{ padding: '12px 16px', color: '#666', fontSize: '0.88rem' }}>
                     {app.active_subscriptions ?? 0}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <button onClick={() => deleteApp(app.id, app.name_ar || app.name)} style={{
+                      background: '#ef444415', color: '#ef4444',
+                      border: '1px solid #ef444430', borderRadius: 8,
+                      padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem',
+                      fontFamily: 'Cairo, sans-serif',
+                    }}>حذف</button>
                   </td>
                 </tr>
               ))}

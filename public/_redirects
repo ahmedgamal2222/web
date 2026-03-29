@@ -37,3 +37,12 @@
 /cloud/apps/forms/public/:id   /cloud/apps/forms/public/default/  200
 /cloud/apps/forms/:id/         /cloud/apps/forms/default/         200
 /cloud/apps/forms/:id          /cloud/apps/forms/default/         200
+
+/cloud/apps/funnel/:id/        /cloud/apps/funnel/                200
+/cloud/apps/funnel/:id         /cloud/apps/funnel/                200
+
+/cloud/apps/landing/:id/       /cloud/apps/landing/               200
+/cloud/apps/landing/:id        /cloud/apps/landing/               200
+
+/landing/:slug/                /landing/default/                  200
+/landing/:slug                 /landing/default/                  200

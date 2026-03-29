@@ -61,6 +61,15 @@ export default function CloudClient() {
 
   useEffect(() => { fetchApps(); }, [category, pricing, search, page]);
 
+  useEffect(() => {
+    const sid = localStorage.getItem('sessionId');
+    if (!sid) return;
+    fetch(`${API_BASE}/api/saas/my-subscriptions`, { headers: { 'X-Session-ID': sid } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setSubscribed(d.data || []); })
+      .catch(() => {});
+  }, []);
+
   const fetchApps = async () => {
     setLoading(true);
     try {
