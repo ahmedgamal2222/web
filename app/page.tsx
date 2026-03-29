@@ -272,6 +272,7 @@ function TopBar({
           { href: '/news',        icon: '📰', label: 'الأخبار' },
           { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
           { href: '/marketplace', icon: '🛒', label: 'السوق الرقمي' },
+          { href: '/cloud',       icon: '☁️', label: 'SAAS' },
           { href: '/library',     icon: '📚', label: 'المكتبة' },
           { href: '/forum',       icon: '💬', label: 'المنتدى' },
           { href: '/podcast',     icon: '🎙️', label: 'البودكاست' },

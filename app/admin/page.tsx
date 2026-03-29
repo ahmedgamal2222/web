@@ -20,6 +20,9 @@ interface DashboardStats {
   active_screens: number;
   total_agreements: number;
   total_services: number;
+  total_campaigns: number;
+  total_marketplace: number;
+  total_saas_apps: number;
 }
 
 export default function AdminDashboard() {
@@ -33,6 +36,9 @@ export default function AdminDashboard() {
     active_screens: 0,
     total_agreements: 0,
     total_services: 0,
+    total_campaigns: 0,
+    total_marketplace: 0,
+    total_saas_apps: 0,
   });
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
   const [recentUsers, setRecentUsers]       = useState<any[]>([]);
@@ -74,6 +80,7 @@ export default function AdminDashboard() {
       setLoading(true);
 
       const [institutionsRes, requestsRes, usersRes, screensRes, agreementsRes, servicesRes,
+             campaignsRes, marketplaceRes, saasRes,
              recentReqRes, recentUsersRes, recentSvcRes] = await Promise.all([
         fetch(`${API_BASE}/api/institutions?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/institution-requests?status=pending&limit=1`, { headers: authHeaders }),
@@ -81,6 +88,9 @@ export default function AdminDashboard() {
         fetch(`${API_BASE}/api/screens/stats`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/agreements?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/services?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/campaigns?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/marketplace?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/saas?limit=1`, { headers: authHeaders }),
         // بيانات حقيقية للبطاقات
         fetch(`${API_BASE}/api/institution-requests?status=pending&limit=3`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/users?limit=3`, { headers: authHeaders }),
@@ -93,6 +103,9 @@ export default function AdminDashboard() {
       const screens      = await screensRes.json();
       const agreements   = await agreementsRes.json();
       const services     = await servicesRes.json();
+      const campaigns    = await campaignsRes.json();
+      const marketplace  = await marketplaceRes.json();
+      const saas         = await saasRes.json();
       const recentReq    = await recentReqRes.json();
       const recentUsr    = await recentUsersRes.json();
       const recentSvc    = await recentSvcRes.json();
@@ -104,6 +117,9 @@ export default function AdminDashboard() {
         active_screens:     screens.active    || 0,
         total_agreements:   agreements.total  || 0,
         total_services:     services.total    || 0,
+        total_campaigns:    campaigns.total   || 0,
+        total_marketplace:  marketplace.total || 0,
+        total_saas_apps:    saas.total        || 0,
       });
 
       setRecentRequests(
@@ -272,6 +288,27 @@ export default function AdminDashboard() {
           color="#38BDF8"
           link="/admin/news"
         />
+        <StatCard
+          title="الحملات المشتركة"
+          value={stats.total_campaigns}
+          icon="🚀"
+          color="#8b5cf6"
+          link="/admin/campaigns"
+        />
+        <StatCard
+          title="السوق الرقمي"
+          value={stats.total_marketplace}
+          icon="🛒"
+          color="#f59e0b"
+          link="/admin/marketplace"
+        />
+        <StatCard
+          title="تطبيقات SAAS"
+          value={stats.total_saas_apps}
+          icon="☁️"
+          color="#0ea5e9"
+          link="/admin/saas"
+        />
       </div>
 
       {/* أقسام سريعة */}
@@ -305,6 +342,13 @@ export default function AdminDashboard() {
 
         {/* إدارة البث المباشر */}
         <LiveStreamSection />
+
+        {/* الحملات والسوق والسحابة */}
+        <NewSectionsRow
+          campaigns={stats.total_campaigns}
+          marketplace={stats.total_marketplace}
+          saas={stats.total_saas_apps}
+        />
 
         {/* التواصل */}
         <ContactSection />
@@ -483,6 +527,64 @@ function ContactSection() {
       }}>
         <div style={{ marginBottom: 4, fontSize: '1rem' }}>✦ المجرة الحضارية</div>
         <div style={{ opacity: 0.75, fontSize: '0.85rem' }}>فريق الدعم متاح على مدار الساعة</div>
+      </div>
+    </div>
+  );
+}
+
+function NewSectionsRow({ campaigns, marketplace, saas }: any) {
+  const sections = [
+    { icon: '🚀', label: 'الحملات المشتركة', count: campaigns, link: '/admin/campaigns', color: '#8b5cf6', desc: 'إدارة حملات التعاون بين المؤسسات' },
+    { icon: '🛒', label: 'السوق الرقمي',     count: marketplace, link: '/admin/marketplace', color: '#f59e0b', desc: 'إدارة المنتجات والخدمات الرقمية' },
+    { icon: '☁️', label: 'الخدمات السحابية', count: saas,       link: '/admin/saas',        color: '#0ea5e9', desc: 'إدارة تطبيقات SAAS والاشتراكات' },
+  ];
+
+  return (
+    <div style={{
+      background: 'white', borderRadius: 20, padding: '20px',
+      boxShadow: `0 4px 14px ${COLORS.darkNavy}12`,
+      gridColumn: '1 / -1',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <span style={{ fontSize: '1.4rem' }}>🌌</span>
+        <h3 style={{ color: COLORS.darkNavy, margin: 0, fontSize: '1rem', fontWeight: 700 }}>
+          منظومة التوسعات الجديدة
+        </h3>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        {sections.map(s => (
+          <Link key={s.link} href={s.link} style={{ textDecoration: 'none' }}>
+            <div style={{
+              border: `1.5px solid ${s.color}30`,
+              borderRadius: 16, padding: '16px',
+              background: `${s.color}08`,
+              transition: 'all 0.2s',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = `${s.color}15`;
+              e.currentTarget.style.borderColor = s.color;
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = `${s.color}08`;
+              e.currentTarget.style.borderColor = `${s.color}30`;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                <span style={{ fontSize: '1.8rem' }}>{s.icon}</span>
+                <span style={{
+                  background: `${s.color}20`, color: s.color,
+                  padding: '2px 10px', borderRadius: 20,
+                  fontSize: '0.9rem', fontWeight: 800,
+                }}>{s.count}</span>
+              </div>
+              <div style={{ fontWeight: 700, color: COLORS.darkNavy, fontSize: '0.92rem', marginBottom: 4 }}>{s.label}</div>
+              <div style={{ fontSize: '0.8rem', color: '#888' }}>{s.desc}</div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
