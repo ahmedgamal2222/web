@@ -4,6 +4,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const CATEGORY_ROUTES: Record<string, string> = {
+  erp:          '/cloud/apps/erp',
+  crm:          '/cloud/apps/crm',
+  hr:           '/cloud/apps/hr',
+  form:         '/cloud/apps/forms',
+  funnel:       '/cloud/apps/funnel',
+  landing_page: '/cloud/apps/landing',
+};
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 const COLORS = {
@@ -341,19 +350,28 @@ function AppCard({ app, isSubscribed, isLoading, onSubscribe }: any) {
             <div style={{ color: pricing.color, fontSize: '0.75rem', marginTop: 1 }}>{pricing.label}</div>
           </div>
 
-          <button
-            onClick={onSubscribe}
-            disabled={isSubscribed || isLoading}
-            style={{
-              background: isSubscribed ? '#10b981' : COLORS.teal,
-              color: 'white', border: 'none', borderRadius: 40,
-              padding: '8px 18px', cursor: isSubscribed ? 'default' : 'pointer',
-              fontSize: '0.85rem', fontWeight: 700, fontFamily: 'Cairo, sans-serif',
-              opacity: isLoading ? 0.6 : 1, transition: 'all 0.2s',
-            }}
-          >
-            {isLoading ? '...' : isSubscribed ? '✓ مشترك' : 'اشترك'}
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {isSubscribed && CATEGORY_ROUTES[app.category] && (
+              <Link href={CATEGORY_ROUTES[app.category]} style={{
+                background: '#10b98118', color: '#10b981', border: '1px solid #10b98140',
+                borderRadius: 40, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 700,
+                textDecoration: 'none', whiteSpace: 'nowrap',
+              }}>افتح التطبيق ←</Link>
+            )}
+            <button
+              onClick={onSubscribe}
+              disabled={isSubscribed || isLoading}
+              style={{
+                background: isSubscribed ? '#10b981' : COLORS.teal,
+                color: 'white', border: 'none', borderRadius: 40,
+                padding: '8px 18px', cursor: isSubscribed ? 'default' : 'pointer',
+                fontSize: '0.85rem', fontWeight: 700, fontFamily: 'Cairo, sans-serif',
+                opacity: isLoading ? 0.6 : 1, transition: 'all 0.2s',
+              }}
+            >
+              {isLoading ? '...' : isSubscribed ? '✓ مشترك' : 'اشترك'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
