@@ -22,11 +22,16 @@ export function GalaxyLogo() {
         <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
       </svg>
       <div>
-        <div style={{ fontSize: '1.3rem', fontWeight: 900, background: `linear-gradient(130deg,${C.mint} 0%,${C.green} 48%,${C.teal} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <div style={{
+          fontSize: '1.4rem', fontWeight: 800,
+          background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+          letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif",
+        }}>
           المجرة الحضارية
         </div>
-        <div style={{ fontSize: '0.7rem', color: C.teal, letterSpacing: '0.3em', fontWeight: 700, textTransform: 'uppercase' }}>
-          Civilization Galaxy
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>
+          كوكبة المؤسسات المضيئة
         </div>
       </div>
     </Link>
@@ -65,8 +70,9 @@ export default function AppNavBar({ activePage }: AppNavBarProps) {
   return (
     <>
       <style>{`
+        * { font-family: 'Tajawal', sans-serif !important; }
         .appnav-link { transition: all .18s; }
-        .appnav-link:hover { color: #EDF7BD !important; }
+        .appnav-link:hover { color: #4fc3f7 !important; }
         @media (max-width: 768px) {
           .appnav-desktop { display: none !important; }
           .appnav-mobile-btn { display: flex !important; }
@@ -80,7 +86,7 @@ export default function AppNavBar({ activePage }: AppNavBarProps) {
         background: 'rgba(8,5,32,.96)', backdropFilter: 'blur(24px)',
         borderBottom: '1px solid rgba(78,141,156,.2)',
         boxShadow: '0 2px 32px rgba(0,0,0,0.5)',
-        fontFamily: "'Cairo', sans-serif",
+        fontFamily: "'Tajawal', sans-serif",
       }}>
         <GalaxyLogo />
 
