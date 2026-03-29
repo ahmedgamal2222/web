@@ -88,9 +88,10 @@ function GalaxyLogo() {
       </div>
       <div>
         <div className="logo-title" style={{
-          fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.00, letterSpacing: '-0.03em',
+          fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2, letterSpacing: '1px',
           background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
-          
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
         }}>
           المجرة الحضارية
         </div>
