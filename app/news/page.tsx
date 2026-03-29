@@ -183,6 +183,8 @@ export default function NewsPage() {
         <nav style={{ display: 'flex', gap: 6 }}>
           {([
             { href: '/news', label: 'الأخبار', active: true },
+            { href: '/campaigns', label: 'الحملات' },
+            { href: '/marketplace', label: 'السوق الرقمي' },
             { href: '/services', label: 'الخدمات' },
             { href: '/library', label: 'المكتبة' },
             { href: '/forum', label: 'المنتدى' },

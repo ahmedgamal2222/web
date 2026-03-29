@@ -269,10 +269,12 @@ function TopBar({
       {/* ── Global Nav ── */}
       <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {[
-          { href: '/news',    icon: '📰', label: 'الأخبار' },
-          { href: '/library', icon: '📚', label: 'المكتبة' },
-          { href: '/forum',   icon: '💬', label: 'المنتدى' },
-          { href: '/podcast', icon: '🎙️', label: 'البودكاست' },
+          { href: '/news',        icon: '📰', label: 'الأخبار' },
+          { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
+          { href: '/marketplace', icon: '🛒', label: 'السوق الرقمي' },
+          { href: '/library',     icon: '📚', label: 'المكتبة' },
+          { href: '/forum',       icon: '💬', label: 'المنتدى' },
+          { href: '/podcast',     icon: '🎙️', label: 'البودكاست' },
         ].map(link => (
           <Link
             key={link.href}

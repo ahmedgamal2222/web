@@ -414,7 +414,7 @@ export default function LibraryPage() {
       <header style={{ position: 'sticky', top: 0, zIndex: 100, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', background: 'rgba(8,5,32,0.95)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(78,141,156,0.2)', boxShadow: '0 2px 32px rgba(0,0,0,0.5)', gap: 12 }}>
         <GalaxyLogo />
         <nav style={{ display: 'flex', gap: 6, flex: 1, justifyContent: 'center' }}>
-          {[{ href: '/news', label: 'الأخبار' }, { href: '/services', label: 'الخدمات' }, { href: '/library', label: 'المكتبة', active: true }, { href: '/forum', label: 'المنتدى' }, { href: '/podcast', label: 'البودكاست' }].map(link => (
+          {[{ href: '/news', label: 'الأخبار' }, { href: '/campaigns', label: 'الحملات' }, { href: '/marketplace', label: 'السوق الرقمي' }, { href: '/services', label: 'الخدمات' }, { href: '/library', label: 'المكتبة', active: true }, { href: '/forum', label: 'المنتدى' }, { href: '/podcast', label: 'البودكاست' }].map(link => (
             <Link key={link.href} href={link.href} style={{ padding: '8px 16px', borderRadius: 24, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, color: (link as any).active ? COLORS.darkNavy : '#9ca3af', background: (link as any).active ? `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})` : 'transparent', border: (link as any).active ? 'none' : '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>{link.label}</Link>
           ))}
         </nav>
