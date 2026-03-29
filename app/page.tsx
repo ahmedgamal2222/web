@@ -87,10 +87,17 @@ function GalaxyLogo() {
         </svg>
       </div>
       <div>
-        <div className="logo-title" >
+        <div className="logo-title" style={{
+          fontSize: '1.55rem', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.03em',
+          background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+        }}>
           المجرة الحضارية
         </div>
-        <div className="logo-subtitle" >
+        <div className="logo-subtitle" style={{
+          fontSize: '0.82rem', color: '#8aa4bc', letterSpacing: '0.3em',
+          marginTop: 5, fontWeight: 700, textTransform: 'uppercase' as const, opacity: 0.9,
+        }}>
    كوكبة المؤسسات المضيئة
         </div>
       </div>
