@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -14,22 +14,53 @@ interface Props {
   highlightStarId?: number;
 }
 
-// Deterministic spiral-arm placement for institution stars
-function placeOnArm(index: number, total: number) {
-  const ARMS  = 5;
-  const armIdx    = index % ARMS;
-  const posInArm  = Math.floor(index / ARMS);
-  const perArm    = Math.ceil(total / ARMS) || 1;
-  const t         = (posInArm + 0.5) / perArm;
-  const r         = 30 + t * 240;
+// ── Importance score: higher = placed closer to center, larger, brighter ──
+function scoreStarImportance(star: GalaxyStar): number {
+  let s = 0;
+  if (star.is_active)     s += 12;
+  if (star.screen_active) s += 8;
+  s += Math.min(star.total_agreements || 0, 25);
+  s += Math.min((star.connections?.length || 0) * 0.8, 15);
+  s += Math.min((star.weight || 0) * 0.5, 10);
+  s += Math.min((star.brightness || 0) * 0.3, 8);
+  return s;
+}
+
+// ── Spiral placement: sortedIndex 0 = most important = innermost ──
+// Handles any N from 1 to 1_000_000 without crowding
+function placeOnArm(sortedIndex: number, total: number) {
+  const ARMS     = 6;
+  const armIdx   = sortedIndex % ARMS;
+  const posInArm = Math.floor(sortedIndex / ARMS);
+  const perArm   = Math.ceil(total / ARMS) || 1;
+  const t        = (posInArm + 0.5) / perArm;
+
+  // Power curve: top institutions near center, bulk spread wide
+  const tCurved = Math.pow(t, 0.60);
+  const r       = 48 + tCurved * 545;
+
   const armOffset = (armIdx / ARMS) * Math.PI * 2;
-  const pitch     = Math.tan((15 * Math.PI) / 180);
-  const angle     = (1 / pitch) * Math.log(Math.max(r / 10, 1)) + armOffset;
-  // Deterministic jitter via sin/cos of index
-  const jx = Math.sin(index * 2.3456 + 1) * 14;
-  const jz = Math.cos(index * 1.7891 + 2) * 14;
-  const jy = Math.sin(index * 5.6789 + 3) * 3;
+  const pitch     = Math.tan((13 * Math.PI) / 180);
+  const angle     = (1 / pitch) * Math.log(Math.max(r / 12, 1)) + armOffset;
+
+  // Jitter scales with radius: tight near center, generous at edges
+  const jScale = Math.max(5, r * 0.078);
+  const jx = Math.sin(sortedIndex * 2.3456 + 1.1) * jScale;
+  const jz = Math.cos(sortedIndex * 1.7891 + 2.3) * jScale;
+  const jy = Math.sin(sortedIndex * 5.6789 + 3.7) * Math.max(2, r * 0.013);
+
   return { x: r * Math.cos(angle) + jx, y: jy, z: r * Math.sin(angle) + jz };
+}
+
+// ── Visual size by rank fraction (0 = most important, 1 = least) ──
+function rankToSize(rf: number): number {
+  if (rf < 0.008) return 20;
+  if (rf < 0.020) return 15;
+  if (rf < 0.050) return 10;
+  if (rf < 0.120) return 6.5;
+  if (rf < 0.300) return 4;
+  if (rf < 0.600) return 2.8;
+  return 1.8;
 }
 
 export default function GalaxyCanvas({
@@ -206,25 +237,40 @@ export default function GalaxyCanvas({
     const ptLight = new THREE.PointLight(0xff8c30, 3, 200);
     scene.add(ptLight);
 
-    // ── Institution Stars (shader point-based — real star look) ──
-    const N       = data.stars.length;
-    const iPos    = new Float32Array(N * 3);
-    const iCol    = new Float32Array(N * 3);
-    const iSz     = new Float32Array(N);
-    const iBaseSz = new Float32Array(N);
-    const iOp     = new Float32Array(N);
-    const glowSz  = new Float32Array(N);
+    // ── Institution Stars ─────────────────────────────────────
+    // Sort by importance: top institutions placed at centre of spiral
+    const sortedStars = [...data.stars].sort(
+      (a, b) => scoreStarImportance(b) - scoreStarImportance(a),
+    );
+    const N = sortedStars.length;
 
-    data.stars.forEach((star, i) => {
-      const p = placeOnArm(i, N);
+    // Pre-compute positions (deterministic) & build id→sortedIdx map
+    const starPositions = sortedStars.map((_, i) => placeOnArm(i, N));
+    const idToSortedIdx = new Map<number, number>();
+    sortedStars.forEach((star, i) => idToSortedIdx.set(star.id, i));
+
+    const iPos    = new Float32Array(N * 3);
+    const iCol   = new Float32Array(N * 3);
+    const iSz    = new Float32Array(N);
+    const iOp    = new Float32Array(N);
+    const iImp   = new Float32Array(N); // importance 0→1
+    const glowSz = new Float32Array(N);
+
+    // Reuse one Color object — avoids 1M+ allocations at large N
+    const _tmpCol = new THREE.Color();
+    sortedStars.forEach((star, i) => {
+      const p = starPositions[i];
       iPos[i*3] = p.x; iPos[i*3+1] = p.y; iPos[i*3+2] = p.z;
-      const c = new THREE.Color(star.color || '#4fc3f7');
-      iCol[i*3] = c.r; iCol[i*3+1] = c.g; iCol[i*3+2] = c.b;
-      const base = (star.size || 5) * 3.5;
-      iSz[i]     = base;
-      iBaseSz[i] = base;
-      glowSz[i]  = base * 2.5;
-      iOp[i]     = 1.0;
+
+      _tmpCol.set(star.color || '#4fc3f7');
+      iCol[i*3] = _tmpCol.r; iCol[i*3+1] = _tmpCol.g; iCol[i*3+2] = _tmpCol.b;
+
+      const rf   = i / Math.max(N - 1, 1);
+      const base = rankToSize(rf);
+      iSz[i]    = base;
+      glowSz[i] = base * (rf < 0.05 ? 3.5 : rf < 0.15 ? 2.8 : 2.2);
+      iOp[i]    = rf < 0.05 ? 1.0 : rf < 0.30 ? 0.92 : 0.78;
+      iImp[i]   = Math.pow(1 - rf, 1.5);
     });
 
     const coreGeo = new THREE.BufferGeometry();
@@ -232,25 +278,35 @@ export default function GalaxyCanvas({
     coreGeo.setAttribute('customColor', new THREE.BufferAttribute(iCol, 3));
     coreGeo.setAttribute('size',        new THREE.BufferAttribute(iSz, 1));
     coreGeo.setAttribute('opacity',     new THREE.BufferAttribute(iOp, 1));
+    coreGeo.setAttribute('importance',  new THREE.BufferAttribute(iImp, 1));
 
     const glowGeo = new THREE.BufferGeometry();
     glowGeo.setAttribute('position',    new THREE.BufferAttribute(iPos, 3));
     glowGeo.setAttribute('customColor', new THREE.BufferAttribute(iCol, 3));
     glowGeo.setAttribute('size',        new THREE.BufferAttribute(glowSz, 1));
+    glowGeo.setAttribute('importance',  new THREE.BufferAttribute(iImp, 1));
 
     const coreMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 } },
       vertexShader: `
+        uniform float uTime;
         attribute float size;
         attribute vec3  customColor;
         attribute float opacity;
+        attribute float importance;
         varying vec3  vColor;
         varying float vOp;
+        varying float vImp;
         void main() {
           vColor = customColor;
           vOp    = opacity;
+          vImp   = importance;
+          // GPU-side pulse: unique phase per star from position, works for any N
+          float phase  = position.x * 0.137 + position.z * 0.247;
+          float pAmp   = importance > 0.5 ? 0.15 : 0.07;
+          float pulse  = 1.0 + pAmp * sin(uTime * 2.5 + phase);
           vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (300.0 / -mvPos.z);
+          gl_PointSize = size * pulse * (300.0 / -mvPos.z);
           gl_Position  = projectionMatrix * mvPos;
         }
       `,
@@ -258,15 +314,19 @@ export default function GalaxyCanvas({
         uniform float uTime;
         varying vec3  vColor;
         varying float vOp;
+        varying float vImp;
         void main() {
           vec2  uv   = gl_PointCoord.xy - vec2(0.5);
           float dist = length(uv);
           if (dist > 0.5) discard;
-          float pulse = 0.85 + 0.15 * sin(uTime * 3.0);
+          float pulse = 0.85 + 0.15 * sin(uTime * 3.0 + vImp * 6.28);
           float core  = smoothstep(0.18 * pulse, 0.0, dist);
           float halo  = smoothstep(0.5, 0.08, dist) * 0.55 * pulse;
           float alpha = clamp(core + halo, 0.0, 1.0) * vOp;
-          vec3  col   = mix(vColor, vec3(1.0), core * 0.8);
+          // Top stars blend toward white-blue core
+          float whiteness = vImp * 0.75;
+          vec3  col = mix(vColor, vec3(0.85, 0.95, 1.0), core * whiteness);
+          col = mix(col, vec3(1.0), core * (1.0 - whiteness) * 0.5);
           gl_FragColor = vec4(col, alpha);
         }
       `,
@@ -278,9 +338,12 @@ export default function GalaxyCanvas({
       vertexShader: `
         attribute float size;
         attribute vec3  customColor;
-        varying vec3 vColor;
+        attribute float importance;
+        varying vec3  vColor;
+        varying float vImp;
         void main() {
           vColor = customColor;
+          vImp   = importance;
           vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
           gl_PointSize = size * (300.0 / -mvPos.z);
           gl_Position  = projectionMatrix * mvPos;
@@ -288,16 +351,20 @@ export default function GalaxyCanvas({
       `,
       fragmentShader: `
         uniform float uTime;
-        varying vec3 vColor;
+        varying vec3  vColor;
+        varying float vImp;
         void main() {
           float dist = length(gl_PointCoord.xy - vec2(0.5));
           if (dist > 0.5) discard;
-          float pulse = 0.60 + 0.40 * sin(uTime * 2.0);
+          float pulse = 0.55 + 0.45 * sin(uTime * 2.0 + vImp * 6.28);
           float glow  = (0.5 - dist) * 2.0 * pulse;
-          float alpha = glow * 0.85;
+          float alpha = glow * (0.55 + vImp * 0.35);
           if (alpha < 0.01) discard;
+          // Top institutions glow gold/white; others their own color
+          vec3 topTint  = vec3(1.0, 0.88, 0.55);
           vec3 cyanTint = vec3(0.0, 0.93, 1.0);
-          vec3 finalCol = mix(vColor, cyanTint, 0.45);
+          vec3 tint     = mix(cyanTint, topTint, vImp * 0.6);
+          vec3 finalCol = mix(vColor, tint, 0.5);
           gl_FragColor  = vec4(finalCol, alpha);
         }
       `,
@@ -309,34 +376,35 @@ export default function GalaxyCanvas({
     scene.add(glowSystem);
     scene.add(coreSystem);
 
-    // ── Connection Lines between linked institutions ───────────
-    // Build index map: institution id → array index
-    const idToIdx = new Map<number, number>();
-    data.stars.forEach((star, i) => idToIdx.set(star.id, i));
+    // Raycasting subset — only top min(N,50000) stars so hover is O(50k) not O(N)
+    const MAX_RAYCAST_STARS = Math.min(N, 50000);
+    const rayGeo = new THREE.BufferGeometry();
+    rayGeo.setAttribute('position', new THREE.BufferAttribute(iPos.slice(0, MAX_RAYCAST_STARS * 3), 3));
+    const raySystem = new THREE.Points(rayGeo, new THREE.PointsMaterial({ visible: false }));
+    scene.add(raySystem);
 
-    // Collect unique edges (avoid duplicates A→B / B→A)
-    const edges = new Set<string>();
-    const lineVerts: number[] = [];
+    // ── Connection Lines ──────────────────────────────────────
+    const edges     = new Set<string>();
+    const lineVerts : number[] = [];
     const lineColors: number[] = [];
 
-    data.stars.forEach((star, i) => {
+    // Only draw lines for top important stars — cap prevents OOM at large N
+    const MAX_LINK_STARS = Math.min(N, 3000);
+    sortedStars.slice(0, MAX_LINK_STARS).forEach((star, i) => {
       if (!star.connections?.length) return;
-      const pA = placeOnArm(i, N);
+      const pA = starPositions[i];
       star.connections.forEach(connId => {
-        const j = idToIdx.get(connId);
+        const j = idToSortedIdx.get(connId);
         if (j === undefined) return;
         const key = i < j ? `${i}-${j}` : `${j}-${i}`;
         if (edges.has(key)) return;
         edges.add(key);
-        const pB = placeOnArm(j, N);
-        // Start vertex
+        const pB = starPositions[j];
         lineVerts.push(pA.x, pA.y, pA.z);
-        // Colour: blend of the two star colours
         const cA = new THREE.Color(star.color || '#4fc3f7');
         lineColors.push(cA.r, cA.g, cA.b);
-        // End vertex
         lineVerts.push(pB.x, pB.y, pB.z);
-        const cB = new THREE.Color(data.stars[j].color || '#4fc3f7');
+        const cB = new THREE.Color(sortedStars[j].color || '#4fc3f7');
         lineColors.push(cB.r, cB.g, cB.b);
       });
     });
@@ -374,11 +442,11 @@ export default function GalaxyCanvas({
       scene.add(linksSystem);
     }
 
-    // Highlight ring
+    // Highlight ring (uses sortedIdx)
     if (highlightStarId !== undefined) {
-      const hlIdx = data.stars.findIndex(s => s.id === highlightStarId);
-      if (hlIdx !== -1) {
-        const { x, y, z } = placeOnArm(hlIdx, data.stars.length);
+      const hlIdx = idToSortedIdx.get(highlightStarId);
+      if (hlIdx !== undefined) {
+        const { x, y, z } = starPositions[hlIdx];
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(6, 8, 32),
           new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }),
@@ -398,7 +466,6 @@ export default function GalaxyCanvas({
     const drag   = { active: false, downX: 0, downY: 0, moved: false };
     let lastX = 0, lastY = 0;
     const raycaster = new THREE.Raycaster();
-    raycaster.params.Points!.threshold = 5;
     const mouse     = new THREE.Vector2();
 
     const onPointerDown = (e: PointerEvent) => {
@@ -428,9 +495,10 @@ export default function GalaxyCanvas({
       mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObject(coreSystem);
+      raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
+      const hits = raycaster.intersectObject(raySystem);
       if (hits.length > 0) {
-        const s = data.stars[hits[0].index!];
+        const s = sortedStars[hits[0].index!];
         renderer.domElement.style.cursor = 'pointer';
         if (tooltipRef.current && s) {
           tooltipRef.current.style.display = 'block';
@@ -462,9 +530,9 @@ export default function GalaxyCanvas({
         mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
         mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        const hits = raycaster.intersectObject(coreSystem);
+        const hits = raycaster.intersectObject(raySystem);
         if (hits.length > 0) {
-          onStarClickRef.current?.(data.stars[hits[0].index!]);
+          onStarClickRef.current?.(sortedStars[hits[0].index!]);
         }
       }
     };
@@ -499,11 +567,7 @@ export default function GalaxyCanvas({
       coreMat.uniforms.uTime.value = time;
       glowMat.uniforms.uTime.value = time;
       if (linksSystem) linksMat.uniforms.uTime.value = time;
-      const szArr = coreGeo.attributes.size.array as Float32Array;
-      for (let i = 0; i < N; i++) {
-        szArr[i] = iBaseSz[i] + Math.sin(time * 2.5 + i * 0.7) * iBaseSz[i] * 0.15;
-      }
-      coreGeo.attributes.size.needsUpdate = true;
+      // Pulse is now GPU-side in the vertex shader — no CPU loop needed for any N
 
       // Auto rotate
       if (autoRotate) sph.theta -= 0.0003;
