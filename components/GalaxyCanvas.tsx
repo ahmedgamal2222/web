@@ -504,14 +504,13 @@ export default function GalaxyCanvas({
           tooltipRef.current.style.display = 'block';
           tooltipRef.current.style.left = (e.clientX + 16) + 'px';
           tooltipRef.current.style.top  = (e.clientY - 10) + 'px';
-          const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
-          const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
+          // const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
+          // const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
           const location   = [s.city, s.country].filter(Boolean).join('، ');
           tooltipRef.current.innerHTML = `
             <strong style="color:${s.color||'#4fc3f7'};display:block;margin-bottom:4px">${s.name_ar || s.name}</strong>
             <span style="display:block;font-size:0.75rem;color:#8aa4bc">${s.type || ''}</span>
             ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
-            <span style="display:block;font-size:0.75rem;color:#aac">🔗 ${links} ارتباط</span>
           `;
         }
       } else {
