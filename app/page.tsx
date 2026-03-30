@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
-import { fetchGalaxyData, fetchInstitutionAgreements, API_BASE } from '@/lib/api';
+import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE } from '@/lib/api';
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -1247,14 +1247,36 @@ function InstitutionsPanel({
 // Star Popup — shows institution details when clicking a star
 // ============================================================
 function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void }) {
-  const location = [star.city, star.country].filter(Boolean).join('، ');
-  const accent   = star.color || COLORS.teal;
+  const accent = star.color || COLORS.teal;
+  const [inst, setInst] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchInstitution(String(star.id))
+      .then(data => setInst(data))
+      .catch(() => setInst(null))
+      .finally(() => setLoading(false));
+  }, [star.id]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  const location = [inst?.city || star.city, inst?.country || star.country].filter(Boolean).join('، ');
+  const name     = inst?.name_ar || inst?.name || star.name_ar || star.name;
+  const isActive = inst ? inst.status === 'active' : star.is_active;
+
+  const stats = [
+    { icon: '🔗', label: 'الاتفاقيات',  value: inst?.total_agreements ?? inst?.agreements?.length ?? 0, color: '#FF9B4E' },
+    { icon: '👥', label: 'الموظفون',    value: inst?.employees_count    ?? '—',                          color: '#4fc3f7' },
+    { icon: '📁', label: 'المشاريع',    value: inst?.projects_count     ?? '—',                          color: '#7c4dff' },
+    { icon: '🌟', label: 'المستفيدون',  value: inst?.beneficiaries_count ?? '—',                          color: COLORS.softGreen },
+    { icon: '🌐', label: 'الروابط',     value: star.connections?.length  ?? 0,                           color: accent },
+    { icon: '📺', label: 'الشاشة',      value: (inst?.screen_active ?? star.screen_active) ? 'نشطة' : 'غير نشطة', color: (inst?.screen_active ?? star.screen_active) ? COLORS.softGreen : '#555' },
+  ];
 
   return (
     <>
@@ -1263,9 +1285,9 @@ function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void })
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 200,
-          background: 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
         }}
       />
 
@@ -1274,128 +1296,164 @@ function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void })
         position: 'fixed', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 201,
-        width: 'min(460px, 92vw)',
-        background: 'rgba(7,8,28,0.97)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-        border: `1px solid ${accent}40`,
+        width: 'min(480px, 94vw)',
+        background: 'linear-gradient(160deg, rgba(10,11,32,0.99) 0%, rgba(5,6,22,0.99) 100%)',
+        backdropFilter: 'blur(32px)',
+        WebkitBackdropFilter: 'blur(32px)',
+        border: `1px solid ${accent}35`,
         borderRadius: 24,
-        boxShadow: `0 0 0 1px rgba(255,255,255,0.05), 0 32px 80px rgba(0,0,0,0.85), 0 0 60px ${accent}18`,
+        boxShadow: `0 0 0 1px rgba(255,255,255,0.04), 0 40px 100px rgba(0,0,0,0.9), 0 0 80px ${accent}14`,
         direction: 'rtl',
         overflow: 'hidden',
       }}>
-        {/* Top accent line */}
-        <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}00)` }} />
+        {/* Accent bar */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}cc, ${accent}44, transparent)` }} />
 
         {/* Header */}
         <div style={{
-          padding: '20px 22px 16px',
-          background: `radial-gradient(ellipse at top right, ${accent}14, transparent 70%)`,
-          borderBottom: `1px solid ${accent}20`,
+          padding: '22px 24px 18px',
+          background: `radial-gradient(ellipse at top right, ${accent}12, transparent 65%)`,
+          borderBottom: `1px solid rgba(255,255,255,0.06)`,
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Avatar */}
             <div style={{
-              width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
-              background: `radial-gradient(circle at 30% 30%, ${accent}, rgba(5,4,20,0.9))`,
-              border: `2px solid ${accent}60`,
-              boxShadow: `0 0 20px ${accent}40`,
+              width: 58, height: 58, borderRadius: '50%', flexShrink: 0,
+              background: `radial-gradient(circle at 30% 30%, ${accent}cc, rgba(5,4,20,0.95))`,
+              border: `2px solid ${accent}55`,
+              boxShadow: `0 0 24px ${accent}35, inset 0 1px 0 rgba(255,255,255,0.12)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.4rem', color: '#fff', fontWeight: 700,
+              fontSize: '1.5rem', color: '#fff', fontWeight: 800,
             }}>
-              {(star.name_ar || star.name).charAt(0)}
+              {name.charAt(0)}
             </div>
             <div>
-              <div style={{ fontSize: '1.08rem', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: 5 }}>
-                {star.name_ar || star.name}
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: 6 }}>
+                {name}
               </div>
-              <span style={{
-                fontSize: '0.78rem', padding: '3px 10px', borderRadius: 20,
-                background: `${TYPE_COLORS[star.type] || COLORS.teal}22`,
-                color: TYPE_COLORS[star.type] || COLORS.teal,
-                border: `1px solid ${TYPE_COLORS[star.type] || COLORS.teal}50`,
-                fontWeight: 600,
-              }}>
-                {TYPE_LABELS[star.type] || star.type}
-              </span>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{
+                  fontSize: '0.75rem', padding: '3px 10px', borderRadius: 20,
+                  background: `${TYPE_COLORS[star.type] || COLORS.teal}20`,
+                  color: TYPE_COLORS[star.type] || COLORS.teal,
+                  border: `1px solid ${TYPE_COLORS[star.type] || COLORS.teal}45`,
+                  fontWeight: 600,
+                }}>
+                  {TYPE_LABELS[star.type] || star.type}
+                </span>
+                <span style={{
+                  fontSize: '0.75rem', padding: '3px 10px', borderRadius: 20,
+                  background: isActive ? `${COLORS.softGreen}18` : 'rgba(100,100,100,0.15)',
+                  color: isActive ? COLORS.softGreen : '#666',
+                  border: `1px solid ${isActive ? COLORS.softGreen : '#444'}35`,
+                  fontWeight: 600,
+                }}>
+                  {isActive ? '🟢 نشطة' : '⚪ غير نشطة'}
+                </span>
+              </div>
             </div>
           </div>
 
           <button
             onClick={onClose}
             style={{
-              background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '50%',
-              width: 34, height: 34, cursor: 'pointer', color: '#888',
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', color: '#777',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              transition: 'all 0.18s', fontSize: '0.9rem',
+              transition: 'all 0.18s', fontSize: '0.85rem',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#ff505025'; e.currentTarget.style.color = '#ff5050'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#888'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#ff505020'; e.currentTarget.style.color = '#ff6060'; e.currentTarget.style.borderColor = '#ff505040'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#777'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
           >
             ✕
           </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '18px 22px 22px' }}>
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 18 }}>
-            {[
-              { icon: '🔗', label: 'الاتفاقيات',  value: star.total_agreements ?? 0, color: '#FF9B4E' },
-              { icon: '🌐', label: 'الروابط',     value: star.connections?.length ?? 0, color: accent },
-              { icon: '✨', label: 'الشاشة', value: star.screen_active ? 'نشطة' : 'غير نشطة', color: star.screen_active ? COLORS.softGreen : '#666' },
-            ].map(stat => (
-              <div key={stat.label} style={{
-                background: `${stat.color}10`, border: `1px solid ${stat.color}28`,
-                borderRadius: 14, padding: '11px 8px', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '1rem', marginBottom: 2 }}>{stat.icon}</div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
-                <div style={{ fontSize: '0.72rem', color: '#6a7f90', marginTop: 3 }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Info rows */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-            {location && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#8aa4bc', fontSize: '0.87rem' }}>
-                <span style={{ width: 20, textAlign: 'center' }}>📍</span>
-                <span>{location}</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ width: 20, textAlign: 'center' }}>🏛️</span>
-              <span style={{
-                padding: '2px 10px', borderRadius: 20, fontSize: '0.81rem',
-                background: star.is_active ? `${COLORS.softGreen}18` : 'rgba(158,158,158,0.12)',
-                color: star.is_active ? COLORS.softGreen : '#888',
-                border: `1px solid ${star.is_active ? COLORS.softGreen : '#555'}35`,
-              }}>
-                {star.is_active ? '🟢 مؤسسة نشطة' : '⚪ غير نشطة'}
-              </span>
+        <div style={{ padding: '20px 24px 24px' }}>
+          {loading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px 0', gap: 12, color: '#5a7080' }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%',
+                border: `2px solid ${accent}`, borderTopColor: 'transparent',
+                animation: 'spin 0.8s linear infinite', flexShrink: 0,
+              }} />
+              جاري تحميل بيانات المؤسسة...
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Location */}
+              {location && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  color: '#7a96aa', fontSize: '0.85rem',
+                  marginBottom: 18, paddingBottom: 16,
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                }}>
+                  <span>📍</span>
+                  <span>{location}</span>
+                  {inst?.founded_year && (
+                    <span style={{ marginRight: 'auto', color: '#4a6070', fontSize: '0.8rem' }}>
+                      تأسست {inst.founded_year}
+                    </span>
+                  )}
+                </div>
+              )}
 
-          {/* CTA */}
-          <Link
-            href={`/institutions/${star.id}`}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              width: '100%', padding: '13px 24px',
-              background: `linear-gradient(135deg, ${accent}, ${accent}99)`,
-              borderRadius: 14, color: '#fff',
-              fontSize: '0.93rem', fontWeight: 700,
-              textDecoration: 'none', letterSpacing: '0.02em',
-              boxShadow: `0 4px 20px ${accent}35`,
-              transition: 'all 0.22s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '0.85'; (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '1'; (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; }}
-          >
-            <span>الانتقال إلى صفحة المؤسسة</span>
-            <span>←</span>
-          </Link>
+              {/* Stats grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+                {stats.map(stat => (
+                  <div key={stat.label} style={{
+                    background: `${stat.color}0d`,
+                    border: `1px solid ${stat.color}22`,
+                    borderRadius: 16, padding: '14px 8px', textAlign: 'center',
+                    transition: 'all 0.2s',
+                  }}>
+                    <div style={{ fontSize: '1.1rem', marginBottom: 5 }}>{stat.icon}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: stat.color, lineHeight: 1 }}>
+                      {typeof stat.value === 'number' ? stat.value.toLocaleString('ar-SA') : stat.value}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: '#5a7080', marginTop: 4, letterSpacing: '0.03em' }}>{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Description if available */}
+              {inst?.description && (
+                <div style={{
+                  fontSize: '0.83rem', color: '#6a8090', lineHeight: 1.7,
+                  marginBottom: 20, paddingBottom: 16,
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  maxHeight: 72, overflow: 'hidden',
+                  maskImage: 'linear-gradient(to bottom, black 60%, transparent)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent)',
+                }}>
+                  {inst.description}
+                </div>
+              )}
+
+              {/* Footer: visit link */}
+              <Link
+                href={`/institutions/${star.id}`}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '12px 0',
+                  background: 'transparent',
+                  border: `1px solid ${accent}40`,
+                  borderRadius: 14,
+                  color: accent, fontSize: '0.88rem', fontWeight: 700,
+                  textDecoration: 'none', letterSpacing: '0.02em',
+                  transition: 'all 0.22s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = `${accent}14`; (e.currentTarget as HTMLAnchorElement).style.borderColor = `${accent}80`; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.borderColor = `${accent}40`; }}
+              >
+                <span>عرض الصفحة الكاملة</span>
+                <span style={{ fontSize: '0.8rem' }}>←</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </>
