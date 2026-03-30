@@ -1244,6 +1244,165 @@ function InstitutionsPanel({
 }
 
 // ============================================================
+// Star Popup — shows institution details when clicking a star
+// ============================================================
+function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void }) {
+  const location = [star.city, star.country].filter(Boolean).join('، ');
+  const accent   = star.color || COLORS.teal;
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}
+      />
+
+      {/* Card */}
+      <div style={{
+        position: 'fixed', top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 201,
+        width: 'min(460px, 92vw)',
+        background: 'rgba(7,8,28,0.97)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        border: `1px solid ${accent}40`,
+        borderRadius: 24,
+        boxShadow: `0 0 0 1px rgba(255,255,255,0.05), 0 32px 80px rgba(0,0,0,0.85), 0 0 60px ${accent}18`,
+        direction: 'rtl',
+        overflow: 'hidden',
+      }}>
+        {/* Top accent line */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}00)` }} />
+
+        {/* Header */}
+        <div style={{
+          padding: '20px 22px 16px',
+          background: `radial-gradient(ellipse at top right, ${accent}14, transparent 70%)`,
+          borderBottom: `1px solid ${accent}20`,
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
+              background: `radial-gradient(circle at 30% 30%, ${accent}, rgba(5,4,20,0.9))`,
+              border: `2px solid ${accent}60`,
+              boxShadow: `0 0 20px ${accent}40`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.4rem', color: '#fff', fontWeight: 700,
+            }}>
+              {(star.name_ar || star.name).charAt(0)}
+            </div>
+            <div>
+              <div style={{ fontSize: '1.08rem', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: 5 }}>
+                {star.name_ar || star.name}
+              </div>
+              <span style={{
+                fontSize: '0.78rem', padding: '3px 10px', borderRadius: 20,
+                background: `${TYPE_COLORS[star.type] || COLORS.teal}22`,
+                color: TYPE_COLORS[star.type] || COLORS.teal,
+                border: `1px solid ${TYPE_COLORS[star.type] || COLORS.teal}50`,
+                fontWeight: 600,
+              }}>
+                {TYPE_LABELS[star.type] || star.type}
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '50%',
+              width: 34, height: 34, cursor: 'pointer', color: '#888',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              transition: 'all 0.18s', fontSize: '0.9rem',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#ff505025'; e.currentTarget.style.color = '#ff5050'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#888'; }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '18px 22px 22px' }}>
+          {/* Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 18 }}>
+            {[
+              { icon: '🔗', label: 'الاتفاقيات',  value: star.total_agreements ?? 0, color: '#FF9B4E' },
+              { icon: '🌐', label: 'الروابط',     value: star.connections?.length ?? 0, color: accent },
+              { icon: '✨', label: 'الشاشة', value: star.screen_active ? 'نشطة' : 'غير نشطة', color: star.screen_active ? COLORS.softGreen : '#666' },
+            ].map(stat => (
+              <div key={stat.label} style={{
+                background: `${stat.color}10`, border: `1px solid ${stat.color}28`,
+                borderRadius: 14, padding: '11px 8px', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '1rem', marginBottom: 2 }}>{stat.icon}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
+                <div style={{ fontSize: '0.72rem', color: '#6a7f90', marginTop: 3 }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Info rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+            {location && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#8aa4bc', fontSize: '0.87rem' }}>
+                <span style={{ width: 20, textAlign: 'center' }}>📍</span>
+                <span>{location}</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 20, textAlign: 'center' }}>🏛️</span>
+              <span style={{
+                padding: '2px 10px', borderRadius: 20, fontSize: '0.81rem',
+                background: star.is_active ? `${COLORS.softGreen}18` : 'rgba(158,158,158,0.12)',
+                color: star.is_active ? COLORS.softGreen : '#888',
+                border: `1px solid ${star.is_active ? COLORS.softGreen : '#555'}35`,
+              }}>
+                {star.is_active ? '🟢 مؤسسة نشطة' : '⚪ غير نشطة'}
+              </span>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <Link
+            href={`/institutions/${star.id}`}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              width: '100%', padding: '13px 24px',
+              background: `linear-gradient(135deg, ${accent}, ${accent}99)`,
+              borderRadius: 14, color: '#fff',
+              fontSize: '0.93rem', fontWeight: 700,
+              textDecoration: 'none', letterSpacing: '0.02em',
+              boxShadow: `0 4px 20px ${accent}35`,
+              transition: 'all 0.22s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '0.85'; (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '1'; (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; }}
+          >
+            <span>الانتقال إلى صفحة المؤسسة</span>
+            <span>←</span>
+          </Link>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ============================================================
 // Main Page Component
 // ============================================================
 export default function HomePage() {
@@ -1252,6 +1411,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [listOpen, setListOpen] = useState(false);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const [popupStar, setPopupStar] = useState<GalaxyStar | null>(null);
   const [user, setUser] = useState<any>(null);
   const mountedRef = useRef(true);
 
@@ -1308,8 +1468,7 @@ export default function HomePage() {
     };
   }, []);
 
-  const handleStarClick = (star: GalaxyStar) =>
-    window.open(`/institutions/${star.id}`, '_blank');
+  const handleStarClick = (star: GalaxyStar) => setPopupStar(star);
 
   const handleViewAgreement = (agreementId: string) => {
     setSelectedAgreementId(agreementId);
@@ -1560,6 +1719,10 @@ export default function HomePage() {
           agreementId={selectedAgreementId}
           onClose={() => setSelectedAgreementId(null)}
         />
+      )}
+
+      {popupStar && (
+        <StarPopup star={popupStar} onClose={() => setPopupStar(null)} />
       )}
     </main>
   );
