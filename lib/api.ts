@@ -504,6 +504,29 @@ export async function screenActivate(
 }
 
 // ============================================================
+// ✅ Email Verification
+// ============================================================
+
+export async function verifyEmail(
+  token: string
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/auth/verify-email?token=${encodeURIComponent(token)}`);
+  return res.json();
+}
+
+export async function resendVerification(): Promise<{ success: boolean; message?: string; error?: string }> {
+  const sessionId = typeof localStorage !== 'undefined' ? localStorage.getItem('sessionId') : null;
+  const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
+    },
+  });
+  return res.json();
+}
+
+// ============================================================
 // ⚡ Cache (Galaxy)
 // ============================================================
 

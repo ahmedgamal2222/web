@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fetchMyInstitutionRequests, MyInstitutionRequest } from '@/lib/api';
+import { fetchMyInstitutionRequests, MyInstitutionRequest, resendVerification } from '@/lib/api';
 
 // ── طلبات اعتماد المؤسسة للمستخدم ───────────────────────────────────────────
 
@@ -212,12 +212,28 @@ export default function MyInstitutionRequestClient() {
   const [requests, setRequests] = useState<MyInstitutionRequest[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   useEffect(() => {
+    try {
+      const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        setEmailVerified(!!u.email_verified);
+      }
+    } catch (_) {}
+
     fetchMyInstitutionRequests()
       .then(data => { setRequests(data); setLoading(false); })
       .catch(() => { setError('تعذّر تحميل الطلبات'); setLoading(false); });
   }, []);
+
+  const handleResend = async () => {
+    setResendState('sending');
+    await resendVerification();
+    setResendState('sent');
+  };
 
   return (
     <div style={{
@@ -265,6 +281,50 @@ export default function MyInstitutionRequestClient() {
       }}>
         {/* قائمة الطلبات */}
         <div>
+          {/* بانر تأكيد البريد */}
+          {emailVerified === false && (
+            <div style={{
+              background: 'rgba(245,200,66,0.08)',
+              border: '1px solid rgba(245,200,66,0.35)',
+              borderRadius: 14,
+              padding: '18px 22px',
+              marginBottom: 24,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              flexWrap: 'wrap',
+            }}>
+              <span style={{ fontSize: '1.5rem' }}>📧</span>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <p style={{ margin: 0, color: '#f5c842', fontWeight: 700, fontSize: '0.95rem' }}>
+                  يجب تأكيد بريدك الإلكتروني أولاً
+                </p>
+                <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem' }}>
+                  لا يمكن تقديم طلب اعتماد مؤسسة حتى يتم تأكيد بريدك الإلكتروني
+                </p>
+              </div>
+              <button
+                onClick={handleResend}
+                disabled={resendState !== 'idle'}
+                style={{
+                  background: resendState === 'sent' ? 'rgba(133,199,154,0.2)' : 'rgba(245,200,66,0.15)',
+                  border: '1px solid rgba(245,200,66,0.4)',
+                  color: resendState === 'sent' ? '#85C79A' : '#f5c842',
+                  padding: '8px 18px',
+                  borderRadius: 20,
+                  cursor: resendState === 'idle' ? 'pointer' : 'default',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {resendState === 'idle' && 'إعادة إرسال رابط التأكيد'}
+                {resendState === 'sending' && '⏳ جاري الإرسال...'}
+                {resendState === 'sent' && '✅ تم الإرسال — تحقق من بريدك'}
+              </button>
+            </div>
+          )}
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#556' }}>
               <div style={{ fontSize: '2rem', marginBottom: 12 }}>⏳</div>

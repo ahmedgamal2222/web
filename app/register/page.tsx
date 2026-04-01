@@ -212,6 +212,8 @@ export default function RegisterPage() {
   const [showPass, setShowPass]       = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [dialCode, setDialCode]       = useState('+966');
+  const [emailSent, setEmailSent]     = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const [form, setForm] = useState({
     name_ar: '', name: '', email: '',
@@ -243,19 +245,22 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (data.success) {
-        const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: form.email, password: form.password }),
-        });
-        const loginData = await loginRes.json();
-        if (loginData.success) {
-          localStorage.setItem('user', JSON.stringify(loginData.user));
-          localStorage.setItem('sessionId', loginData.sessionId);
-          router.push('/');
-        } else {
-          router.push('/login');
-        }
+        // تسجيل دخول تلقائي بعد التسجيل
+        try {
+          const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email, password: form.password }),
+          });
+          const loginData = await loginRes.json();
+          if (loginData.success) {
+            localStorage.setItem('user', JSON.stringify(loginData.user));
+            localStorage.setItem('sessionId', loginData.sessionId);
+          }
+        } catch (_) {}
+        // عرض لوحة "تحقق من بريدك" بدلاً من التوجيه
+        setRegisteredEmail(form.email);
+        setEmailSent(true);
       } else {
         setError(data.error || 'فشل إنشاء الحساب');
       }
@@ -290,7 +295,55 @@ export default function RegisterPage() {
         }
       `}</style>
 
-      <div style={{
+      {/* ─── لوحة تأكيد البريد بعد التسجيل ─── */}
+      {emailSent && (
+        <div style={{
+          width: '100%', maxWidth: 480,
+          background: 'rgba(8,10,32,0.95)',
+          border: '1px solid rgba(78,141,156,0.4)',
+          borderRadius: 24,
+          padding: '48px 36px',
+          textAlign: 'center',
+          color: 'white',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: 20 }}>📧</div>
+          <h2 style={{ color: '#EDF7BD', margin: '0 0 12px', fontSize: '1.5rem', fontWeight: 800 }}>
+            تحقق من بريدك الإلكتروني
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, margin: '0 0 8px' }}>
+            أرسلنا رابط التأكيد إلى:
+          </p>
+          <p style={{ color: '#4fc3f7', fontWeight: 700, margin: '0 0 24px', direction: 'ltr' }}>
+            {registeredEmail}
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.9rem', lineHeight: 1.7, margin: '0 0 28px' }}>
+            اضغط على الرابط في البريد لتأكيد حسابك، ثم يمكنك تقديم طلب اعتماد مؤسستك.
+            الرابط صالح لمدة 24 ساعة.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <a
+              href="/"
+              style={{
+                display: 'block',
+                background: 'linear-gradient(135deg, #4E8D9C, #281C59)',
+                color: 'white',
+                padding: '13px 28px',
+                borderRadius: 40,
+                textDecoration: 'none',
+                fontWeight: 700,
+              }}
+            >
+              الذهاب للصفحة الرئيسية
+            </a>
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
+              لم تصل الرسالة؟ تحقق من مجلد البريد غير المرغوب فيه (Spam)
+            </span>
+          </div>
+        </div>
+      )}
+
+      {!emailSent && <div style={{
         width: '100%', maxWidth: 500,
         background: 'rgba(8,10,32,0.93)',
         backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
@@ -506,7 +559,7 @@ export default function RegisterPage() {
             </div>
           </form>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
