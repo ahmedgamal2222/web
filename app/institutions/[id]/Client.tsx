@@ -187,42 +187,209 @@ function AboutSection({ institution }: { institution: Institution }) {
   );
 }
 
-// ── Events ───────────────────────────────────────────────────
-function EventsSection({ events }: { events: any[] }) {
-  if (!events?.length) return null;
+// ── Owner Actions ─────────────────────────────────────────────
+function OwnerActions({ institutionId }: { institutionId: string }) {
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto 40px', padding: '40px', background: 'white', borderRadius: 30, boxShadow: `0 10px 40px ${COLORS.darkNavy}20`, border: `1px solid ${COLORS.softGreen}40` }}>
-      <h2 style={{ fontSize: '1.8rem', color: COLORS.darkNavy, marginBottom: 30, display: 'flex', alignItems: 'center', gap: 10 }}><span>📅</span>الفعاليات ({events.length})</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-        {events.map(event => (
-          <div key={event.id} style={{ background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`, border: `1px solid ${COLORS.teal}`, borderRadius: 20, padding: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: COLORS.darkNavy, marginBottom: 10 }}>{event.title}</h3>
-            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: 10 }}>{event.description}</p>
-            <div style={{ fontSize: '0.8rem', color: COLORS.teal }}>
-              <div>📅 {formatDate(event.start_datetime)}</div>
-              {event.location && <div>📍 {event.location}</div>}
-            </div>
-          </div>
-        ))}
+    <div style={{
+      maxWidth: 1200, margin: '0 auto 28px',
+      background: `linear-gradient(135deg, ${COLORS.darkNavy}06, ${COLORS.teal}08)`,
+      borderRadius: 20, padding: '20px 28px',
+      border: `1px dashed ${COLORS.teal}50`,
+      display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+    }}>
+      <span style={{ fontSize: '0.85rem', color: COLORS.teal, fontWeight: 700, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+        🛠️ أدوات صاحب المؤسسة
+      </span>
+      <div style={{ flex: 1, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <Link
+          href={`/news/create?institution_id=${institutionId}`}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '9px 20px', borderRadius: 30,
+            background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
+            color: '#EDF7BD', textDecoration: 'none',
+            fontSize: '0.88rem', fontWeight: 700,
+            boxShadow: `0 3px 12px ${COLORS.teal}30`,
+          }}
+        >
+          <span>+</span> إضافة خبر
+        </Link>
+        <Link
+          href={`/events/create?institution_id=${institutionId}`}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '9px 20px', borderRadius: 30,
+            background: `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})`,
+            color: COLORS.darkNavy, textDecoration: 'none',
+            fontSize: '0.88rem', fontWeight: 700,
+            boxShadow: `0 3px 12px ${COLORS.softGreen}30`,
+          }}
+        >
+          <span>+</span> إضافة فعالية
+        </Link>
       </div>
     </div>
   );
 }
 
-// ── News ─────────────────────────────────────────────────────
-function NewsSection({ news }: { news: any[] }) {
-  if (!news?.length) return null;
+// ── Announcements (events + news unified feed) ─────────────────
+type AnnouncementTab = 'all' | 'events' | 'news';
+function AnnouncementsSection({ events, news }: { events: any[]; news: any[] }) {
+  const [tab, setTab] = useState<AnnouncementTab>('all');
+
+  const allItems = [
+    ...events.map(e => ({ ...e, _type: 'event' as const })),
+    ...news.map(n => ({ ...n, _type: 'news' as const })),
+  ].sort((a, b) =>
+    new Date(b.published_at || b.start_datetime || b.created_at || 0).getTime() -
+    new Date(a.published_at || a.start_datetime || a.created_at || 0).getTime()
+  );
+
+  const shown = tab === 'all'
+    ? allItems
+    : allItems.filter(i => i._type === (tab === 'events' ? 'event' : 'news'));
+
+  const TabBtn = ({ id, label, count }: { id: AnnouncementTab; label: string; count: number }) => (
+    <button
+      onClick={() => setTab(id)}
+      style={{
+        padding: '8px 20px', borderRadius: 30, border: 'none', cursor: 'pointer',
+        fontWeight: 700, fontSize: '0.88rem', transition: 'all 0.2s',
+        background: tab === id ? COLORS.teal : 'transparent',
+        color: tab === id ? 'white' : COLORS.teal,
+        boxShadow: tab === id ? `0 3px 12px ${COLORS.teal}30` : 'none',
+      }}
+    >
+      {label}{count > 0 && <span style={{ opacity: 0.8 }}> ({count})</span>}
+    </button>
+  );
+
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto 40px', padding: '40px', background: 'white', borderRadius: 30, boxShadow: `0 10px 40px ${COLORS.darkNavy}20`, border: `1px solid ${COLORS.softGreen}40` }}>
-      <h2 style={{ fontSize: '1.8rem', color: COLORS.darkNavy, marginBottom: 30, display: 'flex', alignItems: 'center', gap: 10 }}><span>📰</span>الأخبار ({news.length})</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-        {news.map(item => (
-          <div key={item.id} style={{ background: `linear-gradient(135deg, ${COLORS.lightMint}20, white)`, border: `1px solid ${COLORS.softGreen}`, borderRadius: 20, padding: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: COLORS.darkNavy, marginBottom: 10 }}>{item.title}</h3>
-            <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: 10 }}>{item.content?.substring(0, 100)}...</p>
-            <div style={{ fontSize: '0.8rem', color: COLORS.softGreen }}>{formatDate(item.published_at)}</div>
+    <div style={{
+      maxWidth: 1200, margin: '0 auto 40px',
+      background: 'white', borderRadius: 30,
+      boxShadow: `0 10px 40px ${COLORS.darkNavy}18`,
+      border: `1px solid ${COLORS.softGreen}40`,
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '22px 32px 0',
+        background: `linear-gradient(135deg, ${COLORS.darkNavy}06, white)`,
+        borderBottom: `1px solid ${COLORS.softGreen}25`,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+          <h2 style={{ fontSize: '1.7rem', color: COLORS.darkNavy, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span>📢</span> إعلانات المؤسسة
+          </h2>
+          <div style={{ display: 'flex', gap: 6, background: `${COLORS.teal}10`, borderRadius: 40, padding: '4px' }}>
+            <TabBtn id="all"    label="الكل"        count={allItems.length} />
+            <TabBtn id="events" label="📅 فعاليات"  count={events.length} />
+            <TabBtn id="news"   label="📰 أخبار"    count={news.length} />
           </div>
-        ))}
+        </div>
+      </div>
+
+      <div style={{ padding: '24px 28px' }}>
+        {shown.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '50px 20px', color: '#aaa' }}>
+            <span style={{ fontSize: '3rem', display: 'block', marginBottom: 12 }}>
+              {tab === 'events' ? '📅' : tab === 'news' ? '📰' : '📢'}
+            </span>
+            <p style={{ margin: 0, fontSize: '1rem' }}>
+              {tab === 'events' ? 'لا توجد فعاليات حتى الآن'
+               : tab === 'news' ? 'لا توجد أخبار حتى الآن'
+               : 'لا توجد إعلانات حتى الآن'}
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+            {shown.map(item => (
+              <AnnouncementCard key={`${item._type}-${item.id}`} item={item} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AnnouncementCard({ item }: { item: any & { _type: 'event' | 'news' } }) {
+  const isEvent = item._type === 'event';
+  const accent  = isEvent ? COLORS.teal : COLORS.softGreen;
+  const date    = isEvent
+    ? (item.start_datetime ? new Date(item.start_datetime).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : '')
+    : (item.published_at  ? new Date(item.published_at).toLocaleDateString('ar-EG',  { year: 'numeric', month: 'long', day: 'numeric' }) : '');
+
+  return (
+    <div
+      style={{
+        borderRadius: 20, overflow: 'hidden',
+        border: `1px solid ${accent}30`,
+        boxShadow: `0 3px 16px ${COLORS.darkNavy}0c`,
+        background: 'white', transition: 'transform 0.25s, box-shadow 0.25s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 30px ${accent}22`; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 3px 16px ${COLORS.darkNavy}0c`; }}
+    >
+      {(item.image_url || item.cover_image) && (
+        <div style={{ height: 140, overflow: 'hidden', position: 'relative' }}>
+          <img
+            src={item.image_url || item.cover_image}
+            alt={item.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          <div style={{
+            position: 'absolute', top: 10, right: 12,
+            background: accent, color: 'white',
+            borderRadius: 30, padding: '3px 12px',
+            fontSize: '0.75rem', fontWeight: 700,
+          }}>
+            {isEvent ? '📅 فعالية' : '📰 خبر'}
+          </div>
+        </div>
+      )}
+
+      <div style={{ padding: '18px 20px' }}>
+        {!(item.image_url || item.cover_image) && (
+          <span style={{
+            display: 'inline-block', marginBottom: 10,
+            background: `${accent}15`, color: accent,
+            borderRadius: 30, padding: '3px 12px',
+            fontSize: '0.75rem', fontWeight: 700,
+          }}>
+            {isEvent ? '📅 فعالية' : '📰 خبر'}
+          </span>
+        )}
+        <h3 style={{ fontSize: '1rem', color: COLORS.darkNavy, marginBottom: 8, lineHeight: 1.4, fontWeight: 700 }}>
+          {item.title}
+        </h3>
+        {(item.description || item.content) && (
+          <p style={{
+            fontSize: '0.85rem', color: '#666', lineHeight: 1.6, margin: '0 0 12px',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any,
+            overflow: 'hidden',
+          }}>
+            {item.description || item.content}
+          </p>
+        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: '0.78rem', color: '#888' }}>
+          {date && <span>📅 {date}</span>}
+          {isEvent && item.location && <span>📍 {item.location}</span>}
+          {isEvent && item.is_online && <span style={{ color: COLORS.teal }}>💻 عبر الإنترنت</span>}
+        </div>
+        <Link
+          href={isEvent ? `/events/${item.id}` : `/news/${item.id}`}
+          style={{
+            display: 'inline-block', marginTop: 14,
+            padding: '7px 18px', borderRadius: 30,
+            border: `1px solid ${accent}50`, color: accent,
+            textDecoration: 'none', fontSize: '0.82rem', fontWeight: 700,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = accent; e.currentTarget.style.color = 'white'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = accent; }}
+        >
+          اقرأ المزيد ←
+        </Link>
       </div>
     </div>
   );
@@ -320,10 +487,9 @@ function ScreenPasswordSection({ institution, currentUser }: { institution: Inst
 // ── Sidebar Nav ──────────────────────────────────────────────
 function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string; isOwner: boolean; isAdmin: boolean }) {
   const navItems = [
-    { href: '#about',      icon: '🏛️', label: 'عن المؤسسة' },
-    { href: '#agreements', icon: '🔗', label: 'الاتفاقيات' },
-    { href: '#events',     icon: '📅', label: 'الفعاليات' },
-    { href: '#news',       icon: '📰', label: 'الأخبار' },
+    { href: '#about',         icon: '🏛️', label: 'عن المؤسسة' },
+    { href: '#announcements', icon: '📢', label: 'إعلانات' },
+    { href: '#agreements',    icon: '🔗', label: 'الاتفاقيات' },
     ...(isOwner || isAdmin ? [{ href: '#screen', icon: '📺', label: 'الشاشة الحضارية' }] : []),
   ];
   return (
