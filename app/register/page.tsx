@@ -416,9 +416,10 @@ export default function RegisterPage() {
               <div style={{
                 display: 'flex', flexDirection: 'row-reverse',
                 border: '1px solid rgba(79,195,247,0.18)',
-                borderRadius: 10, overflow: 'hidden',
+                borderRadius: 10,
                 background: 'rgba(255,255,255,0.05)',
                 transition: 'all 0.2s',
+                position: 'relative',
               }}
                 onFocusCapture={e => {
                   const el = e.currentTarget as HTMLDivElement;
@@ -440,6 +441,7 @@ export default function RegisterPage() {
                     flex: 1, padding: '13px 14px', background: 'transparent',
                     border: 'none', outline: 'none',
                     color: '#e8f4fd', fontSize: '0.92rem', direction: 'ltr', minWidth: 0,
+                    borderRadius: '10px 0 0 10px',
                   }}
                 />
                 <CountryPicker value={dialCode} onChange={setDialCode} />
