@@ -51,6 +51,12 @@ export default function ScreenPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [selectedPulse, setSelectedPulse] = useState<PulseItem | null>(null);
 
+  // إطلاق حدث resize بعد تغيير الربع الموسّع حتى يتحدّث Three.js بحجم الحاوية الجديد
+  useEffect(() => {
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    return () => clearTimeout(t);
+  }, [expandedQuadrant]);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
