@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 const C = { teal: '#4E8D9C', navy: '#281C59', mint: '#EDF7BD', green: '#85C79A', bg: '#080520', card: '#10103a' };
-const PUBLIC_BASE = 'https://hadmaj.pages.dev';
+const PUBLIC_BASE = 'https://hadmaj.com';
 
 // ─── Block type registry ─────────────────────────────────────────────────────
 const BLOCK_TYPES = [

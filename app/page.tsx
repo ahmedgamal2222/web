@@ -273,7 +273,7 @@ function TopBar({
           // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
           // { href: '/marketplace', icon: '🛒', label: 'السوق' },
           // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
-          { href: '/services',    icon: '🛠️', label: 'الخدمات' },
+          // { href: '/services',    icon: '🛠️', label: 'الخدمات' },
           ...(user?.institution_id
             ? [{ href: `/screen/${user.institution_id}`, icon: '📺', label: 'الشاشة الحضارية' }]
             : []),

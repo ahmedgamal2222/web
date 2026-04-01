@@ -81,6 +81,13 @@ export default function GalaxyCanvas({
   const focusTargetRef = useRef<{ x: number; y: number; z: number } | null>(null);
   const starPosRef     = useRef<Array<{ x: number; y: number; z: number }>>([]);
   const idToIdxRef     = useRef<Map<number, number>>(new Map());
+  // Refs for dynamic focus highlight (beacon + shader)
+  const focusBeaconRef   = useRef<THREE.Group | null>(null);
+  const coreFocusAttrRef = useRef<THREE.BufferAttribute | null>(null);
+  const glowFocusAttrRef = useRef<THREE.BufferAttribute | null>(null);
+  const coreFocusingRef  = useRef<{ value: number } | null>(null);
+  const glowFocusingRef  = useRef<{ value: number } | null>(null);
+  const prevFocusIdxRef  = useRef<number>(-1);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -296,35 +303,49 @@ export default function GalaxyCanvas({
     glowGeo.setAttribute('size',        new THREE.BufferAttribute(glowSz, 1));
     glowGeo.setAttribute('importance',  new THREE.BufferAttribute(iImp, 1));
 
+    // ── Per-star focus flag (dynamically set when a star is focused) ─────────
+    const focusArr      = new Float32Array(N); // 0 = normal, 1 = focused
+    const focusAttrCore = new THREE.BufferAttribute(focusArr.slice(), 1);
+    const focusAttrGlow = new THREE.BufferAttribute(focusArr.slice(), 1);
+    coreGeo.setAttribute('aFocused', focusAttrCore);
+    glowGeo.setAttribute('aFocused', focusAttrGlow);
+    coreFocusAttrRef.current = focusAttrCore;
+    glowFocusAttrRef.current = focusAttrGlow;
+
     const coreMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uFocusing: { value: 0 } },
       vertexShader: `
         uniform float uTime;
         attribute float size;
         attribute vec3  customColor;
         attribute float opacity;
         attribute float importance;
+        attribute float aFocused;
         varying vec3  vColor;
         varying float vOp;
         varying float vImp;
+        varying float vFocused;
         void main() {
-          vColor = customColor;
-          vOp    = opacity;
-          vImp   = importance;
-          // GPU-side pulse: unique phase per star from position, works for any N
-          float phase  = position.x * 0.137 + position.z * 0.247;
-          float pAmp   = importance > 0.5 ? 0.15 : 0.07;
-          float pulse  = 1.0 + pAmp * sin(uTime * 2.5 + phase);
-          vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * pulse * (300.0 / -mvPos.z);
-          gl_Position  = projectionMatrix * mvPos;
+          vColor   = customColor;
+          vOp      = opacity;
+          vImp     = importance;
+          vFocused = aFocused;
+          float phase      = position.x * 0.137 + position.z * 0.247;
+          float pAmp       = importance > 0.5 ? 0.15 : 0.07;
+          float pulse      = 1.0 + pAmp * sin(uTime * 2.5 + phase);
+          float focusBoost = aFocused > 0.5 ? 5.0 : 1.0;
+          vec4 mvPos       = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize     = size * pulse * focusBoost * (300.0 / -mvPos.z);
+          gl_Position      = projectionMatrix * mvPos;
         }
       `,
       fragmentShader: `
         uniform float uTime;
+        uniform float uFocusing;
         varying vec3  vColor;
         varying float vOp;
         varying float vImp;
+        varying float vFocused;
         void main() {
           vec2  uv   = gl_PointCoord.xy - vec2(0.5);
           float dist = length(uv);
@@ -333,10 +354,18 @@ export default function GalaxyCanvas({
           float core  = smoothstep(0.18 * pulse, 0.0, dist);
           float halo  = smoothstep(0.5, 0.08, dist) * 0.55 * pulse;
           float alpha = clamp(core + halo, 0.0, 1.0) * vOp;
-          // Top stars blend toward white-blue core
           float whiteness = vImp * 0.75;
           vec3  col = mix(vColor, vec3(0.85, 0.95, 1.0), core * whiteness);
           col = mix(col, vec3(1.0), core * (1.0 - whiteness) * 0.5);
+          // Focus mode: golden-white boost on focused star, dim all others
+          if (uFocusing > 0.5) {
+            if (vFocused > 0.5) {
+              col   = mix(col, vec3(1.0, 0.97, 0.45), 0.88);
+              alpha = min(alpha * 4.0, 1.0);
+            } else {
+              alpha *= 0.2;
+            }
+          }
           gl_FragColor = vec4(col, alpha);
         }
       `,
@@ -344,25 +373,31 @@ export default function GalaxyCanvas({
     });
 
     const glowMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uFocusing: { value: 0 } },
       vertexShader: `
         attribute float size;
         attribute vec3  customColor;
         attribute float importance;
+        attribute float aFocused;
         varying vec3  vColor;
         varying float vImp;
+        varying float vFocused;
         void main() {
-          vColor = customColor;
-          vImp   = importance;
+          vColor   = customColor;
+          vImp     = importance;
+          vFocused = aFocused;
+          float focusBoost = aFocused > 0.5 ? 6.0 : 1.0;
           vec4 mvPos   = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (300.0 / -mvPos.z);
+          gl_PointSize = size * focusBoost * (300.0 / -mvPos.z);
           gl_Position  = projectionMatrix * mvPos;
         }
       `,
       fragmentShader: `
         uniform float uTime;
+        uniform float uFocusing;
         varying vec3  vColor;
         varying float vImp;
+        varying float vFocused;
         void main() {
           float dist = length(gl_PointCoord.xy - vec2(0.5));
           if (dist > 0.5) discard;
@@ -370,11 +405,19 @@ export default function GalaxyCanvas({
           float glow  = (0.5 - dist) * 2.0 * pulse;
           float alpha = glow * (0.55 + vImp * 0.35);
           if (alpha < 0.01) discard;
-          // Top institutions glow gold/white; others their own color
           vec3 topTint  = vec3(1.0, 0.88, 0.55);
           vec3 cyanTint = vec3(0.0, 0.93, 1.0);
           vec3 tint     = mix(cyanTint, topTint, vImp * 0.6);
           vec3 finalCol = mix(vColor, tint, 0.5);
+          // Focus mode: boost focused glow, dim others
+          if (uFocusing > 0.5) {
+            if (vFocused > 0.5) {
+              finalCol = mix(finalCol, vec3(1.0, 0.95, 0.35), 0.82);
+              alpha    = min(alpha * 5.0, 1.0);
+            } else {
+              alpha *= 0.15;
+            }
+          }
           gl_FragColor  = vec4(finalCol, alpha);
         }
       `,
@@ -385,6 +428,28 @@ export default function GalaxyCanvas({
     const glowSystem = new THREE.Points(glowGeo, glowMat);
     scene.add(glowSystem);
     scene.add(coreSystem);
+
+    // Store uniform refs for external focus updates
+    coreFocusingRef.current = coreMat.uniforms.uFocusing;
+    glowFocusingRef.current = glowMat.uniforms.uFocusing;
+
+    // ── Focus Beacon: animated rings + central glow around focused star ───────
+    const mkRingMat = (op: number) => new THREE.MeshBasicMaterial({
+      color: 0xFFD700, side: THREE.DoubleSide, transparent: true,
+      opacity: op, blending: THREE.AdditiveBlending, depthTest: false,
+    });
+    const beacon = new THREE.Group();
+    beacon.visible = false;
+    const bRing1 = new THREE.Mesh(new THREE.RingGeometry(4.5,  6.5, 64), mkRingMat(0.9));
+    const bRing2 = new THREE.Mesh(new THREE.RingGeometry(10,   12,  64), mkRingMat(0.55));
+    const bRing3 = new THREE.Mesh(new THREE.RingGeometry(18.5, 20,  64), mkRingMat(0.3));
+    const bGlow  = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 16), new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF, transparent: true, opacity: 0.22,
+      blending: THREE.AdditiveBlending, depthTest: false,
+    }));
+    beacon.add(bRing1, bRing2, bRing3, bGlow);
+    scene.add(beacon);
+    focusBeaconRef.current = beacon;
 
     // Raycasting subset — only top min(N,50000) stars so hover is O(50k) not O(N)
     const MAX_RAYCAST_STARS = Math.min(N, 50000);
@@ -573,6 +638,19 @@ export default function GalaxyCanvas({
       if (linksSystem) linksMat.uniforms.uTime.value = time;
       // Pulse is now GPU-side in the vertex shader — no CPU loop needed for any N
 
+      // ── Animate focus beacon ──────────────────────────────────────────────
+      if (beacon.visible) {
+        bRing1.lookAt(camera.position);
+        bRing2.lookAt(camera.position);
+        bRing3.lookAt(camera.position);
+        bRing1.scale.setScalar(1.0 + 0.20 * Math.sin(time * 4.0));
+        bRing2.scale.setScalar(1.0 + 0.12 * Math.sin(time * 3.0 + 1.0));
+        bRing3.scale.setScalar(1.0 + 0.08 * Math.sin(time * 2.5 + 2.0));
+        (bRing1.material as THREE.MeshBasicMaterial).opacity = 0.65 + 0.35 * Math.sin(time * 5.0);
+        (bRing2.material as THREE.MeshBasicMaterial).opacity = 0.38 + 0.25 * Math.sin(time * 3.5 + 0.5);
+        (bRing3.material as THREE.MeshBasicMaterial).opacity = 0.18 + 0.18 * Math.sin(time * 3.0 + 1.0);
+      }
+
       // Auto rotate — pause while focusing on a star
       if (autoRotate && !focusTargetRef.current) sph.theta -= 0.0003;
 
@@ -619,19 +697,69 @@ export default function GalaxyCanvas({
       renderer.domElement.removeEventListener('wheel', onWheel as EventListener);
       window.removeEventListener('resize', onResize);
       if (tooltipRef.current) tooltipRef.current.style.display = 'none';
+      // Dispose beacon meshes
+      if (focusBeaconRef.current) {
+        focusBeaconRef.current.traverse((obj) => {
+          if (obj instanceof THREE.Mesh) {
+            obj.geometry.dispose();
+            (obj.material as THREE.Material).dispose();
+          }
+        });
+        focusBeaconRef.current = null;
+      }
+      coreFocusAttrRef.current = null;
+      glowFocusAttrRef.current = null;
+      coreFocusingRef.current  = null;
+      glowFocusingRef.current  = null;
       renderer.dispose();
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
     };
   }, [data, autoRotate, highlightStarId, backgroundStarsCount]);
 
-  // React to focusStarId changes and trigger smooth zoom
+  // React to focusStarId changes: smooth zoom + highlight beacon + shader effects
   useEffect(() => {
     if (focusStarId === undefined) return;
     const idx = idToIdxRef.current.get(focusStarId);
     if (idx === undefined) return;
     const pos = starPosRef.current[idx];
     if (!pos) return;
+
+    // Smooth camera zoom
     focusTargetRef.current = { ...pos };
+
+    // Reset previously focused star attribute
+    const prev = prevFocusIdxRef.current;
+    if (prev >= 0) {
+      if (coreFocusAttrRef.current) {
+        (coreFocusAttrRef.current.array as Float32Array)[prev] = 0;
+        coreFocusAttrRef.current.needsUpdate = true;
+      }
+      if (glowFocusAttrRef.current) {
+        (glowFocusAttrRef.current.array as Float32Array)[prev] = 0;
+        glowFocusAttrRef.current.needsUpdate = true;
+      }
+    }
+
+    // Mark new focused star
+    if (coreFocusAttrRef.current) {
+      (coreFocusAttrRef.current.array as Float32Array)[idx] = 1;
+      coreFocusAttrRef.current.needsUpdate = true;
+    }
+    if (glowFocusAttrRef.current) {
+      (glowFocusAttrRef.current.array as Float32Array)[idx] = 1;
+      glowFocusAttrRef.current.needsUpdate = true;
+    }
+    // Activate focus dimming in shaders
+    if (coreFocusingRef.current) coreFocusingRef.current.value = 1;
+    if (glowFocusingRef.current) glowFocusingRef.current.value = 1;
+
+    // Move beacon to focused star and show it
+    if (focusBeaconRef.current) {
+      focusBeaconRef.current.position.set(pos.x, pos.y, pos.z);
+      focusBeaconRef.current.visible = true;
+    }
+
+    prevFocusIdxRef.current = idx;
   }, [focusStarId]);
 
   return (
