@@ -573,18 +573,29 @@ export default function GalaxyCanvas({
       if (linksSystem) linksMat.uniforms.uTime.value = time;
       // Pulse is now GPU-side in the vertex shader — no CPU loop needed for any N
 
-      // Auto rotate
-      if (autoRotate) sph.theta -= 0.0003;
+      // Auto rotate — pause while focusing on a star
+      if (autoRotate && !focusTargetRef.current) sph.theta -= 0.0003;
 
       // Smooth zoom to focused star
       if (focusTargetRef.current) {
         const ft = focusTargetRef.current;
-        const t  = 0.045;
-        camTarget.x += (ft.x - camTarget.x) * t;
-        camTarget.y += (ft.y - camTarget.y) * t;
-        camTarget.z += (ft.z - camTarget.z) * t;
+        const t  = 0.08;
+        const dx = ft.x - camTarget.x;
+        const dy = ft.y - camTarget.y;
+        const dz = ft.z - camTarget.z;
+        camTarget.x += dx * t;
+        camTarget.y += dy * t;
+        camTarget.z += dz * t;
         sph.radius  += (130 - sph.radius) * t;
-        if (Math.abs(sph.radius - 130) < 2) focusTargetRef.current = null;
+        // Snap exactly and stop when close enough
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist < 0.3 && Math.abs(sph.radius - 130) < 0.5) {
+          camTarget.x = ft.x;
+          camTarget.y = ft.y;
+          camTarget.z = ft.z;
+          sph.radius  = 130;
+          focusTargetRef.current = null;
+        }
       }
 
       // Update camera position from spherical coords
