@@ -233,7 +233,7 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]; if (!file) return;
     setAvatarUploading(true);
     try {
-      const formData = new FormData(); formData.append('file', file);
+      const formData = new FormData(); formData.append('logo', file);
       const res = await fetch(`${API_BASE}/api/upload/logo`, {
         method: 'POST',
         headers: { 'X-Session-ID': localStorage.getItem('sessionId') || '' },
