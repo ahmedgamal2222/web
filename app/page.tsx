@@ -1838,8 +1838,8 @@ export default function HomePage() {
           onSelect={() => {}}
           onViewAgreement={handleViewAgreement}
           onFocusStar={(star) => {
+            setListOpen(false);
             setFocusStarId(star.id);
-            setPopupStar(star);
           }}
         />
       )}
