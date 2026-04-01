@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Institution, Agreement } from '@/lib/types';
-import { fetchInstitution, fetchEvents, fetchNews, API_BASE } from '@/lib/api';
+import { fetchInstitution, fetchEvents, fetchNews, API_BASE, uploadImage } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import AgreementDetails from '@/components/AgreementDetails';
@@ -232,10 +232,238 @@ function OwnerActions({ institutionId }: { institutionId: string }) {
   );
 }
 
+// ── Ad Create Modal ───────────────────────────────────────────
+const AD_COST = 20;
+function AdCreateModal({
+  institutionId, coins, onClose, onSuccess,
+}: {
+  institutionId: string; coins: number;
+  onClose: () => void; onSuccess: () => void;
+}) {
+  const [form, setForm] = useState({
+    title: '', content: '', image_url: '',
+    start_date: '', end_date: '',
+    target_type: 'all' as 'all' | 'country' | 'city',
+    target_value: '',
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState('');
+  const canAfford = coins >= AD_COST;
+
+  const set = (f: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm(p => ({ ...p, [f]: e.target.value }));
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!canAfford) return;
+    if (!form.title || !form.start_date || !form.end_date) { setErr('يرجى ملء الحقول المطلوبة'); return; }
+    setSubmitting(true); setErr('');
+    try {
+      let imageUrl = form.image_url;
+      if (imageFile) {
+        setUploadProgress(1);
+        const uploaded = await uploadImage(imageFile, (p: number) => setUploadProgress(p));
+        imageUrl = (uploaded as any).url;
+        setUploadProgress(100);
+      }
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/ads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ ...form, image_url: imageUrl, institution_id: Number(institutionId) }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'فشل إنشاء الإعلان');
+      // خصم الكوين من localStorage
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        u.coins = (u.coins ?? 0) - AD_COST;
+        localStorage.setItem('user', JSON.stringify(u));
+      }
+      onSuccess();
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSubmitting(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const iSt: React.CSSProperties = {
+    width: '100%', padding: '11px 15px', background: 'white',
+    border: `1.5px solid ${COLORS.teal}40`, borderRadius: 10,
+    color: COLORS.darkNavy, fontSize: '1rem', outline: 'none',
+    boxSizing: 'border-box',
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 2000, padding: 20, direction: 'rtl',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{
+        background: 'white', borderRadius: 24, padding: 28,
+        width: '100%', maxWidth: 520,
+        boxShadow: `0 20px 60px ${COLORS.darkNavy}30`,
+        maxHeight: '90vh', overflowY: 'auto',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: COLORS.darkNavy }}>📢 إنشاء إعلان جديد</h2>
+          <button onClick={onClose} style={{ background: '#f5f5f5', border: 'none', borderRadius: '50%', width: 34, height: 34, fontSize: '1rem', cursor: 'pointer', color: '#555' }}>✕</button>
+        </div>
+
+        {/* Coins */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: `${COLORS.teal}10`, borderRadius: 12, padding: '10px 14px', marginBottom: 18,
+        }}>
+          <span style={{ fontSize: '0.9rem', color: '#555' }}>رصيدك الحالي</span>
+          <span style={{ color: canAfford ? COLORS.teal : '#e53935', fontWeight: 800, fontSize: '1rem' }}>
+            🪙 {coins} كوين
+          </span>
+        </div>
+
+        {!canAfford ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
+            <p style={{ color: '#e53935', marginBottom: 20 }}>رصيدك غير كافٍ ({coins} / {AD_COST} كوين مطلوب)</p>
+            <a href="https://paypal.me/hadmaj?amount=30" target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-block', background: '#0070ba', color: 'white',
+                padding: '12px 28px', borderRadius: 30, textDecoration: 'none',
+                fontWeight: 700, fontSize: '1rem',
+              }}
+            >
+              💳 تجديد الاشتراك – 30$ عبر PayPal
+            </a>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {err && <div style={{ background: '#fdecea', border: '1px solid #e53935', borderRadius: 10, padding: '10px 14px', color: '#c62828', fontSize: '0.9rem' }}>{err}</div>}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>عنوان الإعلان *</label>
+              <input type="text" value={form.title} onChange={set('title')} required placeholder="اكتب عنوان الإعلان" style={iSt} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>نص الإعلان</label>
+              <textarea value={form.content} onChange={set('content')} placeholder="تفاصيل الإعلان..." rows={3} style={{ ...iSt, resize: 'vertical' }} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>صورة الإعلان</label>
+              {imagePreview && <div style={{ height: 130, background: `url(${imagePreview}) center/cover`, borderRadius: 10, marginBottom: 4 }} />}
+              <input type="file" accept="image/*" onChange={handleFile} style={{ fontSize: '0.9rem' }} />
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div style={{ background: '#e0e0e0', borderRadius: 10, height: 5, overflow: 'hidden' }}>
+                  <div style={{ background: COLORS.teal, height: '100%', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
+                </div>
+              )}
+              {!imageFile && (
+                <input type="url" value={form.image_url} onChange={set('image_url')} placeholder="أو رابط الصورة مباشرة https://..." style={{ ...iSt, marginTop: 4 }} />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>تاريخ البداية *</label>
+                <input type="date" value={form.start_date} onChange={set('start_date')} required style={iSt} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>تاريخ النهاية *</label>
+                <input type="date" value={form.end_date} onChange={set('end_date')} required style={iSt} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>نطاق الاستهداف</label>
+              <select value={form.target_type} onChange={e => setForm(p => ({ ...p, target_type: e.target.value as any, target_value: '' }))} style={iSt}>
+                <option value="all">🌍 الجميع</option>
+                <option value="country">🏳️ دولة محددة</option>
+                <option value="city">🏙️ مدينة محددة</option>
+              </select>
+            </div>
+
+            {form.target_type !== 'all' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <label style={{ fontSize: '0.88rem', color: COLORS.teal, fontWeight: 700 }}>
+                  {form.target_type === 'country' ? 'كود الدولة (ISO)' : 'اسم المدينة'}
+                </label>
+                <input
+                  type="text" value={form.target_value} onChange={set('target_value')}
+                  placeholder={form.target_type === 'country' ? 'مثال: SA أو EG' : 'مثال: Riyadh أو Cairo'}
+                  style={iSt}
+                />
+              </div>
+            )}
+
+            {/* ملخص التكلفة */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: '#fffde7', borderRadius: 10, padding: '10px 14px',
+              border: '1px solid #ffe082',
+            }}>
+              <span style={{ fontSize: '0.88rem', color: '#555' }}>تكلفة الإعلان</span>
+              <span style={{ color: '#f9a825', fontWeight: 800, fontSize: '0.9rem' }}>
+                {AD_COST} كوين ← يتبقى {coins - AD_COST} كوين
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                padding: '13px', background: submitting ? COLORS.teal + '80' : COLORS.teal,
+                color: 'white', border: 'none', borderRadius: 40,
+                fontSize: '1rem', fontWeight: 700,
+                cursor: submitting ? 'default' : 'pointer',
+                boxShadow: `0 6px 20px ${COLORS.teal}40`,
+              }}
+            >
+              {submitting ? 'جاري النشر...' : `✦ نشر الإعلان (${AD_COST} كوين)`}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Announcements (events + news unified feed) ─────────────────
 type AnnouncementTab = 'all' | 'events' | 'news';
-function AnnouncementsSection({ events, news }: { events: any[]; news: any[] }) {
+function AnnouncementsSection({
+  events, news, institutionId, isOwner, isAdmin,
+}: {
+  events: any[]; news: any[];
+  institutionId?: string; isOwner?: boolean; isAdmin?: boolean;
+}) {
   const [tab, setTab] = useState<AnnouncementTab>('all');
+  const [coins, setCoins] = useState(0);
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adDone, setAdDone] = useState(false);
+  const canCreate = isOwner || isAdmin;
+
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (stored) setCoins(JSON.parse(stored).coins ?? 0);
+  }, []);
 
   const allItems = [
     ...events.map(e => ({ ...e, _type: 'event' as const })),
@@ -253,8 +481,8 @@ function AnnouncementsSection({ events, news }: { events: any[]; news: any[] }) 
     <button
       onClick={() => setTab(id)}
       style={{
-        padding: '8px 20px', borderRadius: 30, border: 'none', cursor: 'pointer',
-        fontWeight: 700, fontSize: '0.88rem', transition: 'all 0.2s',
+        padding: '8px 18px', borderRadius: 30, border: 'none', cursor: 'pointer',
+        fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.2s',
         background: tab === id ? COLORS.teal : 'transparent',
         color: tab === id ? 'white' : COLORS.teal,
         boxShadow: tab === id ? `0 3px 12px ${COLORS.teal}30` : 'none',
@@ -264,6 +492,10 @@ function AnnouncementsSection({ events, news }: { events: any[]; news: any[] }) 
     </button>
   );
 
+  // أزرار الإنشاء حسب التاب النشط
+  const showNewsBtn   = canCreate && (tab === 'all' || tab === 'news');
+  const showEventsBtn = canCreate && (tab === 'all' || tab === 'events');
+
   return (
     <div style={{
       maxWidth: 1200, margin: '0 auto 40px',
@@ -272,34 +504,146 @@ function AnnouncementsSection({ events, news }: { events: any[]; news: any[] }) 
       border: `1px solid ${COLORS.softGreen}40`,
       overflow: 'hidden',
     }}>
+      {/* ─ رأس القسم ─ */}
       <div style={{
-        padding: '22px 32px 0',
+        padding: '20px 28px 0',
         background: `linear-gradient(135deg, ${COLORS.darkNavy}06, white)`,
         borderBottom: `1px solid ${COLORS.softGreen}25`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
-          <h2 style={{ fontSize: '1.7rem', color: COLORS.darkNavy, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* صف العنوان + الكوين + الإنشاء */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+          {/* عنوان */}
+          <h2 style={{ fontSize: '1.5rem', color: COLORS.darkNavy, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>📢</span> إعلانات المؤسسة
           </h2>
-          <div style={{ display: 'flex', gap: 6, background: `${COLORS.teal}10`, borderRadius: 40, padding: '4px' }}>
-            <TabBtn id="all"    label="الكل"        count={allItems.length} />
-            <TabBtn id="events" label="📅 فعاليات"  count={events.length} />
-            <TabBtn id="news"   label="📰 أخبار"    count={news.length} />
+
+          {/* كوين + أزرار الإنشاء */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {/* شارة الكوين */}
+            {canCreate && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 14px', borderRadius: 30,
+                background: coins > 0 ? `${COLORS.softGreen}18` : '#ff525218',
+                border: `1px solid ${coins > 0 ? COLORS.softGreen : '#ff5252'}40`,
+              }}>
+                <span style={{ fontSize: '1rem' }}>🪙</span>
+                <span style={{ fontWeight: 800, fontSize: '0.9rem', color: coins > 0 ? COLORS.softGreen : '#e53935' }}>
+                  {coins}
+                </span>
+                <span style={{ fontSize: '0.78rem', color: '#888' }}>كوين متاح</span>
+              </div>
+            )}
+
+            {showNewsBtn && (
+              <Link
+                href={`/news/create${institutionId ? `?institution_id=${institutionId}` : ''}`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 16px', borderRadius: 30,
+                  background: `linear-gradient(135deg, ${COLORS.darkNavy}, ${COLORS.teal})`,
+                  color: COLORS.lightMint, textDecoration: 'none',
+                  fontSize: '0.83rem', fontWeight: 700,
+                  boxShadow: `0 3px 10px ${COLORS.teal}30`,
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              >
+                <span style={{ fontSize: '0.95rem' }}>+</span> إنشاء خبر
+              </Link>
+            )}
+
+            {showEventsBtn && (
+              <Link
+                href={`/events/create${institutionId ? `?institution_id=${institutionId}` : ''}`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 16px', borderRadius: 30,
+                  background: `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})`,
+                  color: 'white', textDecoration: 'none',
+                  fontSize: '0.83rem', fontWeight: 700,
+                  boxShadow: `0 3px 10px ${COLORS.softGreen}30`,
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              >
+                <span style={{ fontSize: '0.95rem' }}>+</span> إنشاء فعالية
+              </Link>
+            )}
+
+            {/* زر إضافة إعلان */}
+            {canCreate && (
+              <button
+                onClick={() => setShowAdModal(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 16px', borderRadius: 30, border: 'none', cursor: 'pointer',
+                  background: `linear-gradient(135deg, #f9a825, #ff6f00)`,
+                  color: 'white', fontSize: '0.83rem', fontWeight: 700,
+                  boxShadow: '0 3px 10px #f9a82530',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              >
+                <span>📢</span> إضافة إعلان
+                <span style={{ fontSize: '0.72rem', opacity: 0.85 }}>({AD_COST} كوين)</span>
+              </button>
+            )}
           </div>
+        </div>
+
+        {/* تابات */}
+        <div style={{ display: 'flex', gap: 4, background: `${COLORS.teal}10`, borderRadius: 40, padding: '4px', width: 'fit-content', marginBottom: 16 }}>
+          <TabBtn id="all"    label="الكل"       count={allItems.length} />
+          <TabBtn id="events" label="📅 فعاليات" count={events.length} />
+          <TabBtn id="news"   label="📰 أخبار"   count={news.length} />
         </div>
       </div>
 
+      {/* ─ المحتوى ─ */}
       <div style={{ padding: '24px 28px' }}>
         {shown.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '50px 20px', color: '#aaa' }}>
             <span style={{ fontSize: '3rem', display: 'block', marginBottom: 12 }}>
               {tab === 'events' ? '📅' : tab === 'news' ? '📰' : '📢'}
             </span>
-            <p style={{ margin: 0, fontSize: '1rem' }}>
+            <p style={{ margin: '0 0 20px', fontSize: '1rem' }}>
               {tab === 'events' ? 'لا توجد فعاليات حتى الآن'
                : tab === 'news' ? 'لا توجد أخبار حتى الآن'
                : 'لا توجد إعلانات حتى الآن'}
             </p>
+            {/* زر إنشاء في حالة الفراغ */}
+            {tab === 'news' && canCreate && (
+              <Link
+                href={`/news/create${institutionId ? `?institution_id=${institutionId}` : ''}`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '10px 24px', borderRadius: 30,
+                  background: `linear-gradient(135deg, ${COLORS.darkNavy}, ${COLORS.teal})`,
+                  color: COLORS.lightMint, textDecoration: 'none',
+                  fontSize: '0.9rem', fontWeight: 700,
+                }}
+              >
+                <span>+</span> أضف أول خبر
+              </Link>
+            )}
+            {tab === 'events' && canCreate && (
+              <Link
+                href={`/events/create${institutionId ? `?institution_id=${institutionId}` : ''}`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '10px 24px', borderRadius: 30,
+                  background: `linear-gradient(135deg, ${COLORS.softGreen}, ${COLORS.teal})`,
+                  color: 'white', textDecoration: 'none',
+                  fontSize: '0.9rem', fontWeight: 700,
+                }}
+              >
+                <span>+</span> أضف أول فعالية
+              </Link>
+            )}
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
@@ -309,6 +653,33 @@ function AnnouncementsSection({ events, news }: { events: any[]; news: any[] }) 
           </div>
         )}
       </div>
+
+      {/* نجاح الإعلان */}
+      {adDone && (
+        <div style={{
+          margin: '0 28px 16px', padding: '12px 18px', borderRadius: 12,
+          background: `${COLORS.softGreen}18`, border: `1px solid ${COLORS.softGreen}50`,
+          color: COLORS.softGreen, fontWeight: 700, fontSize: '0.9rem',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span>✅</span> تم نشر الإعلان بنجاح وسيظهر للمستخدمين قريباً!
+        </div>
+      )}
+
+      {/* Modal الإعلان */}
+      {showAdModal && institutionId && (
+        <AdCreateModal
+          institutionId={institutionId}
+          coins={coins}
+          onClose={() => setShowAdModal(false)}
+          onSuccess={() => {
+            setShowAdModal(false);
+            setAdDone(true);
+            setCoins(c => c - AD_COST);
+            setTimeout(() => setAdDone(false), 6000);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -613,12 +984,15 @@ export default function InstitutionClient() {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <QuickActions institution={institution} />
-          {(isOwner || isAdmin) && (
-            <OwnerActions institutionId={id} />
-          )}
           <div id="about"><AboutSection institution={institution} /></div>
           <div id="announcements">
-            <AnnouncementsSection events={events} news={institutionNews} />
+            <AnnouncementsSection
+              events={events}
+              news={institutionNews}
+              institutionId={id}
+              isOwner={isOwner}
+              isAdmin={isAdmin}
+            />
           </div>
           <div id="screen"><ScreenPasswordSection institution={institution} currentUser={currentUser} /></div>
           <div id="agreements"><AgreementsSection agreements={agreements} onViewAgreement={setSelectedAgreementId} /></div>
