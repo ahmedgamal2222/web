@@ -142,6 +142,33 @@ export default function EventDetailPage() {
 
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '40px 20px' }}>
 
+        {/* Ended banner */}
+        {status.label.includes('منتهي') && (
+          <div style={{
+            background: 'rgba(158,158,158,0.1)',
+            border: '1px solid rgba(158,158,158,0.35)',
+            borderRadius: 16,
+            padding: '20px 24px',
+            marginBottom: 32,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}>
+            <span style={{ fontSize: '2rem' }}>🏁</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#e0e0e0', marginBottom: 4 }}>
+                انتهت هذه الفعالية
+              </div>
+              {item.end_datetime && (
+                <div style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.5)' }}>
+                  انتهت في: <strong style={{ color: 'rgba(255,255,255,0.75)' }}>{fmt(item.end_datetime)}</strong>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Institution */}
         {(item.institution_name_ar || item.institution_name) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32, paddingBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
