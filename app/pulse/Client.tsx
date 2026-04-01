@@ -276,7 +276,7 @@ export default function PulseClient() {
           <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {([
               { href: '/',         icon: '🌌', label: 'الرئيسية' },
-              { href: '/services', icon: '🛠️', label: 'الخدمات' },
+              // { href: '/services', icon: '🛠️', label: 'الخدمات' },
               // { href: '/institutions', icon: '🏛️', label: 'المؤسسات' },
               // { href: '/campaigns',    icon: '🚀', label: 'الحملات' },
               // { href: '/marketplace',  icon: '🛒', label: 'السوق الرقمي' },
