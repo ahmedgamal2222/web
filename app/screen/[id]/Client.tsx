@@ -55,6 +55,27 @@ export default function ScreenPage() {
   // تخطي المصادقة للمستخدمين المسجلين تلقائياً
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // ── تحقق من التوثيق المسبق عبر صفحة tv.hadmaj.com ────────────
+    const TV_KEY = `hadmaj_tv_preauth_${institutionId}`;
+    const TV_TTL = 8 * 60 * 1000; // 8 دقائق
+    try {
+      const preauth = sessionStorage.getItem(TV_KEY);
+      if (preauth) {
+        const data = JSON.parse(preauth) as { verified: boolean; ts: number };
+        if (data.verified && Date.now() - data.ts < TV_TTL) {
+          sessionStorage.removeItem(TV_KEY); // استخدام لمرة واحدة فقط
+          fetchInstitution(institutionId)
+            .then(inst => { setInstitution(inst); return screenActivate(Number(institutionId), true); })
+            .then(() => setAuthenticated(true))
+            .catch(() => setAuthenticated(true));
+          return;
+        }
+        sessionStorage.removeItem(TV_KEY);
+      }
+    } catch { /* ignore */ }
+
+    // ── تخطي المصادقة للمستخدمين المسجلين تلقائياً ───────────────
     try {
       const userStr = localStorage.getItem('user');
       if (!userStr) return;

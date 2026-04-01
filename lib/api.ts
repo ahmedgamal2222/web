@@ -470,6 +470,29 @@ export async function verifyScreen(
   return { valid: res.valid, message: res.message };
 }
 
+export async function screenConnect(
+  password: string
+): Promise<{ valid: boolean; institution_id?: number; institution?: any; message: string }> {
+  const res = await fetchWithRetry<{
+    success: boolean;
+    valid: boolean;
+    institution_id?: number;
+    institution?: any;
+    message: string;
+    timestamp: string;
+  }>(`${API_BASE}/api/screen/connect`, {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  });
+
+  return {
+    valid: res.valid,
+    institution_id: res.institution_id,
+    institution: res.institution,
+    message: res.message,
+  };
+}
+
 export async function screenActivate(
   institutionId: number,
   active: boolean
