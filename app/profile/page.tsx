@@ -121,6 +121,9 @@ export default function ProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyMsg,     setVerifyMsg]     = useState('');
+
   useEffect(() => {
     if (!localStorage.getItem('user')) { router.push('/login?redirect=/profile'); return; }
     loadProfile();
@@ -227,6 +230,22 @@ export default function ProfilePage() {
     if (!confirm('هل تريد تسجيل الخروج؟')) return;
     localStorage.removeItem('user'); localStorage.removeItem('sessionId');
     router.push('/login');
+  }
+
+  async function handleResendVerification() {
+    setVerifyLoading(true); setVerifyMsg('');
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
+        method: 'POST', headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'فشل إرسال البريد');
+      setVerifyMsg('✅ تم إرسال رابط التفعيل إلى بريدك — تحقق من صندوق الوارد');
+    } catch (e: any) {
+      setVerifyMsg(`⚠️ ${e.message}`);
+    } finally {
+      setVerifyLoading(false);
+    }
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -436,7 +455,6 @@ export default function ProfilePage() {
                 {[
                   { label: 'الاسم (عربي)',      value: profile.name_ar    || '—' },
                   { label: 'الاسم (إنجليزي)',   value: profile.name       || '—' },
-                  { label: 'البريد الإلكتروني', value: profile.email      || '—' },
                   { label: 'رقم الهاتف',         value: profile.phone      || '—' },
                   { label: 'المنصب الوظيفي',     value: profile.position   || '—' },
                   { label: 'القسم / الإدارة',    value: profile.department || '—' },
@@ -446,6 +464,36 @@ export default function ProfilePage() {
                     <div style={{ fontSize: '.93rem', color: C.darkNavy, fontWeight: 500 }}>{f.value}</div>
                   </div>
                 ))}
+
+                {/* Email field with verify button */}
+                <div>
+                  <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>البريد الإلكتروني</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '.93rem', color: C.darkNavy, fontWeight: 500 }}>{profile.email}</span>
+                    {(profile.email_verified || profile.is_verified)
+                      ? <span style={{ fontSize: '.75rem', color: '#10b981', fontWeight: 700, background: '#d1fae5', padding: '2px 10px', borderRadius: 20 }}>✅ مؤكّد</span>
+                      : (
+                        <button
+                          onClick={handleResendVerification}
+                          disabled={verifyLoading}
+                          style={{
+                            fontSize: '.75rem', fontWeight: 700, padding: '4px 13px',
+                            borderRadius: 20, border: '1px solid #f59e0b',
+                            background: '#fffbeb', color: '#92400e',
+                            cursor: verifyLoading ? 'default' : 'pointer',
+                            opacity: verifyLoading ? .6 : 1,
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          {verifyLoading ? 'جاري الإرسال...' : '⚠️ تفعيل البريد'}
+                        </button>
+                      )
+                    }
+                  </div>
+                  {verifyMsg && (
+                    <div style={{ fontSize: '.8rem', marginTop: 6, color: verifyMsg.startsWith('✅') ? '#065f46' : '#92400e' }}>{verifyMsg}</div>
+                  )}
+                </div>
                 {profile.bio && (
                   <div style={{ gridColumn: '1 / -1' }}>
                     <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>نبذة شخصية</div>
