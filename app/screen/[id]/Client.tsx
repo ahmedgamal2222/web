@@ -5,6 +5,7 @@ import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews,
 import type { PulseItem } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
+import PulseDetailPopup from '@/components/PulseDetailPopup';
 
 // ─── External Video URL Parser ───────────────────────────────────────────────
 function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'youtube' | 'vimeo' | 'dailymotion' } | null {
@@ -44,6 +45,7 @@ export default function ScreenPage() {
   const [error, setError] = useState('');
   const [expandedQuadrant, setExpandedQuadrant] = useState<number | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedPulse, setSelectedPulse] = useState<PulseItem | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -1159,7 +1161,7 @@ export default function ScreenPage() {
             <div
               key={item.id}
               className={`pulse-item${item.is_featured ? ' featured' : ''}`}
-              onClick={() => item.url ? window.open(item.url, '_blank') : undefined}
+              onClick={() => setSelectedPulse(item)}
             >
               <div className="pulse-dot" />
               <div className="pulse-body">
@@ -1270,6 +1272,9 @@ export default function ScreenPage() {
           </div>
         </div>
       )}
+
+      {/* بوب-أب تفاصيل النبضة */}
+      {selectedPulse && <PulseDetailPopup item={selectedPulse} onClose={() => setSelectedPulse(null)} />}
     </div>
   );
 }

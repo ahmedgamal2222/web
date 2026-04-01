@@ -581,6 +581,7 @@ export interface PulseItem {
   is_visible: number;
   is_featured: number;
   pulse_date: string;
+  created_at?: string;
 }
 
 // ============================================================

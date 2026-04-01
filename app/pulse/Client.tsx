@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchPulse, PulseItem } from '@/lib/api';
+import PulseDetailPopup, { parsePulseUrl } from '@/components/PulseDetailPopup';
 
 // ── نبضة المجرة – Wall Page ──────────────────────────────────────────────────
 
@@ -44,12 +45,19 @@ function timeAgo(dateStr: string): string {
 }
 
 // ── بطاقة نبضة ──────────────────────────────────────────────────────────────
-function PulseCard({ item, index }: { item: PulseItem; index: number }) {
+function PulseCard({ item, index, onOpen }: { item: PulseItem; index: number; onOpen: (item: PulseItem) => void }) {
   const isFeatured = !!item.is_featured;
   const icon = pulseIcon(item.content);
+  const { type } = parsePulseUrl(item.url);
+
+  const typeLabel =
+    type === 'institution' ? '🏛️ مؤسسة' :
+    type === 'event'       ? '📅 فعالية' :
+    type === 'news'        ? '📢 خبر' : null;
 
   return (
     <article
+      onClick={() => onOpen(item)}
       style={{
         background: isFeatured ? COLORS.featured : COLORS.card,
         border: `1px solid ${isFeatured ? COLORS.gold + '55' : COLORS.border}`,
@@ -62,6 +70,7 @@ function PulseCard({ item, index }: { item: PulseItem; index: number }) {
         overflow: 'hidden',
         transition: 'transform 0.18s, box-shadow 0.18s',
         animationDelay: `${index * 40}ms`,
+        cursor: 'pointer',
       }}
       className="pulse-card"
     >
@@ -104,15 +113,11 @@ function PulseCard({ item, index }: { item: PulseItem; index: number }) {
           margin: 0,
           fontFamily: 'Tajawal, sans-serif',
         }}>
-          {item.url ? (
-            <Link href={item.url} style={{ color: COLORS.mint, textDecoration: 'none' }}>
-              {item.content}
-            </Link>
-          ) : item.content}
+          {item.content}
         </p>
       </div>
 
-      {/* توقيت */}
+      {/* توقيت + نوع */}
       <div style={{
         fontSize: '0.75rem',
         color: '#6e6a99',
@@ -121,15 +126,13 @@ function PulseCard({ item, index }: { item: PulseItem; index: number }) {
       }}>
         <span style={{ color: COLORS.teal }}>⏱</span>
         {timeAgo(item.pulse_date || item.created_at || '')}
-        {item.url && (
-          <Link href={item.url} style={{
+        {typeLabel && (
+          <span style={{
             marginRight: 'auto', color: COLORS.teal,
-            fontSize: '0.72rem', textDecoration: 'none',
-            background: 'rgba(78,141,156,0.12)',
+            fontSize: '0.7rem',
+            background: 'rgba(78,141,156,0.1)',
             padding: '2px 10px', borderRadius: 20,
-          }}>
-            عرض ←
-          </Link>
+          }}>{typeLabel}</span>
         )}
       </div>
     </article>
@@ -179,6 +182,7 @@ export default function PulseClient() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter]   = useState<'all' | 'featured'>('all');
   const [page, setPage]   = useState(0);
+  const [selected, setSelected] = useState<PulseItem | null>(null);
   const LIMIT = 30;
 
   const load = useCallback(async (reset = false) => {
@@ -294,13 +298,16 @@ export default function PulseClient() {
             {/* بطاقة مميزة كبيرة إن وجدت */}
             {items[0]?.is_featured ? (
               <div style={{ marginBottom: 28 }}>
-                <article style={{
+                <article
+                  onClick={() => setSelected(items[0])}
+                  style={{
                   background: `linear-gradient(135deg, ${COLORS.featured}, ${COLORS.navy}88)`,
                   border: `1.5px solid ${COLORS.gold}55`,
                   borderRadius: 20,
                   padding: '28px 32px',
                   display: 'flex', gap: 20, alignItems: 'flex-start',
                   flexWrap: 'wrap',
+                  cursor: 'pointer',
                 }}>
                   {items[0].image_url && (
                     <img
@@ -329,22 +336,13 @@ export default function PulseClient() {
                       <span style={{ fontSize: '1.6rem', marginLeft: 8 }}>
                         {pulseIcon(items[0].content)}
                       </span>
-                      {items[0].url
-                        ? <Link href={items[0].url} style={{ color: COLORS.mint, textDecoration: 'none' }}>{items[0].content}</Link>
-                        : items[0].content}
+                      {items[0].content}
                     </p>
-                    <div style={{ color: '#6e6a99', fontSize: '0.78rem' }}>
+                    <div style={{ color: '#6e6a99', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 12 }}>
                       ⏱ {timeAgo(items[0].pulse_date || items[0].created_at || '')}
-                      {items[0].url && (
-                        <Link href={items[0].url} style={{
-                          marginRight: 16, color: COLORS.teal,
-                          background: 'rgba(78,141,156,0.15)',
-                          padding: '3px 14px', borderRadius: 20,
-                          textDecoration: 'none', fontSize: '0.78rem',
-                        }}>
-                          عرض التفاصيل →
-                        </Link>
-                      )}
+                      <span style={{ color: COLORS.teal, background: 'rgba(78,141,156,0.15)', padding: '2px 12px', borderRadius: 20, fontSize: '0.75rem' }}>
+                        انقر لعرض التفاصيل
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -358,7 +356,7 @@ export default function PulseClient() {
               gap: 18,
             }}>
               {items.slice(items[0]?.is_featured ? 1 : 0).map((item, i) => (
-                <PulseCard key={item.id} item={item} index={i} />
+                <PulseCard key={item.id} item={item} index={i} onOpen={setSelected} />
               ))}
             </div>
 
@@ -413,6 +411,9 @@ export default function PulseClient() {
           animation: fadeSlideIn 0.35s ease both;
         }
       `}</style>
+
+      {/* ── بوب-أب التفاصيل ── */}
+      {selected && <PulseDetailPopup item={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
