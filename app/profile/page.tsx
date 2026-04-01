@@ -324,6 +324,11 @@ export default function ProfilePage() {
                 🏢 مؤسستي
               </Link>
             )}
+            {!profile.institution_id && (
+              <Link href="/my-institution-request" style={{ padding: '9px 18px', background: 'rgba(245,200,66,0.1)', border: '1px solid rgba(245,200,66,0.3)', borderRadius: 40, color: '#f5c842', textDecoration: 'none', fontSize: '0.88rem', fontWeight: 600 }}>
+                🏛️ طلبات اعتماد المؤسسة
+              </Link>
+            )}
           </div>
         </div>
 

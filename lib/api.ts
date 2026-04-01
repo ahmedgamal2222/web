@@ -567,3 +567,59 @@ export async function uploadImage(
     xhr.send(formData);
   });
 }
+
+// ============================================================
+// 💫 Pulse — نبض المجرة
+// ============================================================
+
+export interface PulseItem {
+  id: number;
+  application_user_id: number | null;
+  content: string;
+  url: string | null;
+  image_url: string | null;
+  is_visible: number;
+  is_featured: number;
+  pulse_date: string;
+}
+
+// ============================================================
+// 🏛️ Institution Requests — طلبات الاعتماد
+// ============================================================
+
+export interface MyInstitutionRequest {
+  id: number;
+  name_ar: string;
+  name: string;
+  type: string;
+  country: string;
+  city: string;
+  status: 'pending' | 'approved' | 'rejected';
+  admin_notes: string | null;
+  screen_email: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export async function fetchMyInstitutionRequests(): Promise<MyInstitutionRequest[]> {
+  const res = await fetch(`${API_BASE}/api/institution-requests/my`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) return [];
+  const json = await res.json() as any;
+  return json.data ?? [];
+}
+
+export async function fetchPulse(params?: { limit?: number; offset?: number; featured?: boolean }): Promise<{ data: PulseItem[]; total: number }> {
+  const q = new URLSearchParams();
+  if (params?.limit)    q.set('limit',    String(params.limit));
+  if (params?.offset)   q.set('offset',   String(params.offset));
+  if (params?.featured) q.set('featured', '1');
+
+  const res = await fetch(`${API_BASE}/api/pulse?${q}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) return { data: [], total: 0 };
+  const json = await res.json() as any;
+  return { data: json.data ?? [], total: json.total ?? 0 };
+}

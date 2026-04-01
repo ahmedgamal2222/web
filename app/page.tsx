@@ -190,7 +190,7 @@ function UserMenu({ user, onLogout }: { user: any; onLogout: () => void }) {
             <span>📋</span> طلباتي
           </Link>
           
-          <Link href="/news" style={dropdownItemStyle}>
+          <Link href="/pulse" style={dropdownItemStyle}>
             <span>📰</span> الأخبار
           </Link> */}
           
@@ -269,7 +269,7 @@ function TopBar({
       {/* ── Global Nav ── */}
       <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {[
-          { href: '/news',        icon: '📰', label: 'الأخبار' },
+          { href: '/pulse',        icon: '📰', label: '💫 نبض المجرة' },
           // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
           // { href: '/marketplace', icon: '🛒', label: 'السوق' },
           // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
@@ -445,7 +445,7 @@ function QuickActions({ user }: { user: any }) {
 
   if (user.role === 'explorer' || !user.institution_id) {
     actions.push(
-      { icon: '✨', label: 'طلب إنشاء مؤسسة', href: '/institution-request', color: '#FFD700' },
+      { icon: '✨', label: 'طلب اعتماد مؤسسة', href: '/institution-request', color: '#FFD700' },
     );
   }
 

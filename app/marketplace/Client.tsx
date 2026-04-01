@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 
@@ -21,28 +21,28 @@ function GalaxyLogo() {
         <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92"/>
       </svg>
       <div>
-        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>المجرة الحضارية</div>
-        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>كوكبة المؤسسات المضيئة</div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>Ø§Ù„Ù…Ø¬Ø±Ø© Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠØ©</div>
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>ÙƒÙˆÙƒØ¨Ø© Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª Ø§Ù„Ù…Ø¶ÙŠØ¦Ø©</div>
       </div>
     </Link>
   );
 }
 
 const NAV_LINKS = [
-  { href:'/news', label:'الأخبار' }, { href:'/campaigns', label:'الحملات' },
-  { href:'/marketplace', label:'السوق الرقمي', active:true }, { href:'/cloud', label:'☁️ السحابة' },
-  { href:'/services', label:'الخدمات' }, { href:'/library', label:'المكتبة' },
-  { href:'/forum', label:'المنتدى' }, { href:'/podcast', label:'البودكاست' },
+  { href: '/pulse', label:'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±' }, { href:'/campaigns', label:'Ø§Ù„Ø­Ù…Ù„Ø§Øª' },
+  { href:'/marketplace', label:'Ø§Ù„Ø³ÙˆÙ‚ Ø§Ù„Ø±Ù‚Ù…ÙŠ', active:true }, { href:'/cloud', label:'â˜ï¸ Ø§Ù„Ø³Ø­Ø§Ø¨Ø©' },
+  { href:'/services', label:'Ø§Ù„Ø®Ø¯Ù…Ø§Øª' }, { href:'/library', label:'Ø§Ù„Ù…ÙƒØªØ¨Ø©' },
+  { href:'/forum', label:'Ø§Ù„Ù…Ù†ØªØ¯Ù‰' }, { href:'/podcast', label:'Ø§Ù„Ø¨ÙˆØ¯ÙƒØ§Ø³Øª' },
 ];
 
 const CATEGORIES = [
-  { key:'all',      label:'الكل',            icon:'🌐', color:C.teal,   desc:'' },
-  { key:'service',  label:'الخدمات',          icon:'⚙️', color:'#85C79A', desc:'خدمات مؤسسية متنوعة' },
-  { key:'program',  label:'البرامج',           icon:'📋', color:'#4E8D9C', desc:'برامج وأنشطة منظمة' },
-  { key:'subscription',label:'الاشتراكات',    icon:'🔄', color:'#B47FE6', desc:'اشتراكات دورية' },
-  { key:'digital_product',label:'منتجات رقمية',icon:'💾', color:'#EDF7BD', desc:'ملفات وأدوات رقمية' },
-  { key:'course',   label:'الدورات',           icon:'🎓', color:'#FFD700', desc:'دورات تدريبية وتعليمية' },
-  { key:'tool',     label:'الأدوات',            icon:'🛠️', color:'#FF9B4E', desc:'' },
+  { key:'all',      label:'Ø§Ù„ÙƒÙ„',            icon:'ðŸŒ', color:C.teal,   desc:'' },
+  { key:'service',  label:'Ø§Ù„Ø®Ø¯Ù…Ø§Øª',          icon:'âš™ï¸', color:'#85C79A', desc:'Ø®Ø¯Ù…Ø§Øª Ù…Ø¤Ø³Ø³ÙŠØ© Ù…ØªÙ†ÙˆØ¹Ø©' },
+  { key:'program',  label:'Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬',           icon:'ðŸ“‹', color:'#4E8D9C', desc:'Ø¨Ø±Ø§Ù…Ø¬ ÙˆØ£Ù†Ø´Ø·Ø© Ù…Ù†Ø¸Ù…Ø©' },
+  { key:'subscription',label:'Ø§Ù„Ø§Ø´ØªØ±Ø§ÙƒØ§Øª',    icon:'ðŸ”„', color:'#B47FE6', desc:'Ø§Ø´ØªØ±Ø§ÙƒØ§Øª Ø¯ÙˆØ±ÙŠØ©' },
+  { key:'digital_product',label:'Ù…Ù†ØªØ¬Ø§Øª Ø±Ù‚Ù…ÙŠØ©',icon:'ðŸ’¾', color:'#EDF7BD', desc:'Ù…Ù„ÙØ§Øª ÙˆØ£Ø¯ÙˆØ§Øª Ø±Ù‚Ù…ÙŠØ©' },
+  { key:'course',   label:'Ø§Ù„Ø¯ÙˆØ±Ø§Øª',           icon:'ðŸŽ“', color:'#FFD700', desc:'Ø¯ÙˆØ±Ø§Øª ØªØ¯Ø±ÙŠØ¨ÙŠØ© ÙˆØªØ¹Ù„ÙŠÙ…ÙŠØ©' },
+  { key:'tool',     label:'Ø§Ù„Ø£Ø¯ÙˆØ§Øª',            icon:'ðŸ› ï¸', color:'#FF9B4E', desc:'' },
 ];
 
 interface MarketplaceItem {
@@ -91,7 +91,7 @@ export default function MarketplacePage() {
   const catMeta = (k: string) => CATEGORIES.find(c=>c.key===k) || CATEGORIES[0];
 
   const formatPrice = (item: MarketplaceItem) =>
-    item.is_free ? '🆓 مجاني' : item.price === 0 ? 'تواصل للسعر' : `${item.price} ${item.currency}`;
+    item.is_free ? 'ðŸ†“ Ù…Ø¬Ø§Ù†ÙŠ' : item.price === 0 ? 'ØªÙˆØ§ØµÙ„ Ù„Ù„Ø³Ø¹Ø±' : `${item.price} ${item.currency}`;
 
   return (
     <div style={{ minHeight:'100vh',background:'#080520',color:'#e8f4f8',fontFamily:"'Cairo',sans-serif",direction:'rtl' }}>
@@ -121,7 +121,7 @@ export default function MarketplacePage() {
         </nav>
         <div style={{ display:'flex',gap:8 }}>
           {!session
-            ? <Link href="/login" style={{ padding:'7px 18px',borderRadius:22,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'.83rem',textDecoration:'none' }}>دخول</Link>
+            ? <Link href="/login" style={{ padding:'7px 18px',borderRadius:22,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'.83rem',textDecoration:'none' }}>Ø¯Ø®ÙˆÙ„</Link>
             : <Link href="/profile" style={{ display:'flex',alignItems:'center',gap:8,textDecoration:'none',padding:'5px 12px',borderRadius:20,background:'rgba(78,141,156,.12)',border:'1px solid rgba(78,141,156,.25)' }}>
                 <div style={{ width:28,height:28,borderRadius:'50%',background:`linear-gradient(135deg,${C.teal},${C.navy})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.8rem',fontWeight:700,color:'#fff' }}>{session.name?.charAt(0)||'U'}</div>
                 <span style={{ color:C.teal,fontSize:'.82rem',fontWeight:600 }}>{session.name}</span>
@@ -134,23 +134,23 @@ export default function MarketplacePage() {
 
         {/* Hero */}
         <div style={{ textAlign:'center',marginBottom:52 }}>
-          <div style={{ fontSize:'3.5rem',marginBottom:14 }}>🛒</div>
+          <div style={{ fontSize:'3.5rem',marginBottom:14 }}>ðŸ›’</div>
           <h1 style={{ fontSize:'clamp(2rem,5vw,3rem)',fontWeight:900,lineHeight:1.2,margin:'0 0 14px',background:`linear-gradient(130deg,${C.mint} 0%,${C.green} 45%,${C.teal} 100%)`,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>
-            السوق الرقمي
+            Ø§Ù„Ø³ÙˆÙ‚ Ø§Ù„Ø±Ù‚Ù…ÙŠ
           </h1>
           <p style={{ fontSize:'1.05rem',color:'#8db0c0',maxWidth:640,margin:'0 auto 28px',lineHeight:1.75 }}>
-            مساحة متكاملة لعرض البرامج، الاشتراكات، الخدمات، والمنتجات الرقمية — تعزيز الاستدامة الاقتصادية داخل المجرة الحضارية
+            Ù…Ø³Ø§Ø­Ø© Ù…ØªÙƒØ§Ù…Ù„Ø© Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¨Ø±Ø§Ù…Ø¬ØŒ Ø§Ù„Ø§Ø´ØªØ±Ø§ÙƒØ§ØªØŒ Ø§Ù„Ø®Ø¯Ù…Ø§ØªØŒ ÙˆØ§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ø±Ù‚Ù…ÙŠØ© â€” ØªØ¹Ø²ÙŠØ² Ø§Ù„Ø§Ø³ØªØ¯Ø§Ù…Ø© Ø§Ù„Ø§Ù‚ØªØµØ§Ø¯ÙŠØ© Ø¯Ø§Ø®Ù„ Ø§Ù„Ù…Ø¬Ø±Ø© Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠØ©
           </p>
           {canCreate && (
             <Link href="/marketplace/create" style={{ display:'inline-flex',alignItems:'center',gap:10,padding:'13px 30px',borderRadius:32,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'1rem',textDecoration:'none',boxShadow:'0 4px 24px rgba(78,141,156,.38)' }}>
-              <span style={{ fontSize:'1.2rem' }}>+</span> أضف عرضك للسوق
+              <span style={{ fontSize:'1.2rem' }}>+</span> Ø£Ø¶Ù Ø¹Ø±Ø¶Ùƒ Ù„Ù„Ø³ÙˆÙ‚
             </Link>
           )}
         </div>
 
         {/* Stats bar */}
         <div style={{ display:'flex',gap:16,marginBottom:36,justifyContent:'center',flexWrap:'wrap' }}>
-          {[{label:'إجمالي العروض',val:total,icon:'📦'},{label:'مجانية',val:'∞',icon:'🆓'},{label:'مؤسسة مشاركة',val:'10+',icon:'🏛️'}].map(s=>(
+          {[{label:'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¹Ø±ÙˆØ¶',val:total,icon:'ðŸ“¦'},{label:'Ù…Ø¬Ø§Ù†ÙŠØ©',val:'âˆž',icon:'ðŸ†“'},{label:'Ù…Ø¤Ø³Ø³Ø© Ù…Ø´Ø§Ø±ÙƒØ©',val:'10+',icon:'ðŸ›ï¸'}].map(s=>(
             <div key={s.label} style={{ padding:'14px 24px',background:'rgba(255,255,255,.03)',border:'1px solid rgba(78,141,156,.18)',borderRadius:16,textAlign:'center',minWidth:140 }}>
               <div style={{ fontSize:'1.6rem',marginBottom:4 }}>{s.icon}</div>
               <div style={{ fontSize:'1.4rem',fontWeight:900,color:C.teal }}>{s.val}</div>
@@ -172,15 +172,15 @@ export default function MarketplacePage() {
         {/* Search + filters */}
         <div style={{ display:'flex',gap:12,marginBottom:36,flexWrap:'wrap',alignItems:'center' }}>
           <div style={{ flex:1,minWidth:240,position:'relative' }}>
-            <span style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:C.teal,fontSize:'1rem',pointerEvents:'none' }}>🔍</span>
-            <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="ابحث في السوق..."
+            <span style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:C.teal,fontSize:'1rem',pointerEvents:'none' }}>ðŸ”</span>
+            <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø³ÙˆÙ‚..."
               style={{ width:'100%',padding:'10px 42px 10px 16px',borderRadius:24,border:'1px solid rgba(78,141,156,.3)',background:'rgba(78,141,156,.07)',color:'#e8f4f8',fontSize:'.9rem',fontFamily:"'Cairo',sans-serif",outline:'none',boxSizing:'border-box' as const }}/>
           </div>
           <select value={isFree} onChange={e=>{setIsFree(e.target.value);setPage(1);}}
             style={{ padding:'10px 40px 10px 16px',borderRadius:24,border:'1px solid rgba(78,141,156,.3)',background:'rgba(8,5,32,.9)',color:'#e8f4f8',fontSize:'.88rem',fontFamily:"'Cairo',sans-serif",cursor:'pointer',outline:'none',minWidth:150 }}>
-            <option value="">جميع الأسعار</option>
-            <option value="true">مجاني فقط 🆓</option>
-            <option value="false">مدفوع فقط 💰</option>
+            <option value="">Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø£Ø³Ø¹Ø§Ø±</option>
+            <option value="true">Ù…Ø¬Ø§Ù†ÙŠ ÙÙ‚Ø· ðŸ†“</option>
+            <option value="false">Ù…Ø¯ÙÙˆØ¹ ÙÙ‚Ø· ðŸ’°</option>
           </select>
         </div>
 
@@ -188,7 +188,7 @@ export default function MarketplacePage() {
         {loading && (
           <div style={{ textAlign:'center',padding:'60px 0' }}>
             <div style={{ width:36,height:36,border:`3px solid ${C.teal}`,borderTopColor:'transparent',borderRadius:'50%',animation:'spin 1s linear infinite',margin:'0 auto 12px' }}/>
-            <p style={{ color:C.teal }}>جاري تحميل السوق...</p>
+            <p style={{ color:C.teal }}>Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙˆÙ‚...</p>
           </div>
         )}
 
@@ -197,10 +197,10 @@ export default function MarketplacePage() {
           <>
             {items.length === 0 ? (
               <div style={{ textAlign:'center',padding:'60px 20px',background:'rgba(78,141,156,.05)',borderRadius:20,border:'1px solid rgba(78,141,156,.15)' }}>
-                <div style={{ fontSize:'3rem',marginBottom:12 }}>🛍️</div>
-                <p style={{ color:'#8db0c0',fontSize:'1.05rem' }}>لا توجد عروض في هذه الفئة بعد.</p>
+                <div style={{ fontSize:'3rem',marginBottom:12 }}>ðŸ›ï¸</div>
+                <p style={{ color:'#8db0c0',fontSize:'1.05rem' }}>Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ø±ÙˆØ¶ ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„ÙØ¦Ø© Ø¨Ø¹Ø¯.</p>
                 {canCreate && (
-                  <Link href="/marketplace/create" style={{ display:'inline-block',marginTop:20,padding:'10px 24px',borderRadius:24,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'.9rem',textDecoration:'none' }}>كن أول من يضيف عرضاً</Link>
+                  <Link href="/marketplace/create" style={{ display:'inline-block',marginTop:20,padding:'10px 24px',borderRadius:24,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'.9rem',textDecoration:'none' }}>ÙƒÙ† Ø£ÙˆÙ„ Ù…Ù† ÙŠØ¶ÙŠÙ Ø¹Ø±Ø¶Ø§Ù‹</Link>
                 )}
               </div>
             ) : (
@@ -241,7 +241,7 @@ export default function MarketplacePage() {
                             <div style={{ marginBottom:12 }}>
                               {features.slice(0,2).map((f:string)=>(
                                 <div key={f} style={{ display:'flex',alignItems:'flex-start',gap:6,fontSize:'.78rem',color:'#a0bcc8',marginBottom:4 }}>
-                                  <span style={{ color:C.green,flexShrink:0 }}>✓</span>{f}
+                                  <span style={{ color:C.green,flexShrink:0 }}>âœ“</span>{f}
                                 </div>
                               ))}
                             </div>
@@ -275,10 +275,10 @@ export default function MarketplacePage() {
             {total > LIMIT && (
               <div style={{ display:'flex',gap:8,justifyContent:'center',marginTop:40,alignItems:'center' }}>
                 <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}
-                  style={{ padding:'9px 20px',borderRadius:20,border:`1px solid rgba(78,141,156,.3)`,background:'rgba(78,141,156,.07)',color:C.teal,cursor:page===1?'not-allowed':'pointer',opacity:page===1?.4:1,fontFamily:"'Cairo',sans-serif",fontWeight:600 }}>← السابق</button>
-                <span style={{ color:'#8db0c0',fontSize:'.88rem' }}>صفحة {page} من {Math.ceil(total/LIMIT)}</span>
+                  style={{ padding:'9px 20px',borderRadius:20,border:`1px solid rgba(78,141,156,.3)`,background:'rgba(78,141,156,.07)',color:C.teal,cursor:page===1?'not-allowed':'pointer',opacity:page===1?.4:1,fontFamily:"'Cairo',sans-serif",fontWeight:600 }}>â† Ø§Ù„Ø³Ø§Ø¨Ù‚</button>
+                <span style={{ color:'#8db0c0',fontSize:'.88rem' }}>ØµÙØ­Ø© {page} Ù…Ù† {Math.ceil(total/LIMIT)}</span>
                 <button onClick={()=>setPage(p=>p+1)} disabled={page>=Math.ceil(total/LIMIT)}
-                  style={{ padding:'9px 20px',borderRadius:20,border:`1px solid rgba(78,141,156,.3)`,background:'rgba(78,141,156,.07)',color:C.teal,cursor:page>=Math.ceil(total/LIMIT)?'not-allowed':'pointer',opacity:page>=Math.ceil(total/LIMIT)?.4:1,fontFamily:"'Cairo',sans-serif",fontWeight:600 }}>التالي →</button>
+                  style={{ padding:'9px 20px',borderRadius:20,border:`1px solid rgba(78,141,156,.3)`,background:'rgba(78,141,156,.07)',color:C.teal,cursor:page>=Math.ceil(total/LIMIT)?'not-allowed':'pointer',opacity:page>=Math.ceil(total/LIMIT)?.4:1,fontFamily:"'Cairo',sans-serif",fontWeight:600 }}>Ø§Ù„ØªØ§Ù„ÙŠ â†’</button>
               </div>
             )}
           </>
@@ -287,3 +287,4 @@ export default function MarketplacePage() {
     </div>
   );
 }
+

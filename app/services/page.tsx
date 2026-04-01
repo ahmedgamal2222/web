@@ -139,7 +139,7 @@ export default function ServicesPage() {
         <GalaxyLogo />
         <nav style={{ display: 'flex', gap: 6 }}>
           {([
-            { href: '/news', label: 'الأخبار' },
+            { href: '/pulse', label: '💫 نبض المجرة' },
             { href: '/campaigns', label: 'الحملات' },
             { href: '/marketplace', label: 'السوق الرقمي' },
             { href: '/cloud', label: '☁️ SAAS' },

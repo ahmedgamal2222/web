@@ -1,7 +1,8 @@
 ﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, API_BASE } from '@/lib/api';
+import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, fetchPulse, API_BASE } from '@/lib/api';
+import type { PulseItem } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
 
@@ -34,6 +35,7 @@ export default function ScreenPage() {
   const [currentAd, setCurrentAd] = useState<any>(null);
   const [allAds, setAllAds] = useState<any[]>([]);
   const [agreements, setAgreements] = useState<any[]>([]);
+  const [pulse, setPulse] = useState<PulseItem[]>([]);
   const [galaxyData, setGalaxyData] = useState<GalaxyData | null>(null);
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
@@ -137,6 +139,9 @@ export default function ScreenPage() {
         setLectures(lecturesData);
         setGalaxyData(galaxyDataResult);
         setAgreements((agreementsResult as any)?.data ?? []);
+
+        // جلب نبضات المجرة
+        fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
       } catch (err) {
         console.error('Error loading screen data:', err);
       } finally {
@@ -145,7 +150,11 @@ export default function ScreenPage() {
     };
 
     loadData();
-    return () => {};
+    // تحديث النبض كل 30 ثانية
+    const pulseInterval = setInterval(() => {
+      fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
+    }, 30000);
+    return () => { clearInterval(pulseInterval); };
   }, [authenticated, institutionId]);
 
   // متابعة حالة التسجيل عندما يكون CF يعالج الفيديو بعد انتهاء البث
@@ -542,6 +551,63 @@ export default function ScreenPage() {
         }
         .news-list-item:hover { background: rgba(255,215,0,0.04); border-radius: 8px; }
         .news-date { font-size: 0.83rem; color: #FFD700; opacity: 0.75; margin-bottom: 4px; }
+        /* نبض المجرة */
+        .pulse-list {
+          height: calc(100% - 48px);
+          overflow-y: auto;
+          padding: 50px 14px 12px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          direction: rtl;
+        }
+        .pulse-list::-webkit-scrollbar { width: 3px; }
+        .pulse-list::-webkit-scrollbar-thumb { background: rgba(79,195,247,0.35); border-radius: 4px; }
+        .pulse-item {
+          display: flex;
+          gap: 10px;
+          padding: 11px 6px;
+          border-bottom: 1px solid rgba(79,195,247,0.1);
+          cursor: pointer;
+          transition: background 0.18s;
+          position: relative;
+        }
+        .pulse-item:hover { background: rgba(79,195,247,0.06); border-radius: 8px; }
+        .pulse-item.featured { border-bottom-color: rgba(255,215,0,0.3); }
+        .pulse-dot {
+          width: 8px; height: 8px;
+          border-radius: 50%;
+          background: #4fc3f7;
+          flex-shrink: 0;
+          margin-top: 5px;
+          box-shadow: 0 0 6px #4fc3f7;
+        }
+        .pulse-item.featured .pulse-dot {
+          background: #FFD700;
+          box-shadow: 0 0 8px #FFD700;
+          width: 10px; height: 10px;
+        }
+        .pulse-body { flex: 1; min-width: 0; }
+        .pulse-content {
+          color: rgba(255,255,255,0.92);
+          font-size: 0.93rem;
+          line-height: 1.5;
+          font-weight: 500;
+        }
+        .pulse-item.featured .pulse-content { color: #fff; font-weight: 600; }
+        .pulse-time {
+          font-size: 0.78rem;
+          color: rgba(79,195,247,0.65);
+          margin-top: 3px;
+        }
+        .pulse-img {
+          width: 44px; height: 44px;
+          border-radius: 8px;
+          object-fit: cover;
+          flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.1);
+          align-self: center;
+        }
         .news-ticker {
           position: absolute;
           bottom: 0; left: 0; right: 0;
@@ -1082,44 +1148,39 @@ export default function ScreenPage() {
         )}
       </div>
 
-      {/* الربع 3: الأخبار + الفعاليات + الاتفاقيات */}
+      {/* الربع 3: نبض المجرة */}
       <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}>
         <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
           {expandedQuadrant === 3 ? '⊡' : '⊞'}
         </button>
-        <div className="q-header">✦ أخبار المجرة ✦</div>
-        <div className="news-list">
-          {combinedFeed.length > 0 ? combinedFeed.map((item, i) => (
-            <div key={i} className={`news-list-item feed-item feed-${item.type}`} onClick={() => setSelectedItem(item)}>
-              <div className="feed-top">
-                <span className="feed-icon">{item.icon}</span>
-                <span className="news-date">
-                  {new Date(item.date).toLocaleDateString('ar-EG')}
-                </span>
+        <div className="q-header">💫 نبض المجرة</div>
+        <div className="pulse-list">
+          {pulse.length > 0 ? pulse.map((item) => (
+            <div
+              key={item.id}
+              className={`pulse-item${item.is_featured ? ' featured' : ''}`}
+              onClick={() => item.url ? window.open(item.url, '_blank') : undefined}
+            >
+              <div className="pulse-dot" />
+              <div className="pulse-body">
+                <div className="pulse-content">{item.content}</div>
+                <div className="pulse-time">
+                  {new Date(item.pulse_date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
+                </div>
               </div>
-              <div className="feed-title">{item.title}</div>
-              {item.subtitle && (
-                <div className="feed-subtitle">{item.subtitle}</div>
+              {item.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.image_url} alt="" className="pulse-img" />
               )}
             </div>
           )) : (
-            <div className="empty-state">
-              <span className="empty-icon">📰</span>
-              <span>لا توجد أخبار حالياً</span>
+            <div className="empty-state" style={{ height: '100%' }}>
+              <span style={{ fontSize: '2.5rem' }}>💗</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>لا توجد نبضات حتى الآن</span>
+              <span style={{ fontSize: '0.85rem', opacity: 0.45 }}>ستظهر الأنشطة تلقائياً</span>
             </div>
           )}
         </div>
-        {tickerItems.length > 0 && (
-          <div className="news-ticker">
-            <div className="news-items">
-              {tickerItems.map((item: any, i: number) => (
-                <span key={i} className="news-item">
-                  {(item as any).icon ?? '✦'} {item.title}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* الربع 4: إعلانات — عرض إعلان واحد في كل مرة */}

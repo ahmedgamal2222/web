@@ -336,7 +336,7 @@ export default function ForumPage() {
         <GalaxyLogo />
         <nav style={{ display: 'flex', gap: 6 }}>
           {([
-            { href: '/news', label: 'الأخبار' },
+            { href: '/pulse', label: '💫 نبض المجرة' },
             { href: '/campaigns', label: 'الحملات' },
             { href: '/marketplace', label: 'السوق الرقمي' },
             { href: '/cloud', label: '☁️ السحابة' },
@@ -460,3 +460,4 @@ function ThreadRow({ thread, onClick, pinned }: { thread: Thread; onClick: () =>
     </div>
   );
 }
+

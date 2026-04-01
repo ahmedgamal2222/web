@@ -39,7 +39,7 @@ export function GalaxyLogo() {
 }
 
 const NAV_LINKS = [
-  { href: '/news',        label: 'الأخبار' },
+  { href: '/pulse',       label: '💫 نبض المجرة' },
   { href: '/campaigns',   label: 'الحملات' },
   { href: '/marketplace', label: 'السوق الرقمي' },
   { href: '/cloud',       label: '☁️ SAAS' },

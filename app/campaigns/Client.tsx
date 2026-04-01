@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -21,36 +21,36 @@ function GalaxyLogo() {
         <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92"/>
       </svg>
       <div>
-        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>المجرة الحضارية</div>
-        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>كوكبة المؤسسات المضيئة</div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>Ø§Ù„Ù…Ø¬Ø±Ø© Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠØ©</div>
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>ÙƒÙˆÙƒØ¨Ø© Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª Ø§Ù„Ù…Ø¶ÙŠØ¦Ø©</div>
       </div>
     </Link>
   );
 }
 
 const NAV_LINKS = [
-  { href:'/news', label:'الأخبار' }, { href:'/campaigns', label:'الحملات', active:true },
-  { href:'/marketplace', label:'السوق الرقمي' }, { href:'/cloud', label:'☁️ السحابة' },
-  { href:'/services', label:'الخدمات' }, { href:'/library', label:'المكتبة' },
-  { href:'/forum', label:'المنتدى' }, { href:'/podcast', label:'البودكاست' },
+  { href: '/pulse', label:'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±' }, { href:'/campaigns', label:'Ø§Ù„Ø­Ù…Ù„Ø§Øª', active:true },
+  { href:'/marketplace', label:'Ø§Ù„Ø³ÙˆÙ‚ Ø§Ù„Ø±Ù‚Ù…ÙŠ' }, { href:'/cloud', label:'â˜ï¸ Ø§Ù„Ø³Ø­Ø§Ø¨Ø©' },
+  { href:'/services', label:'Ø§Ù„Ø®Ø¯Ù…Ø§Øª' }, { href:'/library', label:'Ø§Ù„Ù…ÙƒØªØ¨Ø©' },
+  { href:'/forum', label:'Ø§Ù„Ù…Ù†ØªØ¯Ù‰' }, { href:'/podcast', label:'Ø§Ù„Ø¨ÙˆØ¯ÙƒØ§Ø³Øª' },
 ];
 
 const CATEGORIES: Record<string, { label:string; icon:string; color:string }> = {
-  all:           { label:'الكل', icon:'🌐', color: C.teal },
-  social:        { label:'اجتماعية', icon:'🤝', color:'#85C79A' },
-  cultural:      { label:'ثقافية', icon:'🎭', color:'#FFD700' },
-  educational:   { label:'تعليمية', icon:'📚', color:'#4E8D9C' },
-  charitable:    { label:'خيرية', icon:'❤️', color:'#FF8BA0' },
-  environmental: { label:'بيئية', icon:'🌿', color:'#6DBF67' },
-  media:         { label:'إعلامية', icon:'📡', color:'#B47FE6' },
-  general:       { label:'عامة', icon:'⭐', color:'#EDF7BD' },
+  all:           { label:'Ø§Ù„ÙƒÙ„', icon:'ðŸŒ', color: C.teal },
+  social:        { label:'Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠØ©', icon:'ðŸ¤', color:'#85C79A' },
+  cultural:      { label:'Ø«Ù‚Ø§ÙÙŠØ©', icon:'ðŸŽ­', color:'#FFD700' },
+  educational:   { label:'ØªØ¹Ù„ÙŠÙ…ÙŠØ©', icon:'ðŸ“š', color:'#4E8D9C' },
+  charitable:    { label:'Ø®ÙŠØ±ÙŠØ©', icon:'â¤ï¸', color:'#FF8BA0' },
+  environmental: { label:'Ø¨ÙŠØ¦ÙŠØ©', icon:'ðŸŒ¿', color:'#6DBF67' },
+  media:         { label:'Ø¥Ø¹Ù„Ø§Ù…ÙŠØ©', icon:'ðŸ“¡', color:'#B47FE6' },
+  general:       { label:'Ø¹Ø§Ù…Ø©', icon:'â­', color:'#EDF7BD' },
 };
 
 const STATUS_LABELS: Record<string, { label:string; color:string }> = {
-  open:      { label:'مفتوحة', color:'#85C79A' },
-  active:    { label:'نشطة', color:'#4E8D9C' },
-  completed: { label:'مكتملة', color:'#9ab0c0' },
-  cancelled: { label:'ملغاة', color:'#ff8080' },
+  open:      { label:'Ù…ÙØªÙˆØ­Ø©', color:'#85C79A' },
+  active:    { label:'Ù†Ø´Ø·Ø©', color:'#4E8D9C' },
+  completed: { label:'Ù…ÙƒØªÙ…Ù„Ø©', color:'#9ab0c0' },
+  cancelled: { label:'Ù…Ù„ØºØ§Ø©', color:'#ff8080' },
 };
 
 interface Campaign {
@@ -130,7 +130,7 @@ export default function CampaignsPage() {
         </nav>
         <div style={{ display:'flex',gap:8,alignItems:'center' }}>
           {!session ? (
-            <Link href="/login" style={{ padding:'7px 18px',borderRadius:22,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'.84rem',textDecoration:'none' }}>دخول</Link>
+            <Link href="/login" style={{ padding:'7px 18px',borderRadius:22,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'.84rem',textDecoration:'none' }}>Ø¯Ø®ÙˆÙ„</Link>
           ) : (
             <Link href="/profile" style={{ display:'flex',alignItems:'center',gap:8,textDecoration:'none',padding:'5px 12px',borderRadius:20,background:'rgba(78,141,156,.12)',border:'1px solid rgba(78,141,156,.25)' }}>
               <div style={{ width:28,height:28,borderRadius:'50%',background:`linear-gradient(135deg,${C.teal},${C.navy})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.8rem',fontWeight:700,color:'#fff' }}>{session.name?.charAt(0)||'U'}</div>
@@ -143,16 +143,16 @@ export default function CampaignsPage() {
       <main style={{ position:'relative',zIndex:1,maxWidth:1200,margin:'0 auto',padding:'40px 20px 80px' }}>
         {/* Hero */}
         <div style={{ textAlign:'center',marginBottom:48 }}>
-          <div style={{ fontSize:'3rem',marginBottom:16 }}>🚀</div>
+          <div style={{ fontSize:'3rem',marginBottom:16 }}>ðŸš€</div>
           <h1 style={{ fontSize:'clamp(1.8rem,5vw,2.8rem)',fontWeight:900,lineHeight:1.3,margin:'0 0 14px',background:`linear-gradient(130deg,${C.mint},${C.green},${C.teal})`,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>
-            الحملات المشتركة
+            Ø§Ù„Ø­Ù…Ù„Ø§Øª Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©
           </h1>
           <p style={{ fontSize:'1.05rem',color:'#8db0c0',maxWidth:600,margin:'0 auto 28px',lineHeight:1.7 }}>
-            مساحة للفعل الجماعي — تكاتف المؤسسات في حملات ذات أهداف مشتركة لتحقيق أثر حضاري حقيقي
+            Ù…Ø³Ø§Ø­Ø© Ù„Ù„ÙØ¹Ù„ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ â€” ØªÙƒØ§ØªÙ Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª ÙÙŠ Ø­Ù…Ù„Ø§Øª Ø°Ø§Øª Ø£Ù‡Ø¯Ø§Ù Ù…Ø´ØªØ±ÙƒØ© Ù„ØªØ­Ù‚ÙŠÙ‚ Ø£Ø«Ø± Ø­Ø¶Ø§Ø±ÙŠ Ø­Ù‚ÙŠÙ‚ÙŠ
           </p>
           {canCreate && (
             <Link href="/campaigns/create" style={{ display:'inline-flex',alignItems:'center',gap:10,padding:'12px 28px',borderRadius:30,background:`linear-gradient(135deg,${C.teal},${C.navy})`,color:'#fff',fontWeight:700,fontSize:'1rem',textDecoration:'none',boxShadow:'0 4px 20px rgba(78,141,156,.35)' }}>
-              <span style={{ fontSize:'1.2rem' }}>+</span> إطلاق حملة جديدة
+              <span style={{ fontSize:'1.2rem' }}>+</span> Ø¥Ø·Ù„Ø§Ù‚ Ø­Ù…Ù„Ø© Ø¬Ø¯ÙŠØ¯Ø©
             </Link>
           )}
         </div>
@@ -161,17 +161,17 @@ export default function CampaignsPage() {
         <div style={{ display:'flex',gap:12,marginBottom:32,flexWrap:'wrap',alignItems:'center' }}>
           {/* Search */}
           <div style={{ flex:1,minWidth:220,position:'relative' }}>
-            <span style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#4E8D9C',fontSize:'1rem',pointerEvents:'none' }}>🔍</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ابحث عن حملة..."
+            <span style={{ position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',color:'#4E8D9C',fontSize:'1rem',pointerEvents:'none' }}>ðŸ”</span>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Ø§Ø¨Ø­Ø« Ø¹Ù† Ø­Ù…Ù„Ø©..."
               style={{ width:'100%',padding:'10px 42px 10px 16px',borderRadius:24,border:'1px solid rgba(78,141,156,.3)',background:'rgba(78,141,156,.07)',color:'#e8f4f8',fontSize:'.9rem',fontFamily:"'Cairo',sans-serif",outline:'none',boxSizing:'border-box' }}/>
           </div>
           {/* Status */}
           <select value={status} onChange={e=>setStatus(e.target.value)}
             style={{ padding:'10px 40px 10px 16px',borderRadius:24,border:'1px solid rgba(78,141,156,.3)',background:'rgba(8,5,32,.9)',color:'#e8f4f8',fontSize:'.88rem',fontFamily:"'Cairo',sans-serif",cursor:'pointer',outline:'none',minWidth:160 }}>
-            <option value="">جميع الحالات</option>
-            <option value="open">مفتوحة</option>
-            <option value="active">نشطة</option>
-            <option value="completed">مكتملة</option>
+            <option value="">Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª</option>
+            <option value="open">Ù…ÙØªÙˆØ­Ø©</option>
+            <option value="active">Ù†Ø´Ø·Ø©</option>
+            <option value="completed">Ù…ÙƒØªÙ…Ù„Ø©</option>
           </select>
         </div>
 
@@ -189,7 +189,7 @@ export default function CampaignsPage() {
         {loading && (
           <div style={{ textAlign:'center',padding:'60px 0' }}>
             <div style={{ width:36,height:36,border:`3px solid ${C.teal}`,borderTopColor:'transparent',borderRadius:'50%',animation:'spin 1s linear infinite',margin:'0 auto 12px' }}/>
-            <p style={{ color:C.teal }}>جاري تحميل الحملات...</p>
+            <p style={{ color:C.teal }}>Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø­Ù…Ù„Ø§Øª...</p>
           </div>
         )}
 
@@ -198,8 +198,8 @@ export default function CampaignsPage() {
           <>
             {filtered.length === 0 ? (
               <div style={{ textAlign:'center',padding:'60px 20px',background:'rgba(78,141,156,.05)',borderRadius:20,border:'1px solid rgba(78,141,156,.15)' }}>
-                <div style={{ fontSize:'3rem',marginBottom:12 }}>🌌</div>
-                <p style={{ color:'#8db0c0',fontSize:'1.05rem' }}>لا توجد حملات بعد. كن أول من يطلق حملة!</p>
+                <div style={{ fontSize:'3rem',marginBottom:12 }}>ðŸŒŒ</div>
+                <p style={{ color:'#8db0c0',fontSize:'1.05rem' }}>Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ù…Ù„Ø§Øª Ø¨Ø¹Ø¯. ÙƒÙ† Ø£ÙˆÙ„ Ù…Ù† ÙŠØ·Ù„Ù‚ Ø­Ù…Ù„Ø©!</p>
               </div>
             ) : (
               <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))',gap:24 }}>
@@ -235,10 +235,10 @@ export default function CampaignsPage() {
                           {/* Meta */}
                           <div style={{ display:'flex',gap:14,fontSize:'.78rem',color:'#6a8090',marginBottom:12,flexWrap:'wrap' }}>
                             {camp.members_count !== undefined && (
-                              <span>👥 {camp.members_count} مؤسسة شريكة</span>
+                              <span>ðŸ‘¥ {camp.members_count} Ù…Ø¤Ø³Ø³Ø© Ø´Ø±ÙŠÙƒØ©</span>
                             )}
-                            {camp.location && <span>📍 {camp.location}</span>}
-                            {camp.start_date && <span>📅 {formatDate(camp.start_date)}</span>}
+                            {camp.location && <span>ðŸ“ {camp.location}</span>}
+                            {camp.start_date && <span>ðŸ“… {formatDate(camp.start_date)}</span>}
                           </div>
                           {/* Institution */}
                           {camp.creator_institution_name && (
@@ -271,3 +271,4 @@ export default function CampaignsPage() {
     </div>
   );
 }
+

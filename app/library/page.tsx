@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
@@ -16,18 +16,18 @@ const COLORS = {
 };
 
 const CATEGORIES = [
-  { value: 'all', label: 'الكل', icon: '📚', color: COLORS.teal },
-  { value: 'institution_book', label: 'كتب المؤسسات', icon: '🏛️', color: '#85C79A' },
-  { value: 'sector_book', label: 'كتب القطاع الحضاري', icon: '🌟', color: '#FFD700' },
-  { value: 'report', label: 'التقارير', icon: '📊', color: '#FF9B4E' },
-  { value: 'subscription', label: 'اشتراكات خارجية', icon: '🔗', color: '#C084FC' },
+  { value: 'all', label: 'Ø§Ù„ÙƒÙ„', icon: 'ðŸ“š', color: COLORS.teal },
+  { value: 'institution_book', label: 'ÙƒØªØ¨ Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª', icon: 'ðŸ›ï¸', color: '#85C79A' },
+  { value: 'sector_book', label: 'ÙƒØªØ¨ Ø§Ù„Ù‚Ø·Ø§Ø¹ Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠ', icon: 'ðŸŒŸ', color: '#FFD700' },
+  { value: 'report', label: 'Ø§Ù„ØªÙ‚Ø§Ø±ÙŠØ±', icon: 'ðŸ“Š', color: '#FF9B4E' },
+  { value: 'subscription', label: 'Ø§Ø´ØªØ±Ø§ÙƒØ§Øª Ø®Ø§Ø±Ø¬ÙŠØ©', icon: 'ðŸ”—', color: '#C084FC' },
 ];
 
 const CATEGORY_LABEL: Record<string, string> = {
-  institution_book: 'كتب المؤسسات',
-  sector_book: 'كتب القطاع الحضاري',
-  report: 'تقرير',
-  subscription: 'اشتراك خارجي',
+  institution_book: 'ÙƒØªØ¨ Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª',
+  sector_book: 'ÙƒØªØ¨ Ø§Ù„Ù‚Ø·Ø§Ø¹ Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠ',
+  report: 'ØªÙ‚Ø±ÙŠØ±',
+  subscription: 'Ø§Ø´ØªØ±Ø§Ùƒ Ø®Ø§Ø±Ø¬ÙŠ',
 };
 
 const CATEGORY_COLOR: Record<string, string> = {
@@ -71,8 +71,8 @@ function GalaxyLogo() {
         <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
       </svg>
       <div>
-        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>المجرة الحضارية</div>
-        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>كوكبة المؤسسات المضيئة</div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>Ø§Ù„Ù…Ø¬Ø±Ø© Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠØ©</div>
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>ÙƒÙˆÙƒØ¨Ø© Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª Ø§Ù„Ù…Ø¶ÙŠØ¦Ø©</div>
       </div>
     </Link>
   );
@@ -97,7 +97,7 @@ function BookCover({ book }: { book: Book }) {
       border: `1px solid ${catColor}30`,
     }}>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <div style={{ fontSize: '2rem', opacity: 0.4 }}>📖</div>
+        <div style={{ fontSize: '2rem', opacity: 0.4 }}>ðŸ“–</div>
         <div style={{ fontSize: '1.1rem', fontWeight: 900, color: catColor, opacity: 0.6, direction: 'rtl' }}>{initials}</div>
         <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 30% 30%, ${catColor}18, transparent 70%)` }} />
       </div>
@@ -142,9 +142,9 @@ function BookCard({ book, onClick }: { book: Book; onClick: () => void }) {
             {CATEGORY_LABEL[book.category] || book.category}
           </span>
           {book.is_free ? (
-            <span style={{ background: 'rgba(133,199,154,0.15)', color: '#85C79A', padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>مجاني</span>
+            <span style={{ background: 'rgba(133,199,154,0.15)', color: '#85C79A', padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>Ù…Ø¬Ø§Ù†ÙŠ</span>
           ) : (
-            <span style={{ background: 'rgba(255,155,78,0.15)', color: '#FF9B4E', padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>اشتراك</span>
+            <span style={{ background: 'rgba(255,155,78,0.15)', color: '#FF9B4E', padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>Ø§Ø´ØªØ±Ø§Ùƒ</span>
           )}
         </div>
 
@@ -153,7 +153,7 @@ function BookCard({ book, onClick }: { book: Book; onClick: () => void }) {
         </h3>
 
         {book.author && (
-          <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: 0 }}>✍️ {book.author}</p>
+          <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: 0 }}>âœï¸ {book.author}</p>
         )}
 
         {book.description && (
@@ -165,7 +165,7 @@ function BookCard({ book, onClick }: { book: Book; onClick: () => void }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 8, borderTop: `1px solid ${catColor}18` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {book.year && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{book.year}</span>}
-            {book.pages && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{book.pages} صفحة</span>}
+            {book.pages && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{book.pages} ØµÙØ­Ø©</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#6b7280', fontSize: '0.75rem' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -201,22 +201,22 @@ function BookModal({ book, onClose }: { book: Book; onClose: () => void }) {
                   {CATEGORY_LABEL[book.category] || book.category}
                 </span>
                 {book.is_free ? (
-                  <span style={{ background: 'rgba(133,199,154,0.2)', color: '#85C79A', padding: '4px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>مجاني</span>
+                  <span style={{ background: 'rgba(133,199,154,0.2)', color: '#85C79A', padding: '4px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>Ù…Ø¬Ø§Ù†ÙŠ</span>
                 ) : (
-                  <span style={{ background: 'rgba(255,155,78,0.2)', color: '#FF9B4E', padding: '4px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>اشتراك مطلوب</span>
+                  <span style={{ background: 'rgba(255,155,78,0.2)', color: '#FF9B4E', padding: '4px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>Ø§Ø´ØªØ±Ø§Ùƒ Ù…Ø·Ù„ÙˆØ¨</span>
                 )}
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.3, marginBottom: 6 }}>{book.title}</h2>
               {book.title_en && <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>{book.title_en}</p>}
             </div>
-            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '8px 14px', cursor: 'pointer', color: '#fff', fontSize: '1rem', marginRight: 8, flexShrink: 0 }}>✕</button>
+            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '8px 14px', cursor: 'pointer', color: '#fff', fontSize: '1rem', marginRight: 8, flexShrink: 0 }}>âœ•</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
             {[
-              { label: 'المؤلف', value: book.author || '—' },
-              { label: 'السنة', value: book.year?.toString() || '—' },
-              { label: 'الصفحات', value: book.pages ? `${book.pages} صفحة` : '—' },
+              { label: 'Ø§Ù„Ù…Ø¤Ù„Ù', value: book.author || 'â€”' },
+              { label: 'Ø§Ù„Ø³Ù†Ø©', value: book.year?.toString() || 'â€”' },
+              { label: 'Ø§Ù„ØµÙØ­Ø§Øª', value: book.pages ? `${book.pages} ØµÙØ­Ø©` : 'â€”' },
             ].map(item => (
               <div key={item.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '12px 16px', textAlign: 'center' }}>
                 <div style={{ fontSize: '0.72rem', color: '#4E8D9C', fontWeight: 700, marginBottom: 4 }}>{item.label}</div>
@@ -253,10 +253,10 @@ function BookModal({ book, onClose }: { book: Book; onClose: () => void }) {
                 style={{ flex: 1, padding: '14px 24px', background: `linear-gradient(135deg, ${catColor}, #85C79A)`, border: 'none', borderRadius: 14, cursor: 'pointer', color: '#1a1240', fontSize: '0.95rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: `0 8px 24px ${catColor}40`, transition: 'all 0.2s' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                {book.file_url ? 'تحميل الكتاب' : 'فتح الرابط'}
+                {book.file_url ? 'ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙƒØªØ§Ø¨' : 'ÙØªØ­ Ø§Ù„Ø±Ø§Ø¨Ø·'}
               </button>
             )}
-            <button onClick={onClose} style={{ padding: '14px 20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, cursor: 'pointer', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>إغلاق</button>
+            <button onClick={onClose} style={{ padding: '14px 20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, cursor: 'pointer', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>Ø¥ØºÙ„Ø§Ù‚</button>
           </div>
         </div>
       </div>
@@ -307,16 +307,16 @@ export default function LibraryPage() {
       xhr.upload.addEventListener('progress', e => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100)); });
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try { const d = JSON.parse(xhr.responseText); if (d.url) resolve(d.url); else reject(new Error(d.error || 'لا يوجد رابط')); }
-          catch { reject(new Error('استجابة غير صالحة')); }
+          try { const d = JSON.parse(xhr.responseText); if (d.url) resolve(d.url); else reject(new Error(d.error || 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø±Ø§Ø¨Ø·')); }
+          catch { reject(new Error('Ø§Ø³ØªØ¬Ø§Ø¨Ø© ØºÙŠØ± ØµØ§Ù„Ø­Ø©')); }
         } else {
           try { const er = JSON.parse(xhr.responseText); reject(new Error(er.error || `HTTP ${xhr.status}`)); }
-          catch { reject(new Error(`فشل HTTP ${xhr.status}`)); }
+          catch { reject(new Error(`ÙØ´Ù„ HTTP ${xhr.status}`)); }
         }
       };
-      xhr.onerror   = () => reject(new Error('فشل الاتصال'));
+      xhr.onerror   = () => reject(new Error('ÙØ´Ù„ Ø§Ù„Ø§ØªØµØ§Ù„'));
       xhr.timeout   = 120000;
-      xhr.ontimeout = () => reject(new Error('انتهت مهلة الرفع'));
+      xhr.ontimeout = () => reject(new Error('Ø§Ù†ØªÙ‡Øª Ù…Ù‡Ù„Ø© Ø§Ù„Ø±ÙØ¹'));
       xhr.send(fd);
     });
 
@@ -345,7 +345,7 @@ export default function LibraryPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!createForm.title.trim()) { setCreateErr('العنوان مطلوب'); return; }
+    if (!createForm.title.trim()) { setCreateErr('Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ù…Ø·Ù„ÙˆØ¨'); return; }
     setCreating(true); setCreateErr('');
     try {
       const tagsArr = createForm.tags ? createForm.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -370,7 +370,7 @@ export default function LibraryPage() {
         }),
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.message || 'فشل الإضافة');
+      if (!data.success) throw new Error(data.message || 'ÙØ´Ù„ Ø§Ù„Ø¥Ø¶Ø§ÙØ©');
       setShowCreate(false);
       setCreateForm({ title: '', title_en: '', author: '', description: '', file_url: '', external_url: '', cover_url: '', year: '', pages: '', tags: '', is_free: true, language: 'ar' });
       setPdfUpload({ file: null, progress: 0, uploading: false });
@@ -403,14 +403,14 @@ export default function LibraryPage() {
         <GalaxyLogo />
         <nav style={{ display: 'flex', gap: 6 }}>
           {([
-            { href: '/news', label: 'الأخبار' },
-            { href: '/campaigns', label: 'الحملات' },
-            { href: '/marketplace', label: 'السوق الرقمي' },
-            { href: '/cloud', label: '☁️ السحابة' },
-            { href: '/services', label: 'الخدمات' },
-            { href: '/library', label: 'المكتبة', active: true },
-            { href: '/forum', label: 'المنتدى' },
-            { href: '/podcast', label: 'البودكاست' },
+            { href: '/pulse', label: 'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±' },
+            { href: '/campaigns', label: 'Ø§Ù„Ø­Ù…Ù„Ø§Øª' },
+            { href: '/marketplace', label: 'Ø§Ù„Ø³ÙˆÙ‚ Ø§Ù„Ø±Ù‚Ù…ÙŠ' },
+            { href: '/cloud', label: 'â˜ï¸ Ø§Ù„Ø³Ø­Ø§Ø¨Ø©' },
+            { href: '/services', label: 'Ø§Ù„Ø®Ø¯Ù…Ø§Øª' },
+            { href: '/library', label: 'Ø§Ù„Ù…ÙƒØªØ¨Ø©', active: true },
+            { href: '/forum', label: 'Ø§Ù„Ù…Ù†ØªØ¯Ù‰' },
+            { href: '/podcast', label: 'Ø§Ù„Ø¨ÙˆØ¯ÙƒØ§Ø³Øª' },
           ] as Array<{ href: string; label: string; active?: boolean }>).map(link => (
             <Link key={link.href} href={link.href} style={{ padding: '8px 16px', borderRadius: 24, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, color: link.active ? '#fff' : '#9ca3af', background: link.active ? 'linear-gradient(135deg, #4E8D9C, #85C79A)' : 'transparent', border: link.active ? 'none' : '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s' }}>{link.label}</Link>
           ))}
@@ -421,17 +421,17 @@ export default function LibraryPage() {
         {/* Hero */}
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, background: 'rgba(78,141,156,0.1)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 40, padding: '8px 20px', marginBottom: 24 }}>
-            <span style={{ fontSize: '1.2rem' }}>📚</span>
+            <span style={{ fontSize: '1.2rem' }}>ðŸ“š</span>
             <span style={{ fontSize: '0.85rem', color: COLORS.teal, fontWeight: 700, letterSpacing: '0.1em' }}>GALAXY LIBRARY</span>
           </div>
           <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 900, lineHeight: 1.1, margin: '0 0 16px', background: 'linear-gradient(135deg, #fff 0%, #EDF7BD 40%, #85C79A 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            مكتبة المجرة الحضارية
+            Ù…ÙƒØªØ¨Ø© Ø§Ù„Ù…Ø¬Ø±Ø© Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠØ©
           </h1>
           <p style={{ fontSize: '1.1rem', color: '#64748b', maxWidth: 560, margin: '0 auto', lineHeight: 1.8 }}>
-            المستودع المعرفي للمؤسسات — كتب، تقارير، ومصادر معرفية منتقاة لبناء القطاع الحضاري
+            Ø§Ù„Ù…Ø³ØªÙˆØ¯Ø¹ Ø§Ù„Ù…Ø¹Ø±ÙÙŠ Ù„Ù„Ù…Ø¤Ø³Ø³Ø§Øª â€” ÙƒØªØ¨ØŒ ØªÙ‚Ø§Ø±ÙŠØ±ØŒ ÙˆÙ…ØµØ§Ø¯Ø± Ù…Ø¹Ø±ÙÙŠØ© Ù…Ù†ØªÙ‚Ø§Ø© Ù„Ø¨Ù†Ø§Ø¡ Ø§Ù„Ù‚Ø·Ø§Ø¹ Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠ
           </p>
           <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 24, flexWrap: 'wrap' }}>
-            {[{ icon: '📖', label: 'كتب المؤسسات' }, { icon: '📊', label: 'تقارير القطاع' }, { icon: '🔗', label: 'اشتراكات خارجية' }].map(f => (
+            {[{ icon: 'ðŸ“–', label: 'ÙƒØªØ¨ Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª' }, { icon: 'ðŸ“Š', label: 'ØªÙ‚Ø§Ø±ÙŠØ± Ø§Ù„Ù‚Ø·Ø§Ø¹' }, { icon: 'ðŸ”—', label: 'Ø§Ø´ØªØ±Ø§ÙƒØ§Øª Ø®Ø§Ø±Ø¬ÙŠØ©' }].map(f => (
               <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#64748b' }}>
                 <span>{f.icon}</span><span>{f.label}</span>
               </div>
@@ -455,7 +455,7 @@ export default function LibraryPage() {
             <input
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              placeholder="ابحث في الكتب والتقارير والمصادر المعرفية..."
+              placeholder="Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„ÙƒØªØ¨ ÙˆØ§Ù„ØªÙ‚Ø§Ø±ÙŠØ± ÙˆØ§Ù„Ù…ØµØ§Ø¯Ø± Ø§Ù„Ù…Ø¹Ø±ÙÙŠØ©..."
               style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: "'Cairo', sans-serif", outline: 'none', minWidth: 0 }}
             />
             {/* Search btn */}
@@ -468,7 +468,7 @@ export default function LibraryPage() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
-              بحث
+              Ø¨Ø­Ø«
             </button>
             {/* Add Book btn */}
             {canAddBook && (
@@ -482,7 +482,7 @@ export default function LibraryPage() {
                   onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${COLORS.darkNavy} 0%, #3a2a8a 100%)`; e.currentTarget.style.color = COLORS.softGreen; e.currentTarget.style.borderColor = 'rgba(133,199,154,0.35)'; e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.08)'; }}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  إضافة كتاب
+                  Ø¥Ø¶Ø§ÙØ© ÙƒØªØ§Ø¨
                 </button>
               </>
             )}
@@ -505,7 +505,7 @@ export default function LibraryPage() {
         {/* Count */}
         {!loading && (
           <div style={{ textAlign: 'center', marginBottom: 32, fontSize: '0.88rem', color: '#4b5563' }}>
-            {total > 0 ? `${total} كتاب ومصدر معرفي` : 'لا توجد نتائج'}
+            {total > 0 ? `${total} ÙƒØªØ§Ø¨ ÙˆÙ…ØµØ¯Ø± Ù…Ø¹Ø±ÙÙŠ` : 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬'}
           </div>
         )}
 
@@ -518,9 +518,9 @@ export default function LibraryPage() {
           </div>
         ) : books.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#4b5563' }}>
-            <div style={{ fontSize: '4rem', marginBottom: 16, opacity: 0.3 }}>📚</div>
-            <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>المكتبة تترقب إضافاتك</p>
-            <p style={{ fontSize: '0.9rem', marginTop: 8, opacity: 0.7 }}>كن أول من يضيف كتاباً للمجرة الحضارية</p>
+            <div style={{ fontSize: '4rem', marginBottom: 16, opacity: 0.3 }}>ðŸ“š</div>
+            <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>Ø§Ù„Ù…ÙƒØªØ¨Ø© ØªØªØ±Ù‚Ø¨ Ø¥Ø¶Ø§ÙØ§ØªÙƒ</p>
+            <p style={{ fontSize: '0.9rem', marginTop: 8, opacity: 0.7 }}>ÙƒÙ† Ø£ÙˆÙ„ Ù…Ù† ÙŠØ¶ÙŠÙ ÙƒØªØ§Ø¨Ø§Ù‹ Ù„Ù„Ù…Ø¬Ø±Ø© Ø§Ù„Ø­Ø¶Ø§Ø±ÙŠØ©</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
@@ -534,11 +534,11 @@ export default function LibraryPage() {
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 48 }}>
             {page > 1 && (
-              <button onClick={() => setPage(p => p - 1)} style={{ padding: '10px 22px', background: 'rgba(78,141,156,0.1)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 40, color: COLORS.teal, cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontWeight: 600 }}>السابق</button>
+              <button onClick={() => setPage(p => p - 1)} style={{ padding: '10px 22px', background: 'rgba(78,141,156,0.1)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 40, color: COLORS.teal, cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontWeight: 600 }}>Ø§Ù„Ø³Ø§Ø¨Ù‚</button>
             )}
-            <span style={{ padding: '10px 20px', color: '#6b7280', fontSize: '0.9rem' }}>صفحة {page} من {totalPages}</span>
+            <span style={{ padding: '10px 20px', color: '#6b7280', fontSize: '0.9rem' }}>ØµÙØ­Ø© {page} Ù…Ù† {totalPages}</span>
             {page < totalPages && (
-              <button onClick={() => setPage(p => p + 1)} style={{ padding: '10px 22px', background: 'rgba(78,141,156,0.1)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 40, color: COLORS.teal, cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontWeight: 600 }}>التالي</button>
+              <button onClick={() => setPage(p => p + 1)} style={{ padding: '10px 22px', background: 'rgba(78,141,156,0.1)', border: '1px solid rgba(78,141,156,0.3)', borderRadius: 40, color: COLORS.teal, cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontWeight: 600 }}>Ø§Ù„ØªØ§Ù„ÙŠ</button>
             )}
           </div>
         )}
@@ -580,88 +580,88 @@ export default function LibraryPage() {
               {/* Header */}
               <div style={{ padding: '26px 30px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <h2 style={{ color: '#fff', margin: 0, fontSize: '1.25rem', fontWeight: 900 }}>📚 إضافة كتاب لمؤسستك</h2>
-                  <p style={{ color: '#4b5563', margin: '5px 0 0', fontSize: '0.82rem' }}>ارفع ملفاتك مباشرة أو أدخل الروابط</p>
+                  <h2 style={{ color: '#fff', margin: 0, fontSize: '1.25rem', fontWeight: 900 }}>ðŸ“š Ø¥Ø¶Ø§ÙØ© ÙƒØªØ§Ø¨ Ù„Ù…Ø¤Ø³Ø³ØªÙƒ</h2>
+                  <p style={{ color: '#4b5563', margin: '5px 0 0', fontSize: '0.82rem' }}>Ø§Ø±ÙØ¹ Ù…Ù„ÙØ§ØªÙƒ Ù…Ø¨Ø§Ø´Ø±Ø© Ø£Ùˆ Ø£Ø¯Ø®Ù„ Ø§Ù„Ø±ÙˆØ§Ø¨Ø·</p>
                 </div>
-                <button onClick={resetModal} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, width: 36, height: 36, color: '#9ca3af', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+                <button onClick={resetModal} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, width: 36, height: 36, color: '#9ca3af', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>âœ•</button>
               </div>
 
               <div style={{ padding: '20px 30px 30px' }}>
                 {createErr && (
                   <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '11px 16px', color: '#f87171', marginBottom: 18, fontSize: '0.85rem', display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span>⚠️</span>{createErr}
+                    <span>âš ï¸</span>{createErr}
                   </div>
                 )}
 
                 <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-                  {/* ── Basic Info ── */}
+                  {/* â”€â”€ Basic Info â”€â”€ */}
                   <div style={{ background: 'rgba(78,141,156,0.06)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 16, overflow: 'hidden' }}>
                     <div style={{ padding: '11px 18px', borderBottom: '1px solid rgba(78,141,156,0.15)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: '0.95rem' }}>📋</span>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: COLORS.teal }}>المعلومات الأساسية</span>
+                      <span style={{ fontSize: '0.95rem' }}>ðŸ“‹</span>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: COLORS.teal }}>Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©</span>
                     </div>
                     <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                         <div>
-                          <label style={lS}>العنوان بالعربية *</label>
-                          <input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} required placeholder="عنوان الكتاب" style={iS} />
+                          <label style={lS}>Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© *</label>
+                          <input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} required placeholder="Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ÙƒØªØ§Ø¨" style={iS} />
                         </div>
                         <div>
-                          <label style={lS}>العنوان بالإنجليزية</label>
+                          <label style={lS}>Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø¨Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©</label>
                           <input value={createForm.title_en} onChange={e => setCreateForm(p => ({ ...p, title_en: e.target.value }))} placeholder="Book Title" style={iS} />
                         </div>
                         <div>
-                          <label style={lS}>المؤلف</label>
-                          <input value={createForm.author} onChange={e => setCreateForm(p => ({ ...p, author: e.target.value }))} placeholder="اسم المؤلف" style={iS} />
+                          <label style={lS}>Ø§Ù„Ù…Ø¤Ù„Ù</label>
+                          <input value={createForm.author} onChange={e => setCreateForm(p => ({ ...p, author: e.target.value }))} placeholder="Ø§Ø³Ù… Ø§Ù„Ù…Ø¤Ù„Ù" style={iS} />
                         </div>
                         <div>
-                          <label style={lS}>اللغة</label>
+                          <label style={lS}>Ø§Ù„Ù„ØºØ©</label>
                           <select value={createForm.language} onChange={e => setCreateForm(p => ({ ...p, language: e.target.value }))} style={{ ...iS, cursor: 'pointer' }}>
-                            <option value="ar" style={{ background: '#1a1240' }}>العربية</option>
-                            <option value="en" style={{ background: '#1a1240' }}>الإنجليزية</option>
-                            <option value="other" style={{ background: '#1a1240' }}>أخرى</option>
+                            <option value="ar" style={{ background: '#1a1240' }}>Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</option>
+                            <option value="en" style={{ background: '#1a1240' }}>Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©</option>
+                            <option value="other" style={{ background: '#1a1240' }}>Ø£Ø®Ø±Ù‰</option>
                           </select>
                         </div>
                       </div>
                       <div>
-                        <label style={lS}>الوصف</label>
-                        <textarea value={createForm.description} onChange={e => setCreateForm(p => ({ ...p, description: e.target.value }))} rows={2} placeholder="وصف مختصر للكتاب..." style={{ ...iS, resize: 'vertical' }} />
+                        <label style={lS}>Ø§Ù„ÙˆØµÙ</label>
+                        <textarea value={createForm.description} onChange={e => setCreateForm(p => ({ ...p, description: e.target.value }))} rows={2} placeholder="ÙˆØµÙ Ù…Ø®ØªØµØ± Ù„Ù„ÙƒØªØ§Ø¨..." style={{ ...iS, resize: 'vertical' }} />
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                         <div>
-                          <label style={lS}>سنة النشر</label>
+                          <label style={lS}>Ø³Ù†Ø© Ø§Ù„Ù†Ø´Ø±</label>
                           <input type="number" value={createForm.year} onChange={e => setCreateForm(p => ({ ...p, year: e.target.value }))} placeholder={String(new Date().getFullYear())} min="1800" max="2099" style={iS} />
                         </div>
                         <div>
-                          <label style={lS}>عدد الصفحات</label>
+                          <label style={lS}>Ø¹Ø¯Ø¯ Ø§Ù„ØµÙØ­Ø§Øª</label>
                           <input type="number" value={createForm.pages} onChange={e => setCreateForm(p => ({ ...p, pages: e.target.value }))} placeholder="200" min="1" style={iS} />
                         </div>
                         <div>
-                          <label style={lS}>النوع</label>
+                          <label style={lS}>Ø§Ù„Ù†ÙˆØ¹</label>
                           <select value={createForm.is_free ? 'free' : 'paid'} onChange={e => setCreateForm(p => ({ ...p, is_free: e.target.value === 'free' }))} style={{ ...iS, cursor: 'pointer' }}>
-                            <option value="free" style={{ background: '#1a1240' }}>🆓 مجاني</option>
-                            <option value="paid" style={{ background: '#1a1240' }}>🔒 اشتراك</option>
+                            <option value="free" style={{ background: '#1a1240' }}>ðŸ†“ Ù…Ø¬Ø§Ù†ÙŠ</option>
+                            <option value="paid" style={{ background: '#1a1240' }}>ðŸ”’ Ø§Ø´ØªØ±Ø§Ùƒ</option>
                           </select>
                         </div>
                       </div>
                       <div>
-                        <label style={lS}>الوسوم (مفصولة بفاصلة)</label>
-                        <input value={createForm.tags} onChange={e => setCreateForm(p => ({ ...p, tags: e.target.value }))} placeholder="قيادة، إدارة، ثقافة..." style={iS} />
+                        <label style={lS}>Ø§Ù„ÙˆØ³ÙˆÙ… (Ù…ÙØµÙˆÙ„Ø© Ø¨ÙØ§ØµÙ„Ø©)</label>
+                        <input value={createForm.tags} onChange={e => setCreateForm(p => ({ ...p, tags: e.target.value }))} placeholder="Ù‚ÙŠØ§Ø¯Ø©ØŒ Ø¥Ø¯Ø§Ø±Ø©ØŒ Ø«Ù‚Ø§ÙØ©..." style={iS} />
                       </div>
                     </div>
                   </div>
 
-                  {/* ── PDF Upload ── */}
+                  {/* â”€â”€ PDF Upload â”€â”€ */}
                   <div style={{ background: 'rgba(255,155,78,0.05)', border: '1px solid rgba(255,155,78,0.2)', borderRadius: 16, overflow: 'hidden' }}>
                     <div style={{ padding: '11px 18px', borderBottom: '1px solid rgba(255,155,78,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: '0.95rem' }}>📄</span>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FF9B4E' }}>ملف الكتاب</span>
+                        <span style={{ fontSize: '0.95rem' }}>ðŸ“„</span>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FF9B4E' }}>Ù…Ù„Ù Ø§Ù„ÙƒØªØ§Ø¨</span>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <TabPill active={fileTab === 'upload'} onClick={() => setFileTab('upload')}>⬆️ رفع</TabPill>
-                        <TabPill active={fileTab === 'url'} onClick={() => setFileTab('url')}>🔗 رابط</TabPill>
+                        <TabPill active={fileTab === 'upload'} onClick={() => setFileTab('upload')}>â¬†ï¸ Ø±ÙØ¹</TabPill>
+                        <TabPill active={fileTab === 'url'} onClick={() => setFileTab('url')}>ðŸ”— Ø±Ø§Ø¨Ø·</TabPill>
                       </div>
                     </div>
                     <div style={{ padding: '16px 18px' }}>
@@ -669,18 +669,18 @@ export default function LibraryPage() {
                         <input value={createForm.file_url} onChange={e => setCreateForm(p => ({ ...p, file_url: e.target.value }))} placeholder="https://..." style={iS} />
                       ) : createForm.file_url && pdfUpload.file ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(133,199,154,0.08)', border: '1px solid rgba(133,199,154,0.3)', borderRadius: 12 }}>
-                          <span style={{ fontSize: '1.5rem' }}>✅</span>
+                          <span style={{ fontSize: '1.5rem' }}>âœ…</span>
                           <div style={{ flex: 1, overflow: 'hidden' }}>
-                            <div style={{ fontWeight: 700, color: '#85C79A', fontSize: '0.85rem' }}>تم الرفع بنجاح</div>
+                            <div style={{ fontWeight: 700, color: '#85C79A', fontSize: '0.85rem' }}>ØªÙ… Ø§Ù„Ø±ÙØ¹ Ø¨Ù†Ø¬Ø§Ø­</div>
                             <div style={{ fontSize: '0.72rem', color: '#4ade80', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{createForm.file_url}</div>
                           </div>
-                          <button type="button" onClick={() => { setPdfUpload({ file: null, progress: 0, uploading: false }); setCreateForm(p => ({ ...p, file_url: '' })); }} style={{ padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>تغيير</button>
+                          <button type="button" onClick={() => { setPdfUpload({ file: null, progress: 0, uploading: false }); setCreateForm(p => ({ ...p, file_url: '' })); }} style={{ padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>ØªØºÙŠÙŠØ±</button>
                         </div>
                       ) : pdfUpload.uploading ? (
                         <div style={{ padding: '16px', background: 'rgba(255,155,78,0.06)', border: '1px dashed rgba(255,155,78,0.3)', borderRadius: 12 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                            <span style={{ fontSize: '1.1rem' }}>📤</span>
-                            <span style={{ fontSize: '0.85rem', color: '#FF9B4E', fontWeight: 600 }}>جاري الرفع... {pdfUpload.progress}%</span>
+                            <span style={{ fontSize: '1.1rem' }}>ðŸ“¤</span>
+                            <span style={{ fontSize: '0.85rem', color: '#FF9B4E', fontWeight: 600 }}>Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø±ÙØ¹... {pdfUpload.progress}%</span>
                           </div>
                           <ProgressBar pct={pdfUpload.progress} color="#FF9B4E" />
                         </div>
@@ -695,7 +695,7 @@ export default function LibraryPage() {
                               setCreateForm(prev => ({ ...prev, file_url: url }));
                               setPdfUpload(prev => ({ ...prev, uploading: false, progress: 100 }));
                             } catch (ex: any) {
-                              setCreateErr('فشل رفع الملف: ' + ex.message);
+                              setCreateErr('ÙØ´Ù„ Ø±ÙØ¹ Ø§Ù„Ù…Ù„Ù: ' + ex.message);
                               setPdfUpload({ file: null, progress: 0, uploading: false });
                             }
                           }} />
@@ -703,25 +703,25 @@ export default function LibraryPage() {
                             onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF9B4E'; e.currentTarget.style.background = 'rgba(255,155,78,0.07)'; }}
                             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,155,78,0.3)'; e.currentTarget.style.background = 'rgba(255,155,78,0.03)'; }}
                           >
-                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>📄</div>
-                            <div style={{ fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, marginBottom: 4 }}>اسحب الملف هنا أو انقر للاختيار</div>
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>PDF · DOC · EPUB — حتى 50MB</div>
+                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>ðŸ“„</div>
+                            <div style={{ fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, marginBottom: 4 }}>Ø§Ø³Ø­Ø¨ Ø§Ù„Ù…Ù„Ù Ù‡Ù†Ø§ Ø£Ùˆ Ø§Ù†Ù‚Ø± Ù„Ù„Ø§Ø®ØªÙŠØ§Ø±</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>PDF Â· DOC Â· EPUB â€” Ø­ØªÙ‰ 50MB</div>
                           </div>
                         </label>
                       )}
                     </div>
                   </div>
 
-                  {/* ── Cover Upload ── */}
+                  {/* â”€â”€ Cover Upload â”€â”€ */}
                   <div style={{ background: 'rgba(133,199,154,0.05)', border: '1px solid rgba(133,199,154,0.2)', borderRadius: 16, overflow: 'hidden' }}>
                     <div style={{ padding: '11px 18px', borderBottom: '1px solid rgba(133,199,154,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: '0.95rem' }}>🖼️</span>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: COLORS.softGreen }}>صورة الغلاف</span>
+                        <span style={{ fontSize: '0.95rem' }}>ðŸ–¼ï¸</span>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: COLORS.softGreen }}>ØµÙˆØ±Ø© Ø§Ù„ØºÙ„Ø§Ù</span>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <TabPill active={coverTab === 'upload'} onClick={() => setCoverTab('upload')}>⬆️ رفع</TabPill>
-                        <TabPill active={coverTab === 'url'} onClick={() => setCoverTab('url')}>🔗 رابط</TabPill>
+                        <TabPill active={coverTab === 'upload'} onClick={() => setCoverTab('upload')}>â¬†ï¸ Ø±ÙØ¹</TabPill>
+                        <TabPill active={coverTab === 'url'} onClick={() => setCoverTab('url')}>ðŸ”— Ø±Ø§Ø¨Ø·</TabPill>
                       </div>
                     </div>
                     <div style={{ padding: '16px 18px' }}>
@@ -729,18 +729,18 @@ export default function LibraryPage() {
                         <input value={createForm.cover_url} onChange={e => setCreateForm(p => ({ ...p, cover_url: e.target.value }))} placeholder="https://..." style={iS} />
                       ) : createForm.cover_url && coverUpload.file ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          {coverUpload.preview && <img src={coverUpload.preview} alt="غلاف" style={{ width: 64, height: 90, objectFit: 'cover', borderRadius: 8, border: '2px solid rgba(133,199,154,0.4)', flexShrink: 0 }} />}
+                          {coverUpload.preview && <img src={coverUpload.preview} alt="ØºÙ„Ø§Ù" style={{ width: 64, height: 90, objectFit: 'cover', borderRadius: 8, border: '2px solid rgba(133,199,154,0.4)', flexShrink: 0 }} />}
                           <div style={{ flex: 1, padding: '12px 14px', background: 'rgba(133,199,154,0.08)', border: '1px solid rgba(133,199,154,0.3)', borderRadius: 12 }}>
-                            <div style={{ fontWeight: 700, color: '#85C79A', fontSize: '0.85rem', marginBottom: 4 }}>✅ تم رفع الغلاف</div>
+                            <div style={{ fontWeight: 700, color: '#85C79A', fontSize: '0.85rem', marginBottom: 4 }}>âœ… ØªÙ… Ø±ÙØ¹ Ø§Ù„ØºÙ„Ø§Ù</div>
                             <div style={{ fontSize: '0.72rem', color: '#4ade80', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{createForm.cover_url}</div>
-                            <button type="button" onClick={() => { setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' }); setCreateForm(p => ({ ...p, cover_url: '' })); }} style={{ marginTop: 8, padding: '3px 12px', borderRadius: 20, border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}>تغيير</button>
+                            <button type="button" onClick={() => { setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' }); setCreateForm(p => ({ ...p, cover_url: '' })); }} style={{ marginTop: 8, padding: '3px 12px', borderRadius: 20, border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}>ØªØºÙŠÙŠØ±</button>
                           </div>
                         </div>
                       ) : coverUpload.uploading ? (
                         <div style={{ padding: '16px', background: 'rgba(133,199,154,0.06)', border: '1px dashed rgba(133,199,154,0.3)', borderRadius: 12 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                            <span style={{ fontSize: '1.1rem' }}>🖼️</span>
-                            <span style={{ fontSize: '0.85rem', color: COLORS.softGreen, fontWeight: 600 }}>جاري رفع الصورة... {coverUpload.progress}%</span>
+                            <span style={{ fontSize: '1.1rem' }}>ðŸ–¼ï¸</span>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.softGreen, fontWeight: 600 }}>Ø¬Ø§Ø±ÙŠ Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©... {coverUpload.progress}%</span>
                           </div>
                           <ProgressBar pct={coverUpload.progress} color={COLORS.softGreen} />
                         </div>
@@ -756,7 +756,7 @@ export default function LibraryPage() {
                               setCreateForm(prev => ({ ...prev, cover_url: result.url }));
                               setCoverUpload(prev => ({ ...prev, uploading: false, progress: 100 }));
                             } catch (ex: any) {
-                              setCreateErr('فشل رفع الصورة: ' + ex.message);
+                              setCreateErr('ÙØ´Ù„ Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©: ' + ex.message);
                               setCoverUpload({ file: null, progress: 0, uploading: false, preview: '' });
                             }
                           }} />
@@ -764,18 +764,18 @@ export default function LibraryPage() {
                             onMouseEnter={e => { e.currentTarget.style.borderColor = COLORS.softGreen; e.currentTarget.style.background = 'rgba(133,199,154,0.07)'; }}
                             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(133,199,154,0.3)'; e.currentTarget.style.background = 'rgba(133,199,154,0.03)'; }}
                           >
-                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>🖼️</div>
-                            <div style={{ fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, marginBottom: 4 }}>اختر صورة الغلاف</div>
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>JPG · PNG · WebP — حتى 5MB</div>
+                            <div style={{ fontSize: '2rem', marginBottom: 8 }}>ðŸ–¼ï¸</div>
+                            <div style={{ fontSize: '0.88rem', color: '#e5e7eb', fontWeight: 600, marginBottom: 4 }}>Ø§Ø®ØªØ± ØµÙˆØ±Ø© Ø§Ù„ØºÙ„Ø§Ù</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>JPG Â· PNG Â· WebP â€” Ø­ØªÙ‰ 5MB</div>
                           </div>
                         </label>
                       )}
                     </div>
                   </div>
 
-                  {/* ── External URL ── */}
+                  {/* â”€â”€ External URL â”€â”€ */}
                   <div>
-                    <label style={lS}>رابط خارجي (اشتراك / مصدر)</label>
+                    <label style={lS}>Ø±Ø§Ø¨Ø· Ø®Ø§Ø±Ø¬ÙŠ (Ø§Ø´ØªØ±Ø§Ùƒ / Ù…ØµØ¯Ø±)</label>
                     <input value={createForm.external_url} onChange={e => setCreateForm(p => ({ ...p, external_url: e.target.value }))} placeholder="https://..." style={iS} />
                   </div>
 
@@ -783,10 +783,10 @@ export default function LibraryPage() {
                   <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
                     <button type="submit" disabled={busy}
                       style={{ flex: 1, padding: '13px 20px', borderRadius: 14, background: busy ? 'rgba(78,141,156,0.2)' : `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, border: 'none', color: busy ? '#6b7280' : COLORS.darkNavy, fontWeight: 800, fontSize: '0.95rem', cursor: busy ? 'default' : 'pointer', fontFamily: "'Cairo',sans-serif", transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      {pdfUpload.uploading ? `📤 رفع الملف ${pdfUpload.progress}%` : coverUpload.uploading ? `🖼️ رفع الصورة ${coverUpload.progress}%` : creating ? '⏳ جاري الإضافة...' : '+ إضافة الكتاب'}
+                      {pdfUpload.uploading ? `ðŸ“¤ Ø±ÙØ¹ Ø§Ù„Ù…Ù„Ù ${pdfUpload.progress}%` : coverUpload.uploading ? `ðŸ–¼ï¸ Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø© ${coverUpload.progress}%` : creating ? 'â³ Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø¥Ø¶Ø§ÙØ©...' : '+ Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙƒØªØ§Ø¨'}
                     </button>
                     <button type="button" onClick={resetModal}
-                      style={{ padding: '13px 20px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', cursor: 'pointer', fontWeight: 600, fontFamily: "'Cairo',sans-serif" }}>إلغاء</button>
+                      style={{ padding: '13px 20px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', cursor: 'pointer', fontWeight: 600, fontFamily: "'Cairo',sans-serif" }}>Ø¥Ù„ØºØ§Ø¡</button>
                   </div>
 
                 </form>
@@ -804,3 +804,4 @@ export default function LibraryPage() {
     </div>
   );
 }
+
