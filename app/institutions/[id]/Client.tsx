@@ -288,7 +288,7 @@ function AdCreateModal({
       const userStr = localStorage.getItem('user');
       if (userStr) {
         const u = JSON.parse(userStr);
-        u.coins = (u.coins ?? 0) - AD_COST;
+        u.coins = (u.coins ?? 500) - AD_COST;
         localStorage.setItem('user', JSON.stringify(u));
       }
       onSuccess();
@@ -462,7 +462,7 @@ function AnnouncementsSection({
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-    if (stored) setCoins(JSON.parse(stored).coins ?? 0);
+    if (stored) setCoins(JSON.parse(stored).coins ?? 500);
   }, []);
 
   const allItems = [
