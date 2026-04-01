@@ -454,11 +454,6 @@ export default function GalaxyCanvas({
         ring.position.set(x, y, z);
         ring.lookAt(camera.position);
         scene.add(ring);
-        const dist = Math.sqrt(x*x + y*y + z*z);
-        sph.theta  = Math.atan2(z, x);
-        sph.phi    = Math.acos(Math.max(-1, Math.min(1, y / Math.max(dist, 0.01))));
-        sph.radius = 120;
-        camTarget.set(x * 0.3, y * 0.3, z * 0.3);
       }
     }
 
