@@ -32,6 +32,7 @@ interface Lecture {
   ended_at?: string;
   scheduled_datetime?: string;
   created_at: string;
+  meeting_url?: string;
 }
 
 export default function AdminLecturesPage() {
@@ -63,6 +64,7 @@ export default function AdminLecturesPage() {
     category: '',
     scheduled_datetime: '',
     visibility: 'institution' as 'institution' | 'all',
+    meeting_url: '',
   });
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -116,6 +118,16 @@ export default function AdminLecturesPage() {
     }
   };
 
+  const handleUpdateMeetingUrl = async (lecture: Lecture, meeting_url: string) => {
+    setActionLoading(lecture.id);
+    try {
+      await controlLectureStream(lecture.id, 'update', { meeting_url });
+      await loadAll();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateLoading(true);
@@ -134,9 +146,10 @@ export default function AdminLecturesPage() {
         scheduled_datetime: form.scheduled_datetime || undefined,
         is_live: false,
         visibility: form.visibility,
+        meeting_url: form.meeting_url || undefined,
       });
       setShowCreate(false);
-      setForm({ institution_id: '', title: '', description: '', stream_type: 'live', stream_url: '', video_url: '', external_url: '', category: '', scheduled_datetime: '', visibility: 'institution' });
+      setForm({ institution_id: '', title: '', description: '', stream_type: 'live', stream_url: '', video_url: '', external_url: '', category: '', scheduled_datetime: '', visibility: 'institution', meeting_url: '' });
       await loadAll();
     } catch (err: any) {
       alert(err.message);
@@ -251,7 +264,7 @@ export default function AdminLecturesPage() {
               </h2>
               <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
               <div style={{ display: 'grid', gap: 16 }}>
-                {liveLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onCfUpload={getCfUploadUrl} />)}
+                {liveLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onUpdateMeetingUrl={handleUpdateMeetingUrl} onCfUpload={getCfUploadUrl} />)}
               </div>
             </div>
           )}
@@ -266,7 +279,7 @@ export default function AdminLecturesPage() {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 16 }}>
-                {otherLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onCfUpload={getCfUploadUrl} />)}
+                {otherLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onUpdateMeetingUrl={handleUpdateMeetingUrl} onCfUpload={getCfUploadUrl} />)}
               </div>
             )}
           </div>
@@ -308,6 +321,27 @@ export default function AdminLecturesPage() {
                 <div style={{ background: `${C.teal}10`, border: `1px solid ${C.teal}30`, borderRadius: 10, padding: '12px 14px', fontSize: '0.88rem', color: C.teal, lineHeight: 1.6 }}>
                   ☁️ <strong>Cloudflare Stream</strong> — سيتم إنشاء رابط البث تلقائياً عند الضغط على <strong>&quot;▶ بدء البث&quot;</strong>، وستظهر بيانات OBS (Server + Stream Key) فور البدء.
                 </div>
+              )}
+              {form.stream_type === 'live' && (
+                <Field label="رابط الاجتماع (Zoom / Teams / Google Meet) — اختياري">
+                  <input
+                    value={form.meeting_url}
+                    onChange={e => setForm({ ...form, meeting_url: e.target.value })}
+                    placeholder="https://zoom.us/j/... أو meet.google.com/... أو teams.microsoft.com/..."
+                    style={inputStyle}
+                    dir="ltr"
+                  />
+                  {form.meeting_url && (() => {
+                    const u = form.meeting_url.toLowerCase();
+                    const platform = u.includes('zoom.us') ? '🎥 Zoom' : u.includes('meet.google') ? '🟢 Google Meet' : u.includes('teams.microsoft') ? '🔵 Microsoft Teams' : null;
+                    return platform ? (
+                      <div style={{ marginTop: 6, fontSize: '0.83rem', color: C.teal }}>✅ تم التعرف على المنصة: <strong>{platform}</strong></div>
+                    ) : null;
+                  })()}
+                  <div style={{ marginTop: 6, fontSize: '0.8rem', color: '#888', lineHeight: 1.6 }}>
+                    📌 سيظهر هذا الرابط كزر &quot;انضم للاجتماع&quot; على شاشة البث
+                  </div>
+                </Field>
               )}
               {form.stream_type === 'recorded' && (
                 <Field label="رابط الفيديو المسجّل">
@@ -457,15 +491,17 @@ export default function AdminLecturesPage() {
 }
 
 // ─── Card Component ──────────────────────────────────────────────────────────
-function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onUpdateUrl, onCfUpload }: {
+function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onUpdateUrl, onUpdateMeetingUrl, onCfUpload }: {
   lecture: Lecture;
   institutions: any[];
   actionLoading: number | null;
   onStreamAction: (l: Lecture, a: 'start' | 'stop') => void;
   onUpdateUrl: (l: Lecture, url: string) => void;
+  onUpdateMeetingUrl: (l: Lecture, url: string) => void;
   onCfUpload: (lectureId: number) => Promise<{ uploadURL: string; videoId: string; iframeUrl: string }>;
 }) {
   const [editUrl, setEditUrl] = useState(lecture.stream_url || '');
+  const [editMeetingUrl, setEditMeetingUrl] = useState(lecture.meeting_url || '');
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const isLoading = actionLoading === lecture.id;
@@ -602,6 +638,33 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
             حفظ
           </button>
         </div>
+
+        {/* رابط الاجتماع Zoom/Teams/Meet */}
+        {(lecture.is_live || lecture.stream_type === undefined || !isRecorded) && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
+            {(() => {
+              const u = editMeetingUrl.toLowerCase();
+              const icon = u.includes('zoom.us') ? '🎥' : u.includes('meet.google') ? '🟢' : u.includes('teams.microsoft') ? '🔵' : '🔗';
+              return (
+                <span style={{ fontSize: '0.82rem', color: '#888', flexShrink: 0 }}>{icon} ميتنج:</span>
+              );
+            })()}
+            <input
+              className="stream-url-input"
+              value={editMeetingUrl}
+              onChange={e => setEditMeetingUrl(e.target.value)}
+              placeholder="Zoom / Teams / Google Meet URL"
+              dir="ltr"
+            />
+            <button
+              onClick={() => onUpdateMeetingUrl(lecture, editMeetingUrl)}
+              disabled={isLoading}
+              style={{ padding: '6px 14px', borderRadius: 20, background: `${C.softGreen}20`, color: C.softGreen, border: `1px solid ${C.softGreen}60`, cursor: 'pointer', fontSize: '0.82rem' }}
+            >
+              حفظ
+            </button>
+          </div>
+        )}
 
         {/* رفع فيديو إلى CF Stream (للمسجّل فقط) */}
         {isRecorded && !isLive && (

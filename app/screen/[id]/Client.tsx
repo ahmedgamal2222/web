@@ -1144,6 +1144,29 @@ export default function ScreenPage() {
                 {liveLecture && displayLecture.started_at && (
                   <span className="q1-time">🕐 بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}</span>
                 )}
+                {displayLecture.meeting_url && (() => {
+                  const u = (displayLecture.meeting_url as string).toLowerCase();
+                  const icon = u.includes('zoom.us') ? '🎥' : u.includes('meet.google') ? '🟢' : u.includes('teams.microsoft') ? '🔵' : '🔗';
+                  const label = u.includes('zoom.us') ? 'انضم عبر Zoom' : u.includes('meet.google') ? 'انضم عبر Meet' : u.includes('teams.microsoft') ? 'انضم عبر Teams' : 'انضم للاجتماع';
+                  return (
+                    <a
+                      href={displayLecture.meeting_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        background: 'rgba(255,215,0,0.18)', color: '#FFD700',
+                        border: '1px solid rgba(255,215,0,0.5)',
+                        padding: '3px 14px', borderRadius: 20,
+                        fontSize: '0.82rem', fontWeight: 700,
+                        textDecoration: 'none', flexShrink: 0,
+                        boxShadow: '0 2px 8px rgba(255,215,0,0.15)',
+                      }}
+                    >
+                      {icon} {label}
+                    </a>
+                  );
+                })()}
               </div>
             </div>
           )}

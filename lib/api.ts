@@ -387,6 +387,7 @@ export async function createLecture(payload: {
   is_live?: boolean;
   scheduled_datetime?: string;
   visibility?: 'institution' | 'all';
+  meeting_url?: string;
 }) {
   const res = await fetchWithRetry<{ success: boolean; data: { id: number }; message: string }>(
     `${API_BASE}/api/lectures`,
@@ -399,7 +400,7 @@ export async function createLecture(payload: {
 export async function controlLectureStream(
   id: number,
   action: 'start' | 'stop' | 'update',
-  opts?: { stream_url?: string; stream_type?: 'live' | 'recorded'; viewer_count?: number; cf_live_input_id?: string }
+  opts?: { stream_url?: string; stream_type?: 'live' | 'recorded'; viewer_count?: number; cf_live_input_id?: string; meeting_url?: string }
 ) {
   const res = await fetchWithRetry<{
     success: boolean;
