@@ -1,9 +1,6 @@
 /**
  * Cloudflare Pages Middleware
- * يعيد توجيه طلبات نطاق tv.hadmaj.com إلى صفحة /tv/
- *
- * يعمل مع Cloudflare Pages حتى عند استخدام Next.js output: 'export'
- * لأنه يُشغَّل على حافة شبكة Cloudflare قبل تقديم الملفات الثابتة.
+ * يعيد توجيه طلبات نطاق tv.hadmaj.com إلى صفحة الشاشة الحضارية
  */
 export async function onRequest(context: {
   request: Request;
@@ -17,20 +14,36 @@ export async function onRequest(context: {
   if (host === 'tv.hadmaj.com') {
     const path = url.pathname;
 
-    // الجذر / أو ‎/index.html → صفحة /tv/
-    if (path === '/' || path === '/index.html' || path === '') {
-      const rewritten = new URL(context.request.url);
-      rewritten.pathname = '/tv/';
-      return fetch(rewritten.toString(), context.request);
-    }
-
-    // /tv/... → مرور مباشر (لا حاجة لإعادة الكتابة)
-    if (path.startsWith('/tv/') || path === '/tv') {
+    // الأصول الثابتة تمر مباشرة دون إعادة توجيه
+    if (
+      path.startsWith('/_next/') ||
+      path.startsWith('/fonts/') ||
+      path.startsWith('/sound/') ||
+      path.startsWith('/images/') ||
+      path.endsWith('.ico') ||
+      path.endsWith('.png') ||
+      path.endsWith('.jpg') ||
+      path.endsWith('.jpeg') ||
+      path.endsWith('.webp') ||
+      path.endsWith('.svg') ||
+      path.endsWith('.woff') ||
+      path.endsWith('.woff2') ||
+      path.endsWith('.js') ||
+      path.endsWith('.css') ||
+      path.endsWith('.json') ||
+      path.endsWith('.mp3') ||
+      path.endsWith('.mp4')
+    ) {
       return context.next();
     }
 
-    // أي مسار آخر على tv.hadmaj.com يُعاد توجيهه إلى /tv/
-    return Response.redirect(`https://tv.hadmaj.com/tv/`, 302);
+    // صفحة الشاشة — مرور مباشر
+    if (path.startsWith('/screen/')) {
+      return context.next();
+    }
+
+    // الجذر وأي مسار آخر → إعادة توجيه لصفحة الشاشة العامة
+    return Response.redirect('https://tv.hadmaj.com/screen/tv/', 302);
   }
 
   return context.next();

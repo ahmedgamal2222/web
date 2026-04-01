@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, fetchPulse, API_BASE } from '@/lib/api';
+import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, fetchPulse, screenConnect, API_BASE } from '@/lib/api';
 import type { PulseItem } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
@@ -29,6 +29,10 @@ export default function ScreenPage() {
     ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
     : 'default';
 
+  // وضع TV: الدخول عبر tv.hadmaj.com بدون معرّف مؤسسة في الرابط
+  const isTvMode = institutionId === 'tv';
+  const [resolvedId, setResolvedId] = useState<string>(institutionId);
+
   const [institution, setInstitution] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
@@ -52,28 +56,10 @@ export default function ScreenPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeFnRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  // تخطي المصادقة للمستخدمين المسجلين تلقائياً
+  // تخطي المصادقة للمستخدمين المسجلين تلقائياً (غير متاح في وضع TV)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    // ── تحقق من التوثيق المسبق عبر صفحة tv.hadmaj.com ────────────
-    const TV_KEY = `hadmaj_tv_preauth_${institutionId}`;
-    const TV_TTL = 8 * 60 * 1000; // 8 دقائق
-    try {
-      const preauth = sessionStorage.getItem(TV_KEY);
-      if (preauth) {
-        const data = JSON.parse(preauth) as { verified: boolean; ts: number };
-        if (data.verified && Date.now() - data.ts < TV_TTL) {
-          sessionStorage.removeItem(TV_KEY); // استخدام لمرة واحدة فقط
-          fetchInstitution(institutionId)
-            .then(inst => { setInstitution(inst); return screenActivate(Number(institutionId), true); })
-            .then(() => setAuthenticated(true))
-            .catch(() => setAuthenticated(true));
-          return;
-        }
-        sessionStorage.removeItem(TV_KEY);
-      }
-    } catch { /* ignore */ }
+    if (isTvMode) return; // وضع TV يتطلب دائماً كلمة مرور الشاشة
 
     // ── تخطي المصادقة للمستخدمين المسجلين تلقائياً ───────────────
     try {
@@ -91,7 +77,7 @@ export default function ScreenPage() {
       })
       .then(() => setAuthenticated(true))
       .catch(() => setAuthenticated(true));
-  }, [institutionId]);
+  }, [institutionId, isTvMode]);
 
   // التحقق من كلمة المرور
   const handleAuthenticate = async (e: React.FormEvent) => {
@@ -100,6 +86,21 @@ export default function ScreenPage() {
     setError('');
 
     try {
+      if (isTvMode) {
+        // وضع TV: البحث عن المؤسسة بكلمة المرور فقط (بدون معرّف)
+        const result = await screenConnect(password);
+        if (result.valid && result.institution_id) {
+          const id = String(result.institution_id);
+          setResolvedId(id);
+          setInstitution(result.institution);
+          await screenActivate(Number(id), true);
+          setAuthenticated(true);
+        } else {
+          setError(result.message || 'كلمة المرور غير صحيحة');
+        }
+        return;
+      }
+
       const result = await verifyScreen(Number(institutionId), password);
 
       if (result.valid) {
@@ -122,12 +123,13 @@ export default function ScreenPage() {
   useEffect(() => {
     if (!authenticated) return;
 
+    const activeId = resolvedId;
     const deactivate = () => {
       // keepalive يضمن إرسال الطلب حتى عند إغلاق الصفحة
       fetch(`${API_BASE}/api/screen/activate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ institution_id: Number(institutionId), active: false }),
+        body: JSON.stringify({ institution_id: Number(activeId), active: false }),
         keepalive: true,
       }).catch(() => {});
     };
@@ -136,19 +138,19 @@ export default function ScreenPage() {
     return () => {
       window.removeEventListener('beforeunload', deactivate);
       // إلغاء التنشيط أيضاً عند إزالة المكوّن (navigation داخلي)
-      screenActivate(Number(institutionId), false).catch(() => {});
+      screenActivate(Number(activeId), false).catch(() => {});
     };
-  }, [authenticated, institutionId]);
+  }, [authenticated, resolvedId]);
 
   // تحميل البيانات
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || !resolvedId || resolvedId === 'tv') return;
 
     const loadData = async () => {
       try {
         setDataLoading(true);
         const [eventsData, newsData, lecturesData, galaxyDataResult, agreementsResult] = await Promise.all([
-          fetchEvents(institutionId),
+          fetchEvents(resolvedId),
           fetchNews(),
           fetchLectures(),
           fetchGalaxyData(),
@@ -175,7 +177,7 @@ export default function ScreenPage() {
       fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
     }, 30000);
     return () => { clearInterval(pulseInterval); };
-  }, [authenticated, institutionId]);
+  }, [authenticated, resolvedId]);
 
   // متابعة حالة التسجيل عندما يكون CF يعالج الفيديو بعد انتهاء البث
   useEffect(() => {
@@ -1158,7 +1160,7 @@ export default function ScreenPage() {
             data={galaxyData}
             autoRotate={true}
             backgroundStarsCount={15000}
-            highlightStarId={Number(institutionId)}
+            highlightStarId={Number(resolvedId)}
           />
         ) : (
           <div className="galaxy-view">
