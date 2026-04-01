@@ -259,18 +259,7 @@ export default function InstitutionRequestPage() {
             </div>
           </div>
 
-          <div style={{ marginBottom: 30 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, color: COLORS.darkNavy }}>
-              الاسم (بالإنجليزية بديل)
-            </label>
-            <input
-              type="text"
-              name="name_en"
-              value={formData.name_en}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-          </div>
+        
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
             <div>

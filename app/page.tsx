@@ -270,9 +270,9 @@ function TopBar({
       <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {[
           { href: '/news',        icon: '📰', label: 'الأخبار' },
-          { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
-          { href: '/marketplace', icon: '🛒', label: 'السوق' },
-          { href: '/cloud',       icon: '☁️', label: 'SAAS' },
+          // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
+          // { href: '/marketplace', icon: '🛒', label: 'السوق' },
+          // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
           { href: '/services',    icon: '🛠️', label: 'الخدمات' },
         ].map(link => (
           <Link
@@ -439,9 +439,9 @@ function QuickActions({ user }: { user: any }) {
   }
 
   // إجراءات مشتركة للجميع (الناف بار يحتوي الأخبار/المكتبة/المنتدى/البودكاست)
-  actions.push(
-    { icon: '📋', label: 'طلباتي', href: '/services/requests', color: '#9C27B0' },
-  );
+  // actions.push(
+  //   { icon: '📋', label: 'طلباتي', href: '/services/requests', color: '#9C27B0' },
+  // );
 
   if (user.role === 'explorer' || !user.institution_id) {
     actions.push(
@@ -450,11 +450,11 @@ function QuickActions({ user }: { user: any }) {
   }
 
   // Static nav items moved from topbar
-  actions.push(
-    { icon: '📚', label: 'المكتبة', href: '/library', color: '#85C79A' },
-    { icon: '💬', label: 'المنتدى', href: '/forum', color: '#EDF7BD' },
-    { icon: '🎙️', label: 'البودكاست', href: '/podcast', color: '#f59e0b' },
-  );
+  // actions.push(
+  //   { icon: '📚', label: 'المكتبة', href: '/library', color: '#85C79A' },
+  //   { icon: '💬', label: 'المنتدى', href: '/forum', color: '#EDF7BD' },
+  //   { icon: '🎙️', label: 'البودكاست', href: '/podcast', color: '#f59e0b' },
+  // );
 
   return (
     <div className="quick-actions" style={{
@@ -1512,19 +1512,10 @@ export default function HomePage() {
     }
     load();
 
-    const interval = setInterval(async () => {
-      if (!mountedRef.current) return;
-      try {
-        const raw = await fetchGalaxyData();
-        if (mountedRef.current) setGalaxyData(dedup(raw));
-      } catch { /* silent */ }
-    }, 30000);
-
     return () => {
       mountedRef.current = false;
-      clearInterval(interval);
     };
-  }, []);
+  }, []);;
 
   const handleStarClick = (star: GalaxyStar) => setPopupStar(star);
 

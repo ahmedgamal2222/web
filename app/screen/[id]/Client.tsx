@@ -145,8 +145,7 @@ export default function ScreenPage() {
     };
 
     loadData();
-    const interval = setInterval(loadData, 60000);
-    return () => clearInterval(interval);
+    return () => {};
   }, [authenticated, institutionId]);
 
   // متابعة حالة التسجيل عندما يكون CF يعالج الفيديو بعد انتهاء البث
