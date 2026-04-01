@@ -33,16 +33,42 @@ interface Service {
 function GalaxyLogo() {
   return (
     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', userSelect: 'none' }}>
-      <svg width="42" height="42" viewBox="0 0 54 54" fill="none">
-        <defs><radialGradient id="rg_svc" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#EDF7BD" /><stop offset="42%" stopColor="#85C79A" /><stop offset="100%" stopColor="#4E8D9C" /></radialGradient></defs>
-        <circle cx="27" cy="27" r="26" fill="rgba(78,141,156,0.1)" />
-        <ellipse cx="27" cy="27" rx="24.5" ry="9.5" stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3" fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
-        <path d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z" fill="url(#rg_svc)" />
-        <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
-      </svg>
+      <div style={{ position: 'relative', width: 54, height: 54, flexShrink: 0 }}>
+        <svg width="54" height="54" viewBox="0 0 54 54" fill="none">
+          <defs>
+            <radialGradient id="rg_svc" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#EDF7BD" />
+              <stop offset="42%" stopColor="#85C79A" />
+              <stop offset="100%" stopColor="#4E8D9C" />
+            </radialGradient>
+            <radialGradient id="rg_halo_svc" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#4E8D9C" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#4E8D9C" stopOpacity="0" />
+            </radialGradient>
+            <filter id="f_glow_svc" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="2.8" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <circle cx="27" cy="27" r="26" fill="url(#rg_halo_svc)" />
+          <ellipse cx="27" cy="27" rx="24.5" ry="9.5" stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3" fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
+          <ellipse cx="27" cy="27" rx="18" ry="6.5" stroke="#85C79A" strokeWidth="0.65" strokeDasharray="2 4" fill="none" opacity="0.45" transform="rotate(40 27 27)" />
+          <path d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z" fill="url(#rg_svc)" filter="url(#f_glow_svc)" />
+          <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
+          <circle cx="25.2" cy="25.2" r="1.2" fill="white" opacity="0.5" />
+        </svg>
+      </div>
       <div>
-        <div style={{ fontSize: '1.3rem', fontWeight: 900, background: 'linear-gradient(130deg,#EDF7BD 0%,#85C79A 48%,#4E8D9C 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>المجرة الحضارية</div>
-        <div style={{ fontSize: '0.7rem', color: '#4E8D9C', letterSpacing: '0.3em', fontWeight: 700, textTransform: 'uppercase' }}>Civilization Galaxy</div>
+        <div style={{
+          fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2, letterSpacing: '1px',
+          background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+        }}>
+          المجرة الحضارية
+        </div>
+        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2 }}>
+          كوكبة المؤسسات المضيئة
+        </div>
       </div>
     </Link>
   );
@@ -52,6 +78,7 @@ export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
   const [filters, setFilters] = useState({
     category: 'all',
     search: '',
@@ -65,6 +92,13 @@ export default function ServicesPage() {
   useEffect(() => {
     fetchServices();
   }, [filters, page]);
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem('user');
+      if (u) setUser(JSON.parse(u));
+    } catch {}
+  }, []);
 
   const fetchServices = async () => {
     try {
@@ -135,20 +169,63 @@ export default function ServicesPage() {
   return (
     <div className="page-wrap">
       {/* شريط التنقل */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', background: 'rgba(8,5,32,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(78,141,156,0.2)', boxShadow: '0 2px 32px rgba(0,0,0,0.5)' }}>
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 100, height: 76,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 32px',
+        background: 'linear-gradient(180deg, rgba(5,4,20,0.97) 0%, rgba(5,4,20,0.85) 65%, rgba(5,4,20,0) 100%)',
+        backdropFilter: 'blur(22px)',
+        WebkitBackdropFilter: 'blur(22px)',
+        borderBottom: '1px solid rgba(78,141,156,0.2)',
+        boxShadow: '0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(133,199,154,0.08)',
+      }}>
         <GalaxyLogo />
-        <nav style={{ display: 'flex', gap: 6 }}>
-          {([
-            { href: '/pulse', label: '💫 نبض المجرة' },
-            { href: '/campaigns', label: 'الحملات' },
-            { href: '/marketplace', label: 'السوق الرقمي' },
-            { href: '/cloud', label: '☁️ SAAS' },
-            { href: '/services', label: 'الخدمات', active: true },
-            { href: '/library', label: 'المكتبة' },
-            { href: '/forum', label: 'المنتدى' },
-            { href: '/podcast', label: 'البودكاست' },
-          ] as Array<{ href: string; label: string; active?: boolean }>).map(link => (
-            <Link key={link.href} href={link.href} style={{ padding: '8px 16px', borderRadius: 24, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, color: link.active ? '#fff' : '#9ca3af', background: link.active ? `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})` : 'transparent', border: link.active ? 'none' : '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s' }}>{link.label}</Link>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {(([
+            { href: '/',      icon: '🌌', label: 'الرئيسية' },
+            { href: '/pulse', icon: '📰', label: '💫 نبض المجرة' },
+            // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
+            // { href: '/marketplace', icon: '🛒', label: 'السوق الرقمي' },
+            // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
+            // { href: '/services',    icon: '🛠️', label: 'الخدمات' },
+            // { href: '/library',     icon: '📚', label: 'المكتبة' },
+            // { href: '/forum',       icon: '💬', label: 'المنتدى' },
+            // { href: '/podcast',     icon: '🎙️', label: 'البودكاست' },
+          ] as Array<{ href: string; icon: string; label: string }>).concat(
+            user?.institution_id
+              ? [{ href: `/screen/${user.institution_id}`, icon: '📺', label: 'الشاشة الحضارية' }]
+              : []
+          )).map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '7px 14px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 40,
+                color: '#9ca3af',
+                fontSize: '0.82rem',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.color = '#EDF7BD';
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(237,247,189,0.25)';
+                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(237,247,189,0.06)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.color = '#9ca3af';
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.07)';
+                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.03)';
+              }}
+            >
+              <span style={{ fontSize: '0.9rem' }}>{link.icon}</span>
+              {link.label}
+            </Link>
           ))}
         </nav>
       </header>

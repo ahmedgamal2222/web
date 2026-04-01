@@ -231,28 +231,89 @@ export default function PulseClient() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: 12,
         }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <span style={{
-              background: 'linear-gradient(135deg,#4E8D9C,#fff,#4E8D9C)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              fontSize: '1.3rem', fontWeight: 900, letterSpacing: 2,
-            }}>
-              ✦ المجرة الحضارية
-            </span>
-          </Link>
-          <nav style={{ display: 'flex', gap: 20 }}>
-            {[
-              { href: '/', label: 'الرئيسية' },
-              { href: '/institutions', label: 'المؤسسات' },
-              { href: '/pulse', label: '💫 نبض المجرة' },
-              { href: '/campaigns', label: 'الحملات' },
-            ].map(l => (
-              <Link key={l.href} href={l.href} style={{
-                color: l.href === '/pulse' ? COLORS.teal : '#aaa',
-                fontWeight: l.href === '/pulse' ? 700 : 400,
-                textDecoration: 'none', fontSize: '0.88rem',
+          {/* الشعار */}
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', userSelect: 'none' }}>
+            <div style={{ position: 'relative', width: 54, height: 54, flexShrink: 0 }}>
+              <svg width="54" height="54" viewBox="0 0 54 54" fill="none">
+                <defs>
+                  <radialGradient id="rg_pulse" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#EDF7BD" />
+                    <stop offset="42%" stopColor="#85C79A" />
+                    <stop offset="100%" stopColor="#4E8D9C" />
+                  </radialGradient>
+                  <radialGradient id="rg_halo_pulse" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#4E8D9C" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#4E8D9C" stopOpacity="0" />
+                  </radialGradient>
+                  <filter id="f_glow_pulse" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="2.8" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <circle cx="27" cy="27" r="26" fill="url(#rg_halo_pulse)" />
+                <ellipse cx="27" cy="27" rx="24.5" ry="9.5" stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3" fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
+                <ellipse cx="27" cy="27" rx="18" ry="6.5" stroke="#85C79A" strokeWidth="0.65" strokeDasharray="2 4" fill="none" opacity="0.45" transform="rotate(40 27 27)" />
+                <path d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z" fill="url(#rg_pulse)" filter="url(#f_glow_pulse)" />
+                <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
+                <circle cx="25.2" cy="25.2" r="1.2" fill="white" opacity="0.5" />
+              </svg>
+            </div>
+            <div>
+              <div style={{
+                fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2, letterSpacing: '1px',
+                background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               }}>
-                {l.label}
+                المجرة الحضارية
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2 }}>
+                كوكبة المؤسسات المضيئة
+              </div>
+            </div>
+          </Link>
+
+          {/* الناف بار */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {([
+              { href: '/',         icon: '🌌', label: 'الرئيسية' },
+              { href: '/services', icon: '🛠️', label: 'الخدمات' },
+              // { href: '/institutions', icon: '🏛️', label: 'المؤسسات' },
+              // { href: '/campaigns',    icon: '🚀', label: 'الحملات' },
+              // { href: '/marketplace',  icon: '🛒', label: 'السوق الرقمي' },
+              // { href: '/cloud',        icon: '☁️', label: 'SAAS' },
+              // { href: '/library',      icon: '📚', label: 'المكتبة' },
+              // { href: '/forum',        icon: '💬', label: 'المنتدى' },
+              // { href: '/podcast',      icon: '🎙️', label: 'البودكاست' },
+            ] as Array<{ href: string; icon: string; label: string }>).map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '7px 14px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 40,
+                  color: '#9ca3af',
+                  fontSize: '0.82rem',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#EDF7BD';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(237,247,189,0.25)';
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(237,247,189,0.06)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#9ca3af';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.07)';
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.03)';
+                }}
+              >
+                <span style={{ fontSize: '0.9rem' }}>{link.icon}</span>
+                {link.label}
               </Link>
             ))}
           </nav>

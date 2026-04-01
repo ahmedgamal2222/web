@@ -52,20 +52,17 @@ export default function ScreenPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeFnRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  // تخطي المصادقة للأدمن تلقائياً
+  // تخطي المصادقة للمستخدمين المسجلين تلقائياً
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') !== 'true') return;
     try {
       const userStr = localStorage.getItem('user');
       if (!userStr) return;
-      const userData = JSON.parse(userStr);
-      if (userData.role !== 'admin') return;
+      JSON.parse(userStr); // تحقق من صحة البيانات فقط
     } catch {
       return;
     }
-    // الأدمن: تحميل المؤسسة وتفعيل الشاشة مباشرة
+    // المستخدم مسجل دخوله: تحميل مباشر بدون كلمة مرور
     fetchInstitution(institutionId)
       .then((inst) => {
         setInstitution(inst);

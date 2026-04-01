@@ -268,13 +268,16 @@ function TopBar({
 
       {/* ── Global Nav ── */}
       <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        {[
+        {([
           { href: '/pulse',        icon: '📰', label: '💫 نبض المجرة' },
           // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
           // { href: '/marketplace', icon: '🛒', label: 'السوق' },
           // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
           { href: '/services',    icon: '🛠️', label: 'الخدمات' },
-        ].map(link => (
+          ...(user?.institution_id
+            ? [{ href: `/screen/${user.institution_id}`, icon: '📺', label: 'الشاشة الحضارية' }]
+            : []),
+        ] as Array<{ href: string; icon: string; label: string }>).map(link => (
           <Link
             key={link.href}
             href={link.href}
@@ -426,15 +429,13 @@ function QuickActions({ user }: { user: any }) {
   if (user.role === 'institution_admin') {
     actions.push(
       { icon: '🏛️', label: 'مؤسستي', href: `/institutions/${user.institution_id}`, color: COLORS.teal },
-      { icon: '📺', label: 'الشاشة', href: `/screen/${user.institution_id}`, color: COLORS.softGreen },
-      { icon: '👥', label: 'إدارة الموظفين', href: `/institutions/${user.institution_id}/employees`, color: '#4CAF50' },
+      { icon: '�', label: 'إدارة الموظفين', href: `/institutions/${user.institution_id}/employees`, color: '#4CAF50' },
     );
   }
 
   if (user.role === 'employee') {
     actions.push(
       { icon: '🏛️', label: 'مؤسستي', href: `/institutions/${user.institution_id}`, color: COLORS.teal },
-      { icon: '📺', label: 'الشاشة', href: `/screen/${user.institution_id}`, color: COLORS.softGreen },
     );
   }
 
