@@ -575,9 +575,21 @@ const getStatusColor = (status: string): string => {
 };
 
 // ============================================================
+// DetailRow Helper
+function DetailRow({ icon, label, value, valueColor }: { icon: string; label: string; value: string; valueColor?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{ fontSize: '1rem', width: 22, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
+      <span style={{ color: '#888', fontSize: '0.88rem', width: 70, flexShrink: 0 }}>{label}</span>
+      <span style={{ color: valueColor || '#e8f4f8', fontSize: '0.92rem', fontWeight: 600 }}>{value}</span>
+    </div>
+  );
+}
+
+// ============================================================
 // Institution Agreements Component
 // ============================================================
-function InstitutionAgreements({ 
+function InstitutionAgreements({
   agreements, 
   onViewAgreement 
 }: { 
@@ -794,12 +806,14 @@ function InstitutionsPanel({
   onClose,
   onSelect,
   onViewAgreement,
+  onFocusStar,
 }: {
   stars: GalaxyStar[];
   open: boolean;
   onClose: () => void;
   onSelect: (star: GalaxyStar) => void;
   onViewAgreement: (id: string) => void;
+  onFocusStar: (star: GalaxyStar) => void;
 }) {
   const [search, setSearch] = useState('');
   const [activeType, setActiveType] = useState<string>('all');
@@ -827,29 +841,13 @@ function InstitutionsPanel({
     });
   }, [stars, search, activeType, screenFilter]);
 
-  const handleStarClick = async (star: GalaxyStar) => {
+  const handleStarClick = (star: GalaxyStar) => {
     if (showAgreements && selectedStar?.id === star.id) {
       setShowAgreements(false);
       setSelectedStar(null);
     } else {
       setSelectedStar(star);
       setShowAgreements(true);
-      
-      // تحميل الاتفاقيات إذا لم تكن موجودة
-      if (!star.agreements || star.agreements.length === 0) {
-        setLoadingAgreements(true);
-        try {
-          const response = await fetchInstitutionAgreements(star.id) as any;
-          // تحديث بيانات النجمة بالاتفاقيات الجديدة
-          star.agreements = response.data;
-          // تحديث الحالة لإعادة الرسم
-          setSelectedStar({...star});
-        } catch (error) {
-          console.error('فشل تحميل الاتفاقيات:', error);
-        } finally {
-          setLoadingAgreements(false);
-        }
-      }
     }
   };
 
@@ -894,13 +892,13 @@ function InstitutionsPanel({
           <div>
             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#EDF7BD', letterSpacing: '-0.01em' }}>
               {showAgreements && selectedStar ?
-                `اتفاقيات ${selectedStar.name_ar || selectedStar.name}` :
+                (selectedStar.name_ar || selectedStar.name) :
                 'جميع المؤسسات'
               }
             </div>
             <div style={{ fontSize: '0.83rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
               {showAgreements && selectedStar ?
-                `${selectedStar.agreements?.length || 0} اتفاقية` :
+                `${selectedStar.city}، ${selectedStar.country}` :
                 `${filtered.length} من أصل ${stars.length} مؤسسة`
               }
             </div>
@@ -967,31 +965,107 @@ function InstitutionsPanel({
         </div>
 
         {showAgreements && selectedStar ? (
-          // عرض اتفاقيات المؤسسة المحددة مع مؤشر التحميل
-          <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
-            {loadingAgreements ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: 40,
-                background: `${COLORS.teal}10`,
-                borderRadius: 16,
+          // عرض تفاصيل المؤسسة المحددة
+          <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* الأيقونة والاسم */}
+            <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
+              <div style={{
+                width: 80, height: 80, borderRadius: '50%',
+                background: `radial-gradient(circle at 30% 30%, ${selectedStar.color || COLORS.teal}, ${COLORS.darkNavy})`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: '2rem', fontWeight: 700,
+                boxShadow: `0 0 30px ${selectedStar.color || COLORS.teal}60`,
+                margin: '0 auto 16px',
               }}>
-                <div style={{
-                  width: 40, height: 40,
-                  border: `3px solid ${COLORS.teal}`,
-                  borderTopColor: 'transparent',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                  margin: '0 auto 20px',
-                }} />
-                <p style={{ color: '#888' }}>جاري تحميل الاتفاقيات...</p>
+                {(selectedStar.name_ar || selectedStar.name).charAt(0)}
               </div>
-            ) : (
-              <InstitutionAgreements 
-                agreements={selectedStar.agreements} 
-                onViewAgreement={onViewAgreement}
+              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#EDF7BD', marginBottom: 4 }}>
+                {selectedStar.name_ar || selectedStar.name}
+              </div>
+              {selectedStar.name && selectedStar.name_ar && (
+                <div style={{ fontSize: '0.85rem', color: '#666' }}>{selectedStar.name}</div>
+              )}
+            </div>
+
+            {/* بطاقة التفاصيل */}
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(78,141,156,0.2)',
+              borderRadius: 16,
+              padding: '20px',
+              display: 'flex', flexDirection: 'column', gap: 14,
+            }}>
+              <DetailRow icon="🏷️" label="النوع" value={TYPE_LABELS[selectedStar.type] || selectedStar.type} />
+              <DetailRow icon="📍" label="الموقع" value={`${selectedStar.city}، ${selectedStar.country}`} />
+              <DetailRow
+                icon="📺" label="الشاشة"
+                value={selectedStar.screen_active ? '✨ نشطة' : '⚪ غير نشطة'}
+                valueColor={selectedStar.screen_active ? COLORS.softGreen : '#888'}
               />
-            )}
+              <DetailRow
+                icon="🏛️" label="الحالة"
+                value={selectedStar.is_active ? '🟢 نشطة' : '⚪ غير نشطة'}
+                valueColor={selectedStar.is_active ? COLORS.softGreen : '#888'}
+              />
+              {(selectedStar.total_agreements ?? 0) > 0 && (
+                <DetailRow icon="🔗" label="الاتفاقيات" value={`${selectedStar.total_agreements} اتفاقية`} />
+              )}
+            </div>
+
+            {/* زر رؤية النجم في المجرة */}
+            <button
+              onClick={() => {
+                onFocusStar(selectedStar);
+                onClose();
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '13px 24px',
+                background: 'transparent',
+                color: COLORS.softGreen,
+                border: `1px solid ${COLORS.softGreen}60`,
+                borderRadius: 40,
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = `${COLORS.softGreen}18`;
+                e.currentTarget.style.borderColor = COLORS.softGreen;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = `${COLORS.softGreen}60`;
+              }}
+            >
+              <span>🌌</span>
+              رؤية النجم في المجرة
+            </button>
+
+            {/* زر التوجه للمؤسسة */}
+            <a
+              href={`/institutions/${selectedStar.id}`}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '14px 24px',
+                background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
+                color: '#EDF7BD',
+                textDecoration: 'none',
+                borderRadius: 40,
+                fontWeight: 700,
+                fontSize: '1rem',
+                boxShadow: `0 4px 20px ${COLORS.teal}40`,
+                transition: 'opacity 0.2s',
+                marginTop: 8,
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              <span>🏛️</span>
+              الذهاب إلى صفحة المؤسسة
+              <span style={{ fontSize: '0.9rem' }}>←</span>
+            </a>
           </div>
         ) : (
           // عرض قائمة المؤسسات
@@ -1472,6 +1546,7 @@ export default function HomePage() {
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
   const [popupStar, setPopupStar] = useState<GalaxyStar | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [focusStarId, setFocusStarId] = useState<number | undefined>(undefined);
   const mountedRef = useRef(true);
 
   // التحقق من تسجيل الدخول
@@ -1738,6 +1813,7 @@ export default function HomePage() {
         <GalaxyCanvas
           data={galaxyData}
           onStarClick={handleStarClick}
+          focusStarId={focusStarId}
           autoRotate
         />
       )}
@@ -1761,6 +1837,10 @@ export default function HomePage() {
           onClose={() => setListOpen(false)}
           onSelect={() => {}}
           onViewAgreement={handleViewAgreement}
+          onFocusStar={(star) => {
+            setFocusStarId(star.id);
+            setPopupStar(star);
+          }}
         />
       )}
 

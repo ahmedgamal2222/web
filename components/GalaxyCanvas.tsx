@@ -12,6 +12,7 @@ interface Props {
   autoRotate?: boolean;
   backgroundStarsCount?: number;
   highlightStarId?: number;
+  focusStarId?: number;
 }
 
 // ── Importance score: higher = placed closer to center, larger, brighter ──
@@ -69,11 +70,17 @@ export default function GalaxyCanvas({
   autoRotate = true,
   backgroundStarsCount = 12000,
   highlightStarId,
+  focusStarId,
 }: Props) {
   const containerRef   = useRef<HTMLDivElement>(null);
   const tooltipRef     = useRef<HTMLDivElement>(null);
   const onStarClickRef = useRef(onStarClick);
   useEffect(() => { onStarClickRef.current = onStarClick; }, [onStarClick]);
+
+  // Refs for external focus/zoom
+  const focusTargetRef = useRef<{ x: number; y: number; z: number } | null>(null);
+  const starPosRef     = useRef<Array<{ x: number; y: number; z: number }>>([]);
+  const idToIdxRef     = useRef<Map<number, number>>(new Map());
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -248,6 +255,9 @@ export default function GalaxyCanvas({
     const starPositions = sortedStars.map((_, i) => placeOnArm(i, N));
     const idToSortedIdx = new Map<number, number>();
     sortedStars.forEach((star, i) => idToSortedIdx.set(star.id, i));
+    // Expose positions for external zoom
+    starPosRef.current = starPositions;
+    idToIdxRef.current = idToSortedIdx;
 
     const iPos    = new Float32Array(N * 3);
     const iCol   = new Float32Array(N * 3);
@@ -566,6 +576,17 @@ export default function GalaxyCanvas({
       // Auto rotate
       if (autoRotate) sph.theta -= 0.0003;
 
+      // Smooth zoom to focused star
+      if (focusTargetRef.current) {
+        const ft = focusTargetRef.current;
+        const t  = 0.045;
+        camTarget.x += (ft.x - camTarget.x) * t;
+        camTarget.y += (ft.y - camTarget.y) * t;
+        camTarget.z += (ft.z - camTarget.z) * t;
+        sph.radius  += (130 - sph.radius) * t;
+        if (Math.abs(sph.radius - 130) < 2) focusTargetRef.current = null;
+      }
+
       // Update camera position from spherical coords
       camera.position.set(
         camTarget.x + sph.radius * Math.sin(sph.phi) * Math.cos(sph.theta),
@@ -591,6 +612,16 @@ export default function GalaxyCanvas({
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
     };
   }, [data, autoRotate, highlightStarId, backgroundStarsCount]);
+
+  // React to focusStarId changes and trigger smooth zoom
+  useEffect(() => {
+    if (focusStarId === undefined) return;
+    const idx = idToIdxRef.current.get(focusStarId);
+    if (idx === undefined) return;
+    const pos = starPosRef.current[idx];
+    if (!pos) return;
+    focusTargetRef.current = { ...pos };
+  }, [focusStarId]);
 
   return (
     <div

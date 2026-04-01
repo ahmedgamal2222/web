@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Institution, Agreement } from '@/lib/types';
-import { fetchInstitution } from '@/lib/api';
+import { fetchInstitution, fetchEvents, fetchNews, API_BASE } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import AgreementDetails from '@/components/AgreementDetails';
@@ -363,6 +363,8 @@ export default function InstitutionClient() {
   const [error, setError] = useState<string | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [events, setEvents] = useState<any[]>([]);
+  const [institutionNews, setInstitutionNews] = useState<any[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -377,6 +379,13 @@ export default function InstitutionClient() {
         const instData = await fetchInstitution(id);
         setInstitution(instData);
         setAgreements((instData as any).agreements || []);
+        // تحميل الفعاليات والأخبار بالتوازي
+        const [evs, allNews] = await Promise.all([
+          fetchEvents(id),
+          fetchNews(),
+        ]);
+        setEvents(evs);
+        setInstitutionNews(allNews.filter((n: any) => Number(n.institution_id) === Number(id)));
       } catch (err: any) {
         console.error('Error loading institution:', err);
         setError(err.message || 'حدث خطأ في تحميل بيانات المؤسسة');
@@ -425,7 +434,7 @@ export default function InstitutionClient() {
     );
   }
 
-  const isOwner = currentUser?.institution_id === institution.id;
+  const isOwner = Number(currentUser?.institution_id) === institution.id;
   const isAdmin = currentUser?.role === 'admin';
 
   return (
@@ -438,11 +447,15 @@ export default function InstitutionClient() {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <QuickActions institution={institution} />
+          {(isOwner || isAdmin) && (
+            <OwnerActions institutionId={id} />
+          )}
           <div id="about"><AboutSection institution={institution} /></div>
+          <div id="announcements">
+            <AnnouncementsSection events={events} news={institutionNews} />
+          </div>
           <div id="screen"><ScreenPasswordSection institution={institution} currentUser={currentUser} /></div>
           <div id="agreements"><AgreementsSection agreements={agreements} onViewAgreement={setSelectedAgreementId} /></div>
-          {(institution as any).events?.length > 0 && <div id="events"><EventsSection events={(institution as any).events} /></div>}
-          {(institution as any).news?.length > 0 && <div id="news"><NewsSection news={(institution as any).news} /></div>}
         </div>
       </div>
       {selectedAgreementId && <AgreementDetails agreementId={selectedAgreementId} onClose={() => setSelectedAgreementId(null)} />}
