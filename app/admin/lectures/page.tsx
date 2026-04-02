@@ -60,13 +60,95 @@ export default function AdminLecturesPage() {
     stream_type: 'live' as 'live' | 'recorded' | 'external',
     stream_url: '',
     video_url: '',
-    external_url: '',
+    externalUrls: [''] as string[],
     category: '',
     scheduled_datetime: '',
     visibility: 'institution' as 'institution' | 'all',
     meeting_url: '',
   });
   const [createLoading, setCreateLoading] = useState(false);
+
+  // ─── حالة التعديل ───
+  const [editingLecture, setEditingLecture] = useState<Lecture | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    stream_type: 'live' as 'live' | 'recorded' | 'external',
+    externalUrls: [''] as string[],
+    stream_url: '',
+    category: '',
+    scheduled_datetime: '',
+    visibility: 'institution' as 'institution' | 'all',
+    meeting_url: '',
+  });
+  const [editLoading, setEditLoading] = useState(false);
+
+  const openEdit = (lecture: Lecture) => {
+    let stype: 'live' | 'recorded' | 'external' = lecture.stream_type === 'live' ? 'live' : lecture.stream_type === 'recorded' ? 'recorded' : 'live';
+    let externalUrls = [''];
+    if (lecture.stream_url) {
+      try {
+        const parsed = JSON.parse(lecture.stream_url);
+        if (parsed?.playlist && Array.isArray(parsed.playlist)) {
+          stype = 'external';
+          externalUrls = parsed.playlist;
+        }
+      } catch {}
+      if (stype !== 'external') {
+        const isEmbed = lecture.stream_url.includes('youtube.com/embed') || lecture.stream_url.includes('player.vimeo') || lecture.stream_url.includes('dailymotion.com/embed');
+        if (isEmbed) { stype = 'external'; externalUrls = [lecture.stream_url]; }
+      }
+    }
+    setEditForm({
+      title: lecture.title,
+      description: lecture.description || '',
+      stream_type: stype,
+      externalUrls,
+      stream_url: lecture.stream_url || '',
+      category: lecture.category || '',
+      scheduled_datetime: lecture.scheduled_datetime || '',
+      visibility: (lecture as any).visibility || 'institution',
+      meeting_url: lecture.meeting_url || '',
+    });
+    setEditingLecture(lecture);
+  };
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLecture) return;
+    setEditLoading(true);
+    try {
+      let finalStreamUrl: string | undefined;
+      if (editForm.stream_type === 'external') {
+        const validUrls = editForm.externalUrls.map(u => u.trim()).filter(Boolean);
+        if (validUrls.length === 1) {
+          const p = parseExternalVideoUrl(validUrls[0]);
+          finalStreamUrl = p ? p.embedUrl : validUrls[0];
+        } else if (validUrls.length > 1) {
+          const embedUrls = validUrls.map(u => { const p = parseExternalVideoUrl(u); return p ? p.embedUrl : u; });
+          finalStreamUrl = JSON.stringify({ playlist: embedUrls });
+        }
+      } else {
+        finalStreamUrl = editForm.stream_url || undefined;
+      }
+      await controlLectureStream(editingLecture.id, 'update', {
+        title: editForm.title,
+        description: editForm.description || undefined,
+        category: editForm.category || undefined,
+        scheduled_datetime: editForm.scheduled_datetime || undefined,
+        visibility: editForm.visibility,
+        meeting_url: editForm.meeting_url || undefined,
+        stream_url: finalStreamUrl,
+        stream_type: editForm.stream_type === 'external' ? 'recorded' : editForm.stream_type,
+      });
+      setEditingLecture(null);
+      await loadAll();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   useEffect(() => {
     const u = localStorage.getItem('user');
@@ -132,15 +214,23 @@ export default function AdminLecturesPage() {
     e.preventDefault();
     setCreateLoading(true);
     try {
-      const extParsed = form.stream_type === 'external' ? parseExternalVideoUrl(form.external_url) : null;
+      let finalStreamUrl: string | undefined;
+      if (form.stream_type === 'external') {
+        const validUrls = form.externalUrls.map(u => u.trim()).filter(Boolean);
+        if (validUrls.length === 1) {
+          const p = parseExternalVideoUrl(validUrls[0]);
+          finalStreamUrl = p ? p.embedUrl : validUrls[0];
+        } else if (validUrls.length > 1) {
+          const embedUrls = validUrls.map(u => { const p = parseExternalVideoUrl(u); return p ? p.embedUrl : u; });
+          finalStreamUrl = JSON.stringify({ playlist: embedUrls });
+        }
+      }
       await createLecture({
         institution_id: Number(form.institution_id),
         title: form.title,
         description: form.description || undefined,
         stream_type: form.stream_type === 'external' ? 'recorded' : form.stream_type,
-        stream_url: form.stream_type === 'external'
-          ? (extParsed?.embedUrl || form.external_url || undefined)
-          : form.stream_url || undefined,
+        stream_url: form.stream_type === 'external' ? finalStreamUrl : form.stream_url || undefined,
         video_url: form.video_url || undefined,
         category: form.category || undefined,
         scheduled_datetime: form.scheduled_datetime || undefined,
@@ -149,7 +239,7 @@ export default function AdminLecturesPage() {
         meeting_url: form.meeting_url || undefined,
       });
       setShowCreate(false);
-      setForm({ institution_id: '', title: '', description: '', stream_type: 'live', stream_url: '', video_url: '', external_url: '', category: '', scheduled_datetime: '', visibility: 'institution', meeting_url: '' });
+      setForm({ institution_id: '', title: '', description: '', stream_type: 'live', stream_url: '', video_url: '', externalUrls: [''], category: '', scheduled_datetime: '', visibility: 'institution', meeting_url: '' });
       await loadAll();
     } catch (err: any) {
       alert(err.message);
@@ -264,7 +354,7 @@ export default function AdminLecturesPage() {
               </h2>
               <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
               <div style={{ display: 'grid', gap: 16 }}>
-                {liveLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onUpdateMeetingUrl={handleUpdateMeetingUrl} onCfUpload={getCfUploadUrl} />)}
+                {liveLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onUpdateMeetingUrl={handleUpdateMeetingUrl} onCfUpload={getCfUploadUrl} onEdit={openEdit} />)}
               </div>
             </div>
           )}
@@ -279,7 +369,7 @@ export default function AdminLecturesPage() {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 16 }}>
-                {otherLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onUpdateMeetingUrl={handleUpdateMeetingUrl} onCfUpload={getCfUploadUrl} />)}
+                {otherLectures.map(l => <LectureCard key={l.id} lecture={l} institutions={institutions} actionLoading={actionLoading} onStreamAction={handleStreamAction} onUpdateUrl={handleUpdateStreamUrl} onUpdateMeetingUrl={handleUpdateMeetingUrl} onCfUpload={getCfUploadUrl} onEdit={openEdit} />)}
               </div>
             )}
           </div>
@@ -349,29 +439,49 @@ export default function AdminLecturesPage() {
                 </Field>
               )}
               {form.stream_type === 'external' && (
-                <Field label="رابط الفيديو الخارجي (YouTube / Vimeo / Dailymotion)">
-                  <input
-                    value={form.external_url}
-                    onChange={e => setForm({ ...form, external_url: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=... أو رابط Vimeo/Dailymotion"
-                    style={inputStyle}
-                  />
-                  {form.external_url && (() => {
-                    const p = parseExternalVideoUrl(form.external_url);
-                    const icons: Record<string, string> = { youtube: '▶ YouTube', vimeo: '● Vimeo', dailymotion: '◉ Dailymotion' };
-                    return p ? (
-                      <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ background: `${C.teal}15`, color: C.teal, padding: '3px 10px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 600 }}>
-                          ✅ {icons[p.platform] || p.platform} — تم التعرف على المنصة
-                        </span>
-                        <span style={{ fontSize: '0.83rem', color: '#888' }}>سيتم تحويل الرابط تلقائياً</span>
+                <Field label="روابط الفيديو الخارجية (YouTube / Vimeo / Dailymotion)">
+                  {form.externalUrls.map((url, idx) => (
+                    <div key={idx} style={{ marginBottom: 8 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input
+                          value={url}
+                          onChange={e => {
+                            const next = [...form.externalUrls];
+                            next[idx] = e.target.value;
+                            setForm({ ...form, externalUrls: next });
+                          }}
+                          placeholder={`فيديو ${idx + 1} — YouTube / Vimeo / Dailymotion`}
+                          style={{ ...inputStyle, marginBottom: 0 }}
+                        />
+                        {form.externalUrls.length > 1 && (
+                          <button type="button" onClick={() => setForm({ ...form, externalUrls: form.externalUrls.filter((_, i) => i !== idx) })}
+                            style={{ padding: '6px 10px', borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', fontSize: '0.85rem', flexShrink: 0 }}>
+                            ✕
+                          </button>
+                        )}
                       </div>
-                    ) : (
-                      <div style={{ marginTop: 6, fontSize: '0.83rem', color: '#e57373' }}>
-                        ⚠️ لم يتم التعرف على المنصة — يُقبل روابط YouTube أو Vimeo أو Dailymotion
-                      </div>
-                    );
-                  })()}
+                      {url && (() => {
+                        const p = parseExternalVideoUrl(url);
+                        const icons: Record<string, string> = { youtube: '▶ YouTube', vimeo: '● Vimeo', dailymotion: '◉ Dailymotion' };
+                        return p ? (
+                          <span style={{ marginTop: 4, display: 'inline-block', background: `${C.teal}15`, color: C.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem' }}>
+                            ✅ {icons[p.platform]}
+                          </span>
+                        ) : (
+                          <span style={{ marginTop: 4, display: 'inline-block', fontSize: '0.82rem', color: '#e57373' }}>⚠️ رابط غير معروف</span>
+                        );
+                      })()}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setForm({ ...form, externalUrls: [...form.externalUrls, ''] })}
+                    style={{ marginTop: 4, padding: '6px 14px', borderRadius: 20, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}40`, cursor: 'pointer', fontSize: '0.85rem' }}>
+                    + إضافة فيديو آخر
+                  </button>
+                  {form.externalUrls.length > 1 && (
+                    <div style={{ marginTop: 6, fontSize: '0.8rem', color: C.teal }}>
+                      📋 قائمة تشغيل بـ {form.externalUrls.filter(u => u.trim()).length} فيديو — ستُعرض بالتسلسل تلقائياً
+                    </div>
+                  )}
                   <div style={{ marginTop: 8, padding: '8px 12px', background: `${C.softGreen}15`, border: `1px solid ${C.softGreen}40`, borderRadius: 8, fontSize: '0.8rem', color: '#555', lineHeight: 1.6 }}>
                     📌 سيُعرض هذا الفيديو على الشاشة تلقائياً عند عدم وجود بث مباشر
                   </div>
@@ -486,12 +596,126 @@ export default function AdminLecturesPage() {
         </div>
       )}
 
+      {/* مودال تعديل محاضرة */}
+      {editingLecture && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 150, direction: 'rtl' }}>
+          <div style={{ background: 'white', borderRadius: 24, padding: 36, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', boxShadow: `0 20px 60px ${C.darkNavy}40` }}>
+            <h2 style={{ color: C.darkNavy, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              ✏️ تعديل المحاضرة
+              <button onClick={() => setEditingLecture(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+            </h2>
+            <form onSubmit={handleEditSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <Field label="العنوان *">
+                <input value={editForm.title} onChange={e => setEditForm({ ...editForm, title: e.target.value })} required style={inputStyle} />
+              </Field>
+              <Field label="الوصف">
+                <textarea value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
+              </Field>
+              <Field label="التصنيف">
+                <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })} style={selectStyle}>
+                  <option value="">— اختر —</option>
+                  <option value="lecture">محاضرة</option>
+                  <option value="lesson">درس</option>
+                  <option value="course">دورة</option>
+                  <option value="conference">مؤتمر</option>
+                </select>
+              </Field>
+              <Field label="نوع البث">
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  {(['live', 'recorded', 'external'] as const).map(t => (
+                    <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: editForm.stream_type === t ? 700 : 400, color: editForm.stream_type === t ? C.teal : '#666' }}>
+                      <input type="radio" value={t} checked={editForm.stream_type === t} onChange={() => setEditForm({ ...editForm, stream_type: t })} />
+                      {t === 'live' ? '🔴 مباشر' : t === 'recorded' ? '🎬 مسجّل' : '🎥 فيديو خارجي'}
+                    </label>
+                  ))}
+                </div>
+              </Field>
+              {editForm.stream_type === 'external' && (
+                <Field label="روابط الفيديو الخارجية">
+                  {editForm.externalUrls.map((url, idx) => (
+                    <div key={idx} style={{ marginBottom: 8 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input
+                          value={url}
+                          onChange={e => {
+                            const next = [...editForm.externalUrls];
+                            next[idx] = e.target.value;
+                            setEditForm({ ...editForm, externalUrls: next });
+                          }}
+                          placeholder={`فيديو ${idx + 1} — YouTube / Vimeo / Dailymotion`}
+                          style={{ ...inputStyle, marginBottom: 0 }}
+                        />
+                        {editForm.externalUrls.length > 1 && (
+                          <button type="button" onClick={() => setEditForm({ ...editForm, externalUrls: editForm.externalUrls.filter((_, i) => i !== idx) })}
+                            style={{ padding: '6px 10px', borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', fontSize: '0.85rem', flexShrink: 0 }}>
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {url && (() => {
+                        const p = parseExternalVideoUrl(url);
+                        const icons: Record<string, string> = { youtube: '▶ YouTube', vimeo: '● Vimeo', dailymotion: '◉ Dailymotion' };
+                        return p ? (
+                          <span style={{ marginTop: 4, display: 'inline-block', background: `${C.teal}15`, color: C.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem' }}>
+                            ✅ {icons[p.platform]}
+                          </span>
+                        ) : (
+                          <span style={{ marginTop: 4, display: 'inline-block', fontSize: '0.82rem', color: '#e57373' }}>⚠️ رابط غير معروف</span>
+                        );
+                      })()}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setEditForm({ ...editForm, externalUrls: [...editForm.externalUrls, ''] })}
+                    style={{ marginTop: 4, padding: '6px 14px', borderRadius: 20, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}40`, cursor: 'pointer', fontSize: '0.85rem' }}>
+                    + إضافة فيديو آخر
+                  </button>
+                  {editForm.externalUrls.length > 1 && (
+                    <div style={{ marginTop: 6, fontSize: '0.8rem', color: C.teal }}>
+                      📋 قائمة تشغيل بـ {editForm.externalUrls.filter(u => u.trim()).length} فيديو — ستُعرض بالتسلسل تلقائياً
+                    </div>
+                  )}
+                </Field>
+              )}
+              {editForm.stream_type !== 'external' && (
+                <Field label="رابط البث / الفيديو">
+                  <input value={editForm.stream_url} onChange={e => setEditForm({ ...editForm, stream_url: e.target.value })} placeholder="https://..." style={inputStyle} dir="ltr" />
+                </Field>
+              )}
+              <Field label="رابط الاجتماع (Zoom / Teams / Meet) — اختياري">
+                <input value={editForm.meeting_url} onChange={e => setEditForm({ ...editForm, meeting_url: e.target.value })} placeholder="https://zoom.us/j/..." style={inputStyle} dir="ltr" />
+              </Field>
+              <Field label="موعد الجدولة">
+                <input type="datetime-local" value={editForm.scheduled_datetime} onChange={e => setEditForm({ ...editForm, scheduled_datetime: e.target.value })} style={inputStyle} />
+              </Field>
+              <Field label="الظهور">
+                <div style={{ display: 'flex', gap: 16 }}>
+                  {([{ value: 'institution', label: '🏛️ مؤسستي فقط' }, { value: 'all', label: '🌍 جميع المؤسسات' }] as const).map(opt => (
+                    <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: editForm.visibility === opt.value ? 700 : 400, color: editForm.visibility === opt.value ? C.teal : '#666' }}>
+                      <input type="radio" value={opt.value} checked={editForm.visibility === opt.value} onChange={() => setEditForm({ ...editForm, visibility: opt.value })} />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              </Field>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <button type="submit" disabled={editLoading} style={{ flex: 1, padding: '12px 0', background: C.darkNavy, color: 'white', border: 'none', borderRadius: 30, fontWeight: 700, cursor: editLoading ? 'default' : 'pointer', opacity: editLoading ? 0.7 : 1, fontSize: '1rem' }}>
+                  {editLoading ? 'جاري الحفظ...' : '💾 حفظ التغييرات'}
+                </button>
+                <button type="button" onClick={() => setEditingLecture(null)} style={{ padding: '12px 28px', background: '#f0f0f0', color: '#555', border: 'none', borderRadius: 30, cursor: 'pointer', fontSize: '1rem' }}>
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
 // ─── Card Component ──────────────────────────────────────────────────────────
-function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onUpdateUrl, onUpdateMeetingUrl, onCfUpload }: {
+function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onUpdateUrl, onUpdateMeetingUrl, onCfUpload, onEdit }: {
   lecture: Lecture;
   institutions: any[];
   actionLoading: number | null;
@@ -499,6 +723,7 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
   onUpdateUrl: (l: Lecture, url: string) => void;
   onUpdateMeetingUrl: (l: Lecture, url: string) => void;
   onCfUpload: (lectureId: number) => Promise<{ uploadURL: string; videoId: string; iframeUrl: string }>;
+  onEdit: (l: Lecture) => void;
 }) {
   const [editUrl, setEditUrl] = useState(lecture.stream_url || '');
   const [editMeetingUrl, setEditMeetingUrl] = useState(lecture.meeting_url || '');
@@ -726,7 +951,13 @@ function LectureCard({ lecture, institutions, actionLoading, onStreamAction, onU
             {isLoading ? '...' : '⏹ إيقاف البث'}
           </button>
         )}
-        <div style={{ fontSize: '0.83rem', color: '#aaa', textAlign: 'center' }}>
+        <button
+            onClick={() => onEdit(lecture)}
+            style={{ padding: '7px 16px', borderRadius: 20, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}40`, cursor: 'pointer', fontSize: '0.85rem', width: '100%', textAlign: 'center' }}
+          >
+            ✏️ تعديل
+          </button>
+          <div style={{ fontSize: '0.83rem', color: '#aaa', textAlign: 'center' }}>
           #{lecture.id} · {new Date(lecture.created_at).toLocaleDateString('ar-EG')}
         </div>
       </div>

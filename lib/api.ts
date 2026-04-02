@@ -401,7 +401,7 @@ export async function createLecture(payload: {
 export async function controlLectureStream(
   id: number,
   action: 'start' | 'stop' | 'update',
-  opts?: { stream_url?: string; stream_type?: 'live' | 'recorded'; viewer_count?: number; cf_live_input_id?: string; meeting_url?: string }
+  opts?: { stream_url?: string; stream_type?: 'live' | 'recorded'; viewer_count?: number; cf_live_input_id?: string; meeting_url?: string; title?: string; description?: string; category?: string; scheduled_datetime?: string; visibility?: string }
 ) {
   const res = await fetchWithRetry<{
     success: boolean;

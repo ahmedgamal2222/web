@@ -72,6 +72,8 @@ export default function ScreenPage() {
   const [selectedPulse, setSelectedPulse] = useState<PulseItem | null>(null);
   const [adCountdown, setAdCountdown] = useState(5);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const [playlistIdx, setPlaylistIdx] = useState(0);
+  const playlistTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // إطلاق حدث resize بعد تغيير الربع الموسّع حتى يتحدّث Three.js بحجم الحاوية الجديد
   useEffect(() => {
@@ -378,6 +380,46 @@ export default function ScreenPage() {
     }
   };
 
+  // ─── إعادة ضبط فهرس قائمة التشغيل عند تغيير المحاضرات ──────────────────
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setPlaylistIdx(0); }, [lectures.map((l: any) => l.id).join(',')]);
+
+  // ─── تدوير قائمة التشغيل ────────────────────────────────────────────────
+  useEffect(() => {
+    const liveL = lectures.find((l: any) => l.is_live);
+    const recentR = !liveL ? lectures.find((l: any) =>
+      (l.stream_type === 'recorded' || l.stream_type === 'external') &&
+      (l.stream_url || l.video_url || l.cf_video_id || l.cf_live_input_id)
+    ) : null;
+    const dispL = liveL || recentR;
+    if (!dispL?.stream_url) return;
+
+    let urls: string[] = [];
+    try {
+      const parsed = JSON.parse(dispL.stream_url);
+      if (parsed?.playlist && Array.isArray(parsed.playlist)) urls = parsed.playlist;
+    } catch {}
+    if (urls.length <= 1) return;
+
+    const handler = (e: MessageEvent) => {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (data?.event === 'onStateChange' && data?.info === 0) {
+          setPlaylistIdx(prev => (prev + 1) % urls.length);
+        }
+      } catch {}
+    };
+    window.addEventListener('message', handler);
+    if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
+    playlistTimerRef.current = setTimeout(() => {
+      setPlaylistIdx(prev => (prev + 1) % urls.length);
+    }, 15 * 60 * 1000);
+    return () => {
+      window.removeEventListener('message', handler);
+      if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
+    };
+  }, [lectures, playlistIdx]);
+
   // ─── شاشة تسجيل الدخول ───────────────────────────────────────────────────
   if (!authenticated) {
     return (
@@ -491,6 +533,18 @@ export default function ScreenPage() {
   const displayLecture = liveLecture || recentRecorded;
   // كشف رابط خارجي (YouTube/Vimeo/Dailymotion) في stream_url
   const externalEmbed = displayLecture?.stream_url ? parseExternalVideoUrl(displayLecture.stream_url) : null;
+
+  // قائمة تشغيل: JSON playlist أو رابط منفرد
+  let playlistUrls: string[] = [];
+  if (displayLecture?.stream_url) {
+    try {
+      const parsed = JSON.parse(displayLecture.stream_url);
+      if (parsed?.playlist && Array.isArray(parsed.playlist)) playlistUrls = parsed.playlist;
+    } catch {}
+  }
+  if (playlistUrls.length === 0 && externalEmbed) playlistUrls = [externalEmbed.embedUrl];
+  const safePlayIdx = playlistUrls.length > 0 ? playlistIdx % playlistUrls.length : 0;
+  const currentPlaylistEmbed = playlistUrls.length > 0 ? playlistUrls[safePlayIdx] : null;
 
   // دمج الأخبار + الفعاليات + الاتفاقيات في تدفق موحّد مرتّب زمنياً
   const combinedFeed = [
@@ -1171,6 +1225,51 @@ export default function ScreenPage() {
           50%      { transform: scaleY(1.3);  opacity: 1; }
         }
         .vol-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+
+        /* ── إخفاء واجهة يوتيوب بدون تقليص الفيديو ── */
+        .yt-clip-wrap {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: #000;
+        }
+        .yt-clip-wrap iframe {
+          position: absolute;
+          top: -56px;
+          left: 0;
+          width: 100%;
+          height: calc(100% + 110px);
+          border: none;
+          display: block;
+        }
+
+        /* ── توهّج البث المباشر على الربع ── */
+        .q-live-border {
+          border-color: rgba(255, 60, 60, 0.65) !important;
+          animation: liveQuadrantGlow 2.8s ease-in-out infinite;
+        }
+        @keyframes liveQuadrantGlow {
+          0%,100% { box-shadow: 0 0 0 1.5px rgba(255,60,60,0.5), 0 0 18px rgba(255,60,60,0.10); }
+          50%      { box-shadow: 0 0 0 2px   rgba(255,60,60,0.8), 0 0 32px rgba(255,60,60,0.22); }
+        }
+
+        /* ── تحسينات مرئية لشريط البث ── */
+        .q1-topbar {
+          background: linear-gradient(135deg, rgba(8,6,24,0.98) 0%, rgba(12,10,28,0.96) 100%) !important;
+          border-bottom-color: rgba(255,215,0,0.3) !important;
+        }
+        .q1-info-bar {
+          background: linear-gradient(180deg, rgba(6,5,18,0.97) 0%, rgba(10,8,22,0.99) 100%) !important;
+          border-top-color: rgba(255,215,0,0.28) !important;
+        }
+        .badge-live {
+          box-shadow: 0 0 12px rgba(255,68,68,0.6), 0 2px 10px rgba(255,68,68,0.5);
+          animation: liveTagPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes liveTagPulse {
+          0%,100% { box-shadow: 0 0 10px rgba(255,68,68,0.5); }
+          50%      { box-shadow: 0 0 22px rgba(255,68,68,0.85), 0 0 40px rgba(255,68,68,0.22); }
+        }
       `}</style>
 
       {/* شريط المؤسسة */}
@@ -1185,7 +1284,7 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 1: بث المحاضرات */}
-      <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}`}>
+      <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
           {/* ─ شريط علوي: البادج + المشاهدين + زر التكبير ─ */}
@@ -1242,15 +1341,29 @@ export default function ScreenPage() {
                   <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 24px', lineHeight: 1.6 }}>جاري معالجة التسجيل على Cloudflare Stream</div>
                   <div style={{ fontSize: '0.83rem', opacity: 0.45 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
                 </div>
-              ) : externalEmbed ? (
-                <iframe
-                  ref={lectureIframeRef}
-                  src={externalEmbed.embedUrl}
-                  className="lecture-video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ border: 'none', width: '100%', height: '100%' }}
-                />
+              ) : currentPlaylistEmbed ? (
+                <div className="yt-clip-wrap">
+                  <iframe
+                    key={`pl-${safePlayIdx}`}
+                    ref={lectureIframeRef}
+                    src={currentPlaylistEmbed}
+                    className="lecture-video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{ border: 'none' }}
+                  />
+                  {playlistUrls.length > 1 && (
+                    <div style={{
+                      position: 'absolute', top: 10, left: 10, zIndex: 20,
+                      background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)',
+                      color: 'white', padding: '4px 13px', borderRadius: 14,
+                      fontSize: '0.82rem', fontWeight: 700,
+                      border: '1px solid rgba(255,255,255,0.15)',
+                    }}>
+                      {safePlayIdx + 1} / {playlistUrls.length}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <video
                   ref={videoRef}
