@@ -274,9 +274,10 @@ function TopBar({
           // { href: '/marketplace', icon: '🛒', label: 'السوق' },
           // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
           // { href: '/services',    icon: '🛠️', label: 'الخدمات' },
+
           ...(user?.institution_id
             ? [{ href: `/screen/${user.institution_id}`, icon: '📺', label: 'الشاشة الحضارية' }]
-            : []),
+            : [{ href: '/tv.hadmaj', icon: '📺', label: 'الشاشة الحضارية' }]),
         ] as Array<{ href: string; icon: string; label: string }>).map(link => (
           <Link
             key={link.href}
