@@ -362,14 +362,11 @@ export default function ScreenPage() {
   const toggleVideoMute = () => {
     const newMuted = !isVideoMuted;
     setIsVideoMuted(newMuted);
+    // Cloudflare Stream & Vimeo: postMessage
     const iframe = lectureIframeRef.current;
     if (!iframe?.contentWindow) return;
     const src = iframe.src || '';
-    if (src.includes('youtube.com')) {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }), '*'
-      );
-    } else if (src.includes('cloudflarestream.com')) {
+    if (src.includes('cloudflarestream.com')) {
       iframe.contentWindow.postMessage(
         JSON.stringify({ type: newMuted ? 'mute' : 'unmute' }),
         'https://iframe.cloudflarestream.com'
@@ -380,6 +377,7 @@ export default function ScreenPage() {
         'https://player.vimeo.com'
       );
     }
+    // YouTube: handled by src rebuild via isVideoMuted state change (key forces reload)
   };
 
   // ─── إعادة ضبط فهرس قائمة التشغيل عند تغيير المحاضرات ──────────────────
@@ -403,19 +401,23 @@ export default function ScreenPage() {
     } catch {}
     if (urls.length <= 1) return;
 
+    const advance = () => setPlaylistIdx(prev => (prev + 1) % urls.length);
+
+    // الاستماع لحدث انتهاء الفيديو من YouTube (onStateChange info=0 = ended)
     const handler = (e: MessageEvent) => {
       try {
         const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
         if (data?.event === 'onStateChange' && data?.info === 0) {
-          setPlaylistIdx(prev => (prev + 1) % urls.length);
+          advance();
         }
       } catch {}
     };
     window.addEventListener('message', handler);
+
+    // fallback: الانتقال تلقائياً بعد 20 دقيقة إذا لم يصل الحدث
     if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
-    playlistTimerRef.current = setTimeout(() => {
-      setPlaylistIdx(prev => (prev + 1) % urls.length);
-    }, 15 * 60 * 1000);
+    playlistTimerRef.current = setTimeout(advance, 20 * 60 * 1000);
+
     return () => {
       window.removeEventListener('message', handler);
       if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
@@ -547,6 +549,20 @@ export default function ScreenPage() {
   if (playlistUrls.length === 0 && externalEmbed) playlistUrls = [externalEmbed.embedUrl];
   const safePlayIdx = playlistUrls.length > 0 ? playlistIdx % playlistUrls.length : 0;
   const currentPlaylistEmbed = playlistUrls.length > 0 ? playlistUrls[safePlayIdx] : null;
+  // إعادة بناء رابط اليوتيوب مع حالة الكتم الصحيحة
+  // عند قائمة تشغيل متعددة: نحذف loop=1 حتى يصل الفيديو لنهايته ويطلق onStateChange
+  const currentDisplayEmbed = currentPlaylistEmbed
+    ? (() => {
+        let url = isVideoMuted
+          ? currentPlaylistEmbed.replace(/mute=0/g, 'mute=1')
+          : currentPlaylistEmbed.replace(/mute=1/g, 'mute=0');
+        if (playlistUrls.length > 1) {
+          // أزل loop=1 وredundant playlist= حتى يُطلق YouTube حدث onStateChange عند الانتهاء
+          url = url.replace(/&loop=1/g, '').replace(/&playlist=[a-zA-Z0-9_-]*/g, '');
+        }
+        return url;
+      })()
+    : null;
 
   // دمج الأخبار + الفعاليات + الاتفاقيات في تدفق موحّد مرتّب زمنياً
   const combinedFeed = [
@@ -1244,19 +1260,13 @@ export default function ScreenPage() {
           border: none;
           display: block;
         }
-        /* طبقة شفافة تمنع أي تفاعل + vignette تغطي شعار/عنوان يوتيوب في الزوايا */
+        /* طبقة شفافة تمنع أي تفاعل مع واجهة يوتيوب (إيقاف، شعار، اقتراحات) */
         .yt-block-overlay {
           position: absolute;
           inset: 0;
           z-index: 15;
           cursor: default;
           background: transparent;
-          /* ظل داكن من الحواف يغطي شعار يوتيوب وأي عناصر في الأركان */
-          box-shadow:
-            inset 0  60px 20px -10px rgba(0,0,0,0.96),
-            inset 0 -55px 20px -10px rgba(0,0,0,0.96),
-            inset  50px 0 20px -10px rgba(0,0,0,0.92),
-            inset -50px 0 20px -10px rgba(0,0,0,0.92);
         }
 
         /* ── توهّج البث المباشر على الربع ── */
@@ -1357,30 +1367,25 @@ export default function ScreenPage() {
                   <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 24px', lineHeight: 1.6 }}>جاري معالجة التسجيل على Cloudflare Stream</div>
                   <div style={{ fontSize: '0.83rem', opacity: 0.45 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
                 </div>
-              ) : currentPlaylistEmbed ? (
+              ) : currentDisplayEmbed ? (
                 <div className="yt-clip-wrap">
                   <iframe
-                    key={`pl-${safePlayIdx}`}
+                    key={`pl-${safePlayIdx}-${isVideoMuted ? 'm' : 'u'}`}
                     ref={lectureIframeRef}
-                    src={currentPlaylistEmbed}
+                    src={currentDisplayEmbed}
                     className="lecture-video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     style={{ border: 'none' }}
                   />
-                  {/* طبقة تمنع التفاعل مع يوتيوب: لا إيقاف، لا شعار، لا اقتراحات */}
+                  {/* طبقة شفافة تمنع التفاعل مع واجهة يوتيوب */}
                   <div className="yt-block-overlay" />
-                  {playlistUrls.length > 1 && (
-                    <div style={{
-                      position: 'absolute', top: 10, left: 10, zIndex: 20,
-                      background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)',
-                      color: 'white', padding: '4px 13px', borderRadius: 14,
-                      fontSize: '0.82rem', fontWeight: 700,
-                      border: '1px solid rgba(255,255,255,0.15)',
-                    }}>
-                      {safePlayIdx + 1} / {playlistUrls.length}
-                    </div>
-                  )}
+                  {/* gradient خفيف يغطي عنوان الفيديو في الأعلى */}
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, height: 52,
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, transparent 100%)',
+                    zIndex: 16, pointerEvents: 'none',
+                  }} />
                 </div>
               ) : (
                 <video
