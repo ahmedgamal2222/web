@@ -133,11 +133,11 @@ export default function AdminLecturesPage() {
       }
       await controlLectureStream(editingLecture.id, 'update', {
         title: editForm.title,
-        description: editForm.description || undefined,
-        category: editForm.category || undefined,
-        scheduled_datetime: editForm.scheduled_datetime || undefined,
+        description: editForm.description,
+        category: editForm.category,
+        scheduled_datetime: editForm.scheduled_datetime,
         visibility: editForm.visibility,
-        meeting_url: editForm.meeting_url || undefined,
+        meeting_url: editForm.meeting_url,
         stream_url: finalStreamUrl,
         stream_type: editForm.stream_type === 'external' ? 'recorded' : editForm.stream_type,
       });
