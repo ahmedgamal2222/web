@@ -416,10 +416,12 @@ export default function GalaxyCanvas({
         float total = r1 + r2 + r3 + core + rays + rays2 + outerGlow;
         if (total < 0.008) discard;
         total = clamp(total, 0.0, 1.0);
+        // Pure white radiance: hot white core fading to a cool blue-white haze
         float dn = d * 2.0;
-        vec3 col = mix(vec3(1.0, 0.97, 0.88), vec3(1.0, 0.80, 0.25), smoothstep(0.0, 0.55, dn));
-        col = mix(col, vec3(0.25, 0.85, 1.0), smoothstep(0.45, 1.0, dn));
-        col = mix(col, vec3(1.0), smoothstep(0.04, 0.0, d));
+        vec3 col = vec3(1.0);                                                        // start pure white
+        col = mix(col, vec3(0.88, 0.93, 1.0), smoothstep(0.0, 0.6, dn));            // slight cool blue-white in mid
+        col = mix(col, vec3(0.72, 0.84, 1.0), smoothstep(0.5, 1.0, dn));            // soft blue-white at outer edge
+        col = mix(col, vec3(1.0), smoothstep(0.06, 0.0, d));                        // pure white at very centre
         gl_FragColor = vec4(col, total * 0.95);
       }
     `;

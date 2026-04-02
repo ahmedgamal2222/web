@@ -28,7 +28,7 @@ function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'yout
   if (!url) return null;
   const u = url.trim();
   const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`, platform: 'youtube' };
+  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&enablejsapi=1`, platform: 'youtube' };
   const vm = u.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
   if (vm) return { embedUrl: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1`, platform: 'vimeo' };
   const dm = u.match(/(?:dailymotion\.com\/(?:video\/|embed\/video\/)|dai\.ly\/)([a-zA-Z0-9]+)/);
@@ -36,8 +36,8 @@ function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'yout
   // Already an embed URL — ensure YouTube controls are hidden
   if (u.includes('youtube.com/embed/')) {
     const sep = u.includes('?') ? '&' : '?';
-    const clean = u.replace(/[&?](controls|modestbranding|rel|iv_load_policy|disablekb)=[^&]*/g, '');
-    return { embedUrl: `${clean}${sep}controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`, platform: 'youtube' };
+    const clean = u.replace(/[&?](controls|modestbranding|rel|iv_load_policy|disablekb|fs|cc_load_policy|enablejsapi)=[^&]*/g, '');
+    return { embedUrl: `${clean}${sep}controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&enablejsapi=1`, platform: 'youtube' };
   }
   if (u.includes('player.vimeo.com/video/')) return { embedUrl: u, platform: 'vimeo' };
   if (u.includes('dailymotion.com/embed/video/')) return { embedUrl: u, platform: 'dailymotion' };
@@ -71,6 +71,7 @@ export default function ScreenPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [selectedPulse, setSelectedPulse] = useState<PulseItem | null>(null);
   const [adCountdown, setAdCountdown] = useState(5);
+  const [isVideoMuted, setIsVideoMuted] = useState(true);
 
   // إطلاق حدث resize بعد تغيير الربع الموسّع حتى يتحدّث Three.js بحجم الحاوية الجديد
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function ScreenPage() {
   }, [expandedQuadrant]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lectureIframeRef = useRef<HTMLIFrameElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeFnRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -304,7 +306,7 @@ export default function ScreenPage() {
     const unlock = () => {
       if (audioRef.current) return;
       try {
-        const audio = new Audio('/sound/idoberg-space-chords-loop-310493.mp3');
+        const audio = new Audio('/sound/DSGNDron_Trailer_Drones_Universe_Atmospheric_Abstract_Misterious_Deep_Ambiance_ESM_TFOR.mp3');
         audio.loop = true;
         audio.volume = 0;
         audioRef.current = audio;
@@ -350,6 +352,30 @@ export default function ScreenPage() {
     const audio = audioRef.current;
     if (!audio) return;
     fadeTo(0, () => audio.pause());
+  };
+
+  // ─── تبديل كتم/تشغيل صوت الفيديو ────────────────────────────────────────
+  const toggleVideoMute = () => {
+    const newMuted = !isVideoMuted;
+    setIsVideoMuted(newMuted);
+    const iframe = lectureIframeRef.current;
+    if (!iframe?.contentWindow) return;
+    const src = iframe.src || '';
+    if (src.includes('youtube.com')) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }), '*'
+      );
+    } else if (src.includes('cloudflarestream.com')) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ type: newMuted ? 'mute' : 'unmute' }),
+        'https://iframe.cloudflarestream.com'
+      );
+    } else if (src.includes('vimeo.com')) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ method: 'setMuted', value: newMuted }),
+        'https://player.vimeo.com'
+      );
+    }
   };
 
   // ─── شاشة تسجيل الدخول ───────────────────────────────────────────────────
@@ -1081,6 +1107,70 @@ export default function ScreenPage() {
           color: rgba(255,215,0,0.82);
           font-weight: 500;
         }
+        /* ── زر الصوت ── */
+        .volume-toggle {
+          position: absolute;
+          bottom: 18px; right: 16px;
+          background: rgba(4,4,16,0.85);
+          backdrop-filter: blur(20px);
+          border: 1.5px solid rgba(255,215,0,0.45);
+          border-radius: 30px;
+          color: #FFD700;
+          padding: 9px 18px 9px 14px;
+          cursor: pointer;
+          display: flex; align-items: center; gap: 9px;
+          font-size: 0.85rem; font-weight: 700;
+          z-index: 30;
+          transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
+          font-family: 'Cairo','Arial',sans-serif;
+          direction: rtl;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+          outline: none; user-select: none;
+          animation: volMutedBreath 3.5s ease-in-out infinite;
+        }
+        @keyframes volMutedBreath {
+          0%,100% { box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 0 rgba(255,215,0,0); }
+          50%      { box-shadow: 0 4px 28px rgba(0,0,0,0.5), 0 0 10px 3px rgba(255,215,0,0.18); }
+        }
+        .volume-toggle:hover {
+          background: rgba(255,215,0,0.14);
+          border-color: #FFD700;
+          transform: scale(1.07);
+          box-shadow: 0 6px 32px rgba(255,215,0,0.22);
+          animation: none;
+        }
+        .volume-toggle:active { transform: scale(0.96); }
+        .volume-toggle.vol-on {
+          border-color: rgba(100,220,255,0.55);
+          color: #7dd8ff;
+          animation: none;
+        }
+        .volume-toggle.vol-on:hover {
+          background: rgba(100,220,255,0.1);
+          border-color: #7dd8ff;
+          box-shadow: 0 6px 32px rgba(100,220,255,0.2);
+        }
+        .vol-icon { font-size: 1.05rem; line-height: 1; flex-shrink: 0; }
+        .vol-bars {
+          display: flex; align-items: flex-end; gap: 2.5px;
+          height: 17px;
+        }
+        .vol-bar {
+          width: 3px; border-radius: 3px;
+          background: currentColor;
+          animation: volBarPulse 1.1s ease-in-out infinite;
+          transform-origin: bottom;
+        }
+        .vol-bar:nth-child(1) { height: 6px;  animation-delay: 0s; }
+        .vol-bar:nth-child(2) { height: 11px; animation-delay: 0.18s; }
+        .vol-bar:nth-child(3) { height: 16px; animation-delay: 0.36s; }
+        .vol-bar:nth-child(4) { height: 11px; animation-delay: 0.54s; }
+        .vol-bar:nth-child(5) { height: 6px;  animation-delay: 0.72s; }
+        @keyframes volBarPulse {
+          0%,100% { transform: scaleY(0.45); opacity: 0.55; }
+          50%      { transform: scaleY(1.3);  opacity: 1; }
+        }
+        .vol-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
       `}</style>
 
       {/* شريط المؤسسة */}
@@ -1130,6 +1220,7 @@ export default function ScreenPage() {
             {displayLecture ? (
               liveLecture && displayLecture.cf_live_input_id ? (
                 <iframe
+                  ref={lectureIframeRef}
                   src={`https://iframe.cloudflarestream.com/${displayLecture.cf_live_input_id}?autoplay=true&muted=true`}
                   className="lecture-video"
                   allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
@@ -1138,7 +1229,8 @@ export default function ScreenPage() {
                 />
               ) : displayLecture.cf_video_id ? (
                 <iframe
-                  src={`https://iframe.cloudflarestream.com/${displayLecture.cf_video_id}?autoplay=true&muted=false&loop=true`}
+                  ref={lectureIframeRef}
+                  src={`https://iframe.cloudflarestream.com/${displayLecture.cf_video_id}?autoplay=true&muted=true&loop=true`}
                   className="lecture-video"
                   allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
                   allowFullScreen
@@ -1152,6 +1244,7 @@ export default function ScreenPage() {
                 </div>
               ) : externalEmbed ? (
                 <iframe
+                  ref={lectureIframeRef}
                   src={externalEmbed.embedUrl}
                   className="lecture-video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -1164,9 +1257,9 @@ export default function ScreenPage() {
                   className="lecture-video"
                   src={displayLecture.stream_url || displayLecture.video_url}
                   autoPlay
-                  muted={!!liveLecture}
+                  muted={isVideoMuted}
                   loop={!liveLecture}
-                  controls={!liveLecture}
+                  controls={false}
                 />
               )
             ) : (
@@ -1175,6 +1268,26 @@ export default function ScreenPage() {
                 <span style={{ fontSize: '1rem', fontWeight: 600 }}>لا يوجد بث حالياً</span>
                 <span style={{ fontSize: '0.85rem', opacity: 0.5 }}>سيبدأ البث قريباً</span>
               </div>
+            )}
+            {/* ─── زر تشغيل/كتم الصوت ─── */}
+            {displayLecture && (
+              <button
+                className={`volume-toggle${!isVideoMuted ? ' vol-on' : ''}`}
+                onClick={toggleVideoMute}
+                title={isVideoMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
+              >
+                <span className="vol-icon">{isVideoMuted ? '🔇' : '🔊'}</span>
+                {!isVideoMuted ? (
+                  <span className="vol-bars" aria-hidden="true">
+                    <span className="vol-bar" />
+                    <span className="vol-bar" />
+                    <span className="vol-bar" />
+                    <span className="vol-bar" />
+                    <span className="vol-bar" />
+                  </span>
+                ) : null}
+                <span className="vol-label">{isVideoMuted ? 'تشغيل الصوت' : 'كتم الصوت'}</span>
+              </button>
             )}
           </div>
 
