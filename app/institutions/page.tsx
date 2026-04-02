@@ -40,11 +40,15 @@ const TYPE_STYLES: Record<string, { label: string; color: string }> = {
 // دالة مساعدة لحساب عدد الاتفاقيات
 // ============================================================
 function getAgreementsCount(inst: Institution): number {
-  if (!inst.agreements) return 0;
-  if (typeof inst.agreements === 'number') return inst.agreements;
-  if (Array.isArray(inst.agreements)) return inst.agreements.length;
-  if (typeof inst.agreements === 'object' && inst.agreements !== null) {
-    const v = (inst.agreements as any).count ?? (inst.agreements as any).total;
+  const i = inst as any;
+  // حقول مباشرة قد يرسلها الـ API
+  if (typeof i.agreements_count === 'number') return i.agreements_count;
+  if (typeof i.total_agreements === 'number')  return i.total_agreements;
+  if (typeof i.agreements === 'number')        return i.agreements;
+  if (!i.agreements) return 0;
+  if (Array.isArray(i.agreements)) return i.agreements.length;
+  if (typeof i.agreements === 'object' && i.agreements !== null) {
+    const v = i.agreements.count ?? i.agreements.total ?? i.agreements.length;
     if (typeof v === 'number') return v;
   }
   return 0;
@@ -130,7 +134,7 @@ function InstitutionCard({ institution }: { institution: Institution }) {
                     ✓ موثقة
                   </span>
                 )}
-                {institution.screen_active && (
+                {!!institution.screen_active && (
                   <span style={{
                     background: `${C.mint}12`, color: C.mint,
                     border: `1px solid ${C.mint}28`,

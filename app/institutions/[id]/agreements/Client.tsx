@@ -239,7 +239,9 @@ export default function InstitutionAgreementsPage() {
       setAllInstitutions(insts);
       const me = insts.find((i: any) => i.id === institutionId);
       if (me) setInstitutionName(me.name_ar || me.name || '');
-      const myAgs = (agRes?.data || []) as Agreement[];
+      const myAgs = ((agRes?.data || []) as Agreement[]).filter(
+        (a: Agreement) => a.from_id === institutionId || a.to_id === institutionId
+      );
       setAgreements(myAgs);
       setMineTotal(myAgs.length);
       const allAgs: Agreement[] = (allAgRes?.data || []) as Agreement[];
