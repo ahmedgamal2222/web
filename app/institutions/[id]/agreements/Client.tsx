@@ -14,13 +14,25 @@ import {
 
 // ─── الألوان ────────────────────────────────────────────────
 const C = {
-  lightMint: '#EDF7BD',
-  softGreen: '#85C79A',
-  teal: '#4E8D9C',
-  darkNavy: '#281C59',
-  live: '#ff4444',
-  warning: '#f59e0b',
-  success: '#22c55e',
+  bg:         '#07091e',
+  bgCard:     'rgba(12,16,40,0.95)',
+  bgMod:      '#0d1130',
+  border:     'rgba(78,141,156,0.18)',
+  teal:       '#4E8D9C',
+  mint:       '#EDF7BD',
+  green:      '#85C79A',
+  navy:       '#281C59',
+  text:       '#e2eaf2',
+  textMuted:  '#7a96aa',
+  input:      'rgba(255,255,255,0.06)',
+  inputBord:  'rgba(78,141,156,0.4)',
+  live:       '#ff4444',
+  warning:    '#f59e0b',
+  success:    '#22c55e',
+  // compat aliases
+  lightMint:  '#EDF7BD',
+  softGreen:  '#85C79A',
+  darkNavy:   '#281C59',
 };
 
 // ─── Types ───────────────────────────────────────────────────
@@ -57,23 +69,25 @@ const TYPE_OPTIONS = [
 
 // ─── Styles ──────────────────────────────────────────────────
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 14px', border: `1px solid ${C.teal}40`,
-  borderRadius: 10, fontSize: '0.95rem', outline: 'none',
-  color: C.darkNavy, background: 'white', boxSizing: 'border-box',
+  width: '100%', padding: '10px 14px',
+  border: `1.5px solid ${C.inputBord}`,
+  borderRadius: 10, fontSize: '0.9rem', outline: 'none',
+  color: C.text, background: C.input, boxSizing: 'border-box',
+  fontFamily: 'inherit',
 };
 const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer' };
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div>
-    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.teal, marginBottom: 5 }}>{label}</label>
+    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>{label}</label>
     {children}
   </div>
 );
 
 const StatusBadge = ({ s }: { s: string }) => {
-  const st = STATUS_LABELS[s] || { label: s, color: '#999' };
+  const st = STATUS_LABELS[s] || { label: s, color: '#94a3b8' };
   return (
-    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 700, background: `${st.color}20`, color: st.color, border: `1px solid ${st.color}40` }}>
+    <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700, background: `${st.color}18`, color: st.color, border: `1px solid ${st.color}40`, whiteSpace: 'nowrap' as const }}>
       {st.label}
     </span>
   );
@@ -329,40 +343,70 @@ export default function InstitutionAgreementsPage() {
   const filteredOther = otherAgreements.filter(a => !filterOther || a.status === filterOther);
 
   return (
-    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, ${C.lightMint}20, white)`, direction: 'rtl', fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: C.bg, direction: 'rtl', fontFamily: "'Tajawal', 'Segoe UI', sans-serif", color: C.text }}>
+      <style>{`
+        input::placeholder, textarea::placeholder { color: ${C.textMuted}; }
+        select option { background: #0d1828; color: ${C.text}; }
+      `}</style>
 
       {/* ── الهيدر ── */}
-      <div style={{ background: C.darkNavy, padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href={`/institutions/${institutionId}`} style={{ color: C.lightMint, textDecoration: 'none', opacity: 0.8, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-            ← العودة
+      <div style={{
+        background: 'linear-gradient(160deg, #0c0f2a 0%, #07091e 100%)',
+        borderBottom: `1px solid ${C.border}`,
+        padding: '20px 28px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Link href={`/institutions/${institutionId}`} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            color: C.teal, textDecoration: 'none',
+            padding: '8px 18px', borderRadius: 20,
+            background: `${C.teal}12`, border: `1px solid ${C.teal}30`,
+            fontSize: '0.86rem', fontWeight: 600,
+          }}>
+            ← العودة للمؤسسة
           </Link>
           <div>
-            <h1 style={{ margin: 0, color: 'white', fontSize: '1.5rem' }}>🤝 اتفاقيات {institutionName}</h1>
-            <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>إدارة عقود الاتفاق والشراكات</p>
+            <h1 style={{ margin: 0, color: C.mint, fontSize: '1.35rem', fontWeight: 800 }}>🤝 اتفاقيات {institutionName}</h1>
+            <p style={{ margin: '3px 0 0', color: C.textMuted, fontSize: '0.82rem' }}>إدارة عقود الاتفاق والشراكات</p>
           </div>
         </div>
-        <button onClick={() => setShowCreate(true)} style={{ padding: '10px 24px', borderRadius: 30, background: C.softGreen, color: C.darkNavy, border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>
+        <button onClick={() => setShowCreate(true)} style={{
+          padding: '10px 24px', borderRadius: 30,
+          background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`,
+          color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem',
+          boxShadow: `0 4px 16px ${C.teal}40`,
+        }}>
           + طلب اتفاقية جديدة
         </button>
       </div>
 
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 20px' }}>
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '28px 20px 60px' }}>
 
-        {/* ── تبويبات ── */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 24, background: 'white', padding: 6, borderRadius: 16, boxShadow: `0 3px 12px ${C.darkNavy}10`, width: 'fit-content' }}>
+      {/* ── تبويبات ── */}
+        <div style={{
+          display: 'flex', gap: 6, marginBottom: 24,
+          background: 'rgba(255,255,255,0.04)', padding: 6, borderRadius: 18,
+          border: `1px solid ${C.border}`, width: 'fit-content',
+        }}>
           {([
-            { key: 'mine',   label: '🏛️ اتفاقياتنا',            count: agreements.length },
+            { key: 'mine',   label: '🏛️ اتفاقياتنا',               count: agreements.length },
             { key: 'others', label: '🌐 اتفاقيات المؤسسات الأخرى', count: otherAgreements.length },
           ] as const).map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-              padding: '10px 22px', borderRadius: 12, border: 'none', cursor: 'pointer',
-              fontWeight: 700, fontSize: '0.88rem', transition: 'all 0.2s',
-              background: activeTab === tab.key ? C.darkNavy : 'transparent',
-              color: activeTab === tab.key ? 'white' : C.teal,
+              padding: '10px 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
+              fontWeight: 700, fontSize: '0.86rem', transition: 'all 0.2s',
+              background: activeTab === tab.key ? `linear-gradient(135deg, ${C.navy} 0%, ${C.teal}55 100%)` : 'transparent',
+              color: activeTab === tab.key ? C.mint : C.textMuted,
+              boxShadow: activeTab === tab.key ? `0 4px 14px ${C.teal}25` : 'none',
             }}>
               {tab.label}
-              <span style={{ marginRight: 6, background: activeTab === tab.key ? 'rgba(255,255,255,0.2)' : `${C.teal}18`, padding: '1px 8px', borderRadius: 10, fontSize: '0.84rem' }}>
+              <span style={{
+                marginRight: 7,
+                background: activeTab === tab.key ? 'rgba(255,255,255,0.15)' : `${C.teal}14`,
+                padding: '1px 9px', borderRadius: 10, fontSize: '0.82rem',
+                color: activeTab === tab.key ? 'white' : C.textMuted,
+              }}>
                 {tab.count}
               </span>
             </button>
@@ -372,11 +416,11 @@ export default function InstitutionAgreementsPage() {
         {activeTab === 'mine' && <>
         {/* تنبيه الطلبات الواردة */}
         {incoming.length > 0 && (
-          <div style={{ background: `${C.warning}15`, border: `1px solid ${C.warning}40`, borderRadius: 14, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ background: `${C.warning}12`, border: `1px solid ${C.warning}35`, borderRadius: 14, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: '1.4rem' }}>🔔</span>
             <div>
-              <div style={{ fontWeight: 700, color: C.darkNavy, fontSize: '0.95rem' }}>لديك {incoming.length} طلب اتفاقية يحتاج ردك</div>
-              <div style={{ fontSize: '0.82rem', color: '#666' }}>راجع الطلبات أدناه وقم بالموافقة أو الرفض</div>
+              <div style={{ fontWeight: 700, color: C.warning, fontSize: '0.95rem' }}>لديك {incoming.length} طلب اتفاقية يحتاج ردك</div>
+              <div style={{ fontSize: '0.82rem', color: C.textMuted }}>راجع الطلبات أدناه وقم بالموافقة أو الرفض</div>
             </div>
           </div>
         )}
@@ -384,15 +428,15 @@ export default function InstitutionAgreementsPage() {
         {/* إحصائيات */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
           {[
-            { label: 'الإجمالي',   value: agreements.length,                                          color: C.teal,    icon: '📋' },
-            { label: 'منتظرة',     value: agreements.filter(a => a.status === 'draft').length,         color: '#94a3b8', icon: '⏳' },
+            { label: 'الإجمالي',    value: agreements.length,                                         color: C.teal,    icon: '📋' },
+            { label: 'منتظرة',      value: agreements.filter(a => a.status === 'draft').length,        color: '#94a3b8', icon: '⏳' },
             { label: 'قيد التفاوض', value: agreements.filter(a => a.status === 'negotiating').length,  color: C.teal,    icon: '💬' },
-            { label: 'موقَّعة',    value: agreements.filter(a => a.status === 'signed').length,        color: C.success, icon: '✅' },
+            { label: 'موقَّعة',     value: agreements.filter(a => a.status === 'signed').length,       color: C.success, icon: '✅' },
           ].map(s => (
-            <div key={s.label} style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: `0 3px 12px ${C.darkNavy}10`, border: `1px solid ${s.color}25` }}>
-              <div style={{ fontSize: '1.4rem', marginBottom: 2 }}>{s.icon}</div>
-              <div style={{ fontSize: '0.83rem', color: C.teal }}>{s.label}</div>
-              <div style={{ fontSize: '1.7rem', fontWeight: 700, color: s.color }}>{s.value}</div>
+            <div key={s.label} style={{ background: C.bgCard, borderRadius: 14, padding: '14px 16px', border: `1px solid ${s.color}25`, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+              <div style={{ fontSize: '1.3rem', marginBottom: 4 }}>{s.icon}</div>
+              <div style={{ fontSize: '0.8rem', color: C.textMuted, marginBottom: 2 }}>{s.label}</div>
+              <div style={{ fontSize: '1.7rem', fontWeight: 800, color: s.color }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -400,7 +444,13 @@ export default function InstitutionAgreementsPage() {
         {/* فلتر الحالة */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
           {['', 'draft', 'negotiating', 'signed', 'rejected'].map(s => (
-            <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: '5px 14px', borderRadius: 18, border: `1px solid ${filterStatus === s ? C.teal : '#ddd'}`, background: filterStatus === s ? C.teal : 'white', color: filterStatus === s ? 'white' : '#666', cursor: 'pointer', fontSize: '0.82rem' }}>
+            <button key={s} onClick={() => setFilterStatus(s)} style={{
+              padding: '5px 14px', borderRadius: 18,
+              border: `1.5px solid ${filterStatus === s ? C.teal : 'rgba(255,255,255,0.08)'}`,
+              background: filterStatus === s ? `${C.teal}22` : 'transparent',
+              color: filterStatus === s ? C.teal : C.textMuted,
+              cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, outline: 'none',
+            }}>
               {s === '' ? 'الكل' : (STATUS_LABELS[s]?.label || s)}
             </button>
           ))}
@@ -410,7 +460,7 @@ export default function InstitutionAgreementsPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60, color: C.teal }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 20, color: C.teal }}>
+          <div style={{ textAlign: 'center', padding: 60, background: C.bgCard, borderRadius: 20, border: `2px dashed ${C.teal}25`, color: C.textMuted }}>
             <div style={{ fontSize: '3rem', marginBottom: 12 }}>🤝</div>
             {filterStatus ? 'لا توجد اتفاقيات بهذه الحالة' : 'لا توجد اتفاقيات بعد — أرسل أول طلب اتفاقية'}
           </div>
@@ -424,38 +474,53 @@ export default function InstitutionAgreementsPage() {
               const otherPartyName = isFrom ? (ag.to_name_ar || ag.to_name) : (ag.from_name_ar || ag.from_name);
 
               return (
-                <div key={ag.id} style={{ background: 'white', borderRadius: 16, padding: 20, boxShadow: `0 3px 14px ${C.darkNavy}10`, border: `1px solid ${ag.status === 'signed' ? C.success : C.teal}20` }}>
+                <div key={ag.id} style={{
+                  background: C.bgCard, borderRadius: 18, padding: 20,
+                  border: `1px solid ${ag.status === 'signed' ? C.success + '40' : C.border}`,
+                  boxShadow: ag.status === 'signed' ? `0 0 0 1px ${C.success}15, 0 8px 24px rgba(0,0,0,0.4)` : '0 4px 20px rgba(0,0,0,0.3)',
+                }}>
                   {/* رأس البطاقة */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '1rem', color: C.darkNavy }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '1rem', color: C.text }}>
                         {ag.title || `اتفاقية ${TYPE_OPTIONS.find(t => t.value === ag.type)?.label || ag.type}`}
                       </div>
-                      <div style={{ fontSize: '0.82rem', color: '#888', marginTop: 3 }}>
-                        {isFrom ? '↑ أرسلتها إلى' : '↓ وردت من'}: <strong>{otherPartyName}</strong>
+                      <div style={{ fontSize: '0.82rem', color: C.textMuted, marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ color: isFrom ? C.teal : C.green, fontWeight: 600 }}>
+                          {isFrom ? '↑ أرسلتها إلى' : '↓ وردت من'}
+                        </span>
+                        <strong style={{ color: C.text }}>{otherPartyName}</strong>
                       </div>
                     </div>
                     <StatusBadge s={ag.status} />
                   </div>
 
-                  {ag.description && <p style={{ fontSize: '0.88rem', color: '#555', lineHeight: 1.6, margin: '0 0 10px' }}>{ag.description}</p>}
+                  {ag.description && (
+                    <p style={{ fontSize: '0.87rem', color: C.textMuted, lineHeight: 1.6, margin: '0 0 12px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, borderRight: `3px solid ${C.teal}40` }}>
+                      {ag.description}
+                    </p>
+                  )}
 
-                  {/* البنود */}
                   {terms.length > 0 && (
-                    <div style={{ marginBottom: 10 }}>
-                      <span style={{ fontSize: '0.83rem', color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
-                      <span style={{ fontSize: '0.82rem', color: '#666' }}>{terms[0].text}{terms.length > 1 ? ` ... و${terms.length - 1} أخرى` : ''}</span>
+                    <div style={{ marginBottom: 12, fontSize: '0.82rem', color: C.textMuted }}>
+                      <span style={{ color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
+                      {terms[0].text}{terms.length > 1 ? ` ... و${terms.length - 1} أخرى` : ''}
                     </div>
                   )}
 
-                  {/* حالة التوقيعات */}
                   {['negotiating', 'signed'].includes(ag.status) && (
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                       {[
                         { name: ag.from_name_ar || ag.from_name, signed: !!ag.signature_from },
                         { name: ag.to_name_ar   || ag.to_name,   signed: !!ag.signature_to   },
                       ].map((p, i) => (
-                        <div key={i} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: p.signed ? `${C.success}12` : '#f9f9f9', border: `1px solid ${p.signed ? C.success : '#e0e0e0'}`, fontSize: '0.83rem', textAlign: 'center', color: p.signed ? C.success : '#999' }}>
+                        <div key={i} style={{
+                          flex: 1, padding: '7px 10px', borderRadius: 8,
+                          background: p.signed ? `${C.success}12` : 'rgba(255,255,255,0.03)',
+                          border: `1px solid ${p.signed ? C.success + '35' : 'rgba(255,255,255,0.07)'}`,
+                          fontSize: '0.82rem', textAlign: 'center',
+                          color: p.signed ? C.success : C.textMuted,
+                        }}>
                           {p.name}: {p.signed ? '✓ وقّع' : 'لم يوقّع'}
                         </div>
                       ))}
@@ -463,43 +528,43 @@ export default function InstitutionAgreementsPage() {
                   )}
 
                   {/* الأزرار */}
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={() => setDetailModal(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}30`, cursor: 'pointer', fontSize: '0.8rem' }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button onClick={() => setDetailModal(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.teal}14`, color: C.teal, border: `1px solid ${C.teal}30`, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
                       📄 التفاصيل
                     </button>
 
                     {isTo && ag.status === 'draft' && (
                       <>
-                        <button onClick={() => handleRespond(ag, 'accept')} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.success}20`, color: C.success, border: `1px solid ${C.success}40`, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
+                        <button onClick={() => handleRespond(ag, 'accept')} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.success}18`, color: C.success, border: `1px solid ${C.success}40`, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
                           ✓ قبول
                         </button>
-                        <button onClick={() => handleRespond(ag, 'reject')} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.live}15`, color: C.live, border: `1px solid ${C.live}30`, cursor: 'pointer', fontSize: '0.8rem' }}>
+                        <button onClick={() => handleRespond(ag, 'reject')} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.live}12`, color: C.live, border: `1px solid ${C.live}30`, cursor: 'pointer', fontSize: '0.8rem' }}>
                           ✗ رفض
                         </button>
                       </>
                     )}
 
                     {(isFrom || isTo) && ['draft', 'negotiating'].includes(ag.status) && (
-                      <button onClick={() => openTerms(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.warning}15`, color: C.warning, border: `1px solid ${C.warning}40`, cursor: 'pointer', fontSize: '0.8rem' }}>
+                      <button onClick={() => openTerms(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.warning}14`, color: C.warning, border: `1px solid ${C.warning}35`, cursor: 'pointer', fontSize: '0.8rem' }}>
                         📝 البنود
                       </button>
                     )}
 
                     {(isFrom || isTo) && ag.status === 'negotiating' && !mySig && (
-                      <button onClick={() => { setSavedSig(null); setSignModal(ag); }} style={{ padding: '6px 14px', borderRadius: 18, background: C.darkNavy, color: 'white', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
+                      <button onClick={() => { setSavedSig(null); setSignModal(ag); }} style={{ padding: '6px 16px', borderRadius: 18, background: `linear-gradient(135deg, ${C.navy}, ${C.teal}88)`, color: 'white', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
                         ✍️ توقيع
                       </button>
                     )}
 
                     {ag.status === 'signed' && (
-                      <button onClick={() => printAgreement(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.softGreen}20`, color: C.softGreen, border: `1px solid ${C.softGreen}50`, cursor: 'pointer', fontSize: '0.8rem' }}>
+                      <button onClick={() => printAgreement(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.green}16`, color: C.green, border: `1px solid ${C.green}40`, cursor: 'pointer', fontSize: '0.8rem' }}>
                         ⬇ PDF
                       </button>
                     )}
-                  </div>
 
-                  <div style={{ marginTop: 8, fontSize: '0.82rem', color: '#ccc' }}>
-                    {new Date(ag.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    <span style={{ marginRight: 'auto', fontSize: '0.78rem', color: C.textMuted, opacity: 0.7 }}>
+                      {new Date(ag.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </span>
                   </div>
                 </div>
               );
@@ -514,15 +579,15 @@ export default function InstitutionAgreementsPage() {
           {/* إحصائيات */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 20 }}>
             {[
-              { label: 'الإجمالي',    value: otherAgreements.length,                                         color: C.teal,    icon: '🌐' },
-              { label: 'موقَّعة',     value: otherAgreements.filter(a => a.status === 'signed').length,       color: C.success, icon: '✅' },
-              { label: 'قيد التفاوض', value: otherAgreements.filter(a => a.status === 'negotiating').length,  color: C.teal,    icon: '💬' },
-              { label: 'منتظرة',      value: otherAgreements.filter(a => a.status === 'draft').length,        color: '#94a3b8', icon: '⏳' },
+              { label: 'الإجمالي',    value: otherAgreements.length,                                        color: C.teal,    icon: '🌐' },
+              { label: 'موقَّعة',     value: otherAgreements.filter(a => a.status === 'signed').length,      color: C.success, icon: '✅' },
+              { label: 'قيد التفاوض', value: otherAgreements.filter(a => a.status === 'negotiating').length, color: C.teal,    icon: '💬' },
+              { label: 'منتظرة',      value: otherAgreements.filter(a => a.status === 'draft').length,       color: '#94a3b8', icon: '⏳' },
             ].map(s => (
-              <div key={s.label} style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: `0 3px 12px ${C.darkNavy}10`, border: `1px solid ${s.color}25` }}>
-                <div style={{ fontSize: '1.3rem', marginBottom: 2 }}>{s.icon}</div>
-                <div style={{ fontSize: '0.83rem', color: C.teal }}>{s.label}</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 700, color: s.color }}>{s.value}</div>
+              <div key={s.label} style={{ background: C.bgCard, borderRadius: 14, padding: '14px 16px', border: `1px solid ${s.color}25`, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+                <div style={{ fontSize: '1.3rem', marginBottom: 4 }}>{s.icon}</div>
+                <div style={{ fontSize: '0.8rem', color: C.textMuted, marginBottom: 2 }}>{s.label}</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: s.color }}>{s.value}</div>
               </div>
             ))}
           </div>
@@ -530,7 +595,13 @@ export default function InstitutionAgreementsPage() {
           {/* فلتر */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
             {['', 'draft', 'negotiating', 'signed', 'rejected'].map(s => (
-              <button key={s} onClick={() => setFilterOther(s)} style={{ padding: '5px 14px', borderRadius: 18, border: `1px solid ${filterOther === s ? C.teal : '#ddd'}`, background: filterOther === s ? C.teal : 'white', color: filterOther === s ? 'white' : '#666', cursor: 'pointer', fontSize: '0.82rem' }}>
+              <button key={s} onClick={() => setFilterOther(s)} style={{
+                padding: '5px 14px', borderRadius: 18,
+                border: `1.5px solid ${filterOther === s ? C.teal : 'rgba(255,255,255,0.08)'}`,
+                background: filterOther === s ? `${C.teal}22` : 'transparent',
+                color: filterOther === s ? C.teal : C.textMuted,
+                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, outline: 'none',
+              }}>
                 {s === '' ? 'الكل' : (STATUS_LABELS[s]?.label || s)}
               </button>
             ))}
@@ -540,7 +611,7 @@ export default function InstitutionAgreementsPage() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: 60, color: C.teal }}>جاري التحميل...</div>
           ) : filteredOther.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 20, color: C.teal }}>
+            <div style={{ textAlign: 'center', padding: 60, background: C.bgCard, borderRadius: 20, border: `2px dashed ${C.teal}25`, color: C.textMuted }}>
               <div style={{ fontSize: '3rem', marginBottom: 12 }}>🌐</div>
               {filterOther ? 'لا توجد اتفاقيات بهذه الحالة' : 'لا توجد اتفاقيات علنية من مؤسسات أخرى'}
             </div>
@@ -550,44 +621,52 @@ export default function InstitutionAgreementsPage() {
                 const terms: Term[] = ag.terms ? JSON.parse(ag.terms) : [];
                 const typeLabel = TYPE_OPTIONS.find(t => t.value === ag.type)?.label || ag.type;
                 return (
-                  <div key={ag.id} style={{ background: 'white', borderRadius: 16, padding: 20, boxShadow: `0 3px 14px ${C.darkNavy}10`, border: `1px solid ${ag.status === 'signed' ? C.success : C.teal}20` }}>
-                    {/* رأس البطاقة */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                  <div key={ag.id} style={{
+                    background: C.bgCard, borderRadius: 18, padding: 20,
+                    border: `1px solid ${ag.status === 'signed' ? C.success + '40' : C.border}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '1rem', color: C.darkNavy }}>
+                        <div style={{ fontWeight: 700, fontSize: '1rem', color: C.text }}>
                           {ag.title || `اتفاقية ${typeLabel}`}
                         </div>
-                        <div style={{ fontSize: '0.82rem', color: '#888', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ fontSize: '0.82rem', color: C.textMuted, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontWeight: 600, color: C.teal }}>{ag.from_name_ar || ag.from_name}</span>
-                          <span style={{ color: '#ccc' }}>⟷</span>
+                          <span style={{ color: C.textMuted }}>⟷</span>
                           <span style={{ fontWeight: 600, color: C.teal }}>{ag.to_name_ar || ag.to_name}</span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: '0.83rem', color: '#aaa', padding: '3px 10px', background: '#f5f5f5', borderRadius: 10 }}>{typeLabel}</span>
+                        <span style={{ fontSize: '0.8rem', color: C.textMuted, padding: '3px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: `1px solid ${C.border}` }}>{typeLabel}</span>
                         <StatusBadge s={ag.status} />
                       </div>
                     </div>
 
                     {ag.description && (
-                      <p style={{ fontSize: '0.88rem', color: '#555', lineHeight: 1.6, margin: '0 0 10px' }}>{ag.description}</p>
+                      <p style={{ fontSize: '0.87rem', color: C.textMuted, lineHeight: 1.6, margin: '0 0 12px' }}>{ag.description}</p>
                     )}
 
                     {terms.length > 0 && (
-                      <div style={{ marginBottom: 10 }}>
-                        <span style={{ fontSize: '0.83rem', color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
-                        <span style={{ fontSize: '0.82rem', color: '#666' }}>{terms[0].text}{terms.length > 1 ? ` ... و${terms.length - 1} أخرى` : ''}</span>
+                      <div style={{ marginBottom: 12, fontSize: '0.82rem', color: C.textMuted }}>
+                        <span style={{ color: C.teal, fontWeight: 600 }}>البنود ({terms.length}): </span>
+                        {terms[0].text}{terms.length > 1 ? ` ... و${terms.length - 1} أخرى` : ''}
                       </div>
                     )}
 
-                    {/* حالة التوقيعات للاتفاقيات الموقعة */}
                     {['negotiating', 'signed'].includes(ag.status) && (
-                      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                         {[
                           { name: ag.from_name_ar || ag.from_name, signed: !!ag.signature_from },
                           { name: ag.to_name_ar   || ag.to_name,   signed: !!ag.signature_to   },
                         ].map((p, i) => (
-                          <div key={i} style={{ flex: 1, padding: '7px 10px', borderRadius: 8, background: p.signed ? `${C.success}12` : '#f9f9f9', border: `1px solid ${p.signed ? C.success : '#e0e0e0'}`, fontSize: '0.83rem', textAlign: 'center', color: p.signed ? C.success : '#999' }}>
+                          <div key={i} style={{
+                            flex: 1, padding: '7px 10px', borderRadius: 8,
+                            background: p.signed ? `${C.success}12` : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${p.signed ? C.success + '35' : 'rgba(255,255,255,0.07)'}`,
+                            fontSize: '0.82rem', textAlign: 'center',
+                            color: p.signed ? C.success : C.textMuted,
+                          }}>
                             {p.name}: {p.signed ? '✓ وقّع' : 'لم يوقّع'}
                           </div>
                         ))}
@@ -595,15 +674,15 @@ export default function InstitutionAgreementsPage() {
                     )}
 
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <button onClick={() => setDetailModal(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}30`, cursor: 'pointer', fontSize: '0.8rem' }}>
+                      <button onClick={() => setDetailModal(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.teal}14`, color: C.teal, border: `1px solid ${C.teal}30`, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
                         📄 التفاصيل
                       </button>
                       {ag.status === 'signed' && (
-                        <button onClick={() => printAgreement(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.softGreen}20`, color: C.softGreen, border: `1px solid ${C.softGreen}50`, cursor: 'pointer', fontSize: '0.8rem' }}>
+                        <button onClick={() => printAgreement(ag)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.green}16`, color: C.green, border: `1px solid ${C.green}40`, cursor: 'pointer', fontSize: '0.8rem' }}>
                           ⬇ PDF
                         </button>
                       )}
-                      <span style={{ marginRight: 'auto', fontSize: '0.82rem', color: '#ccc' }}>
+                      <span style={{ marginRight: 'auto', fontSize: '0.78rem', color: C.textMuted, opacity: 0.7 }}>
                         {new Date(ag.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </span>
                     </div>
@@ -617,11 +696,11 @@ export default function InstitutionAgreementsPage() {
 
       {/* ══ مودال: إنشاء اتفاقية ══ */}
       {showCreate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16 }}>
-          <div style={{ background: 'white', borderRadius: 24, padding: 32, width: '100%', maxWidth: 600, maxHeight: '92vh', overflowY: 'auto', boxShadow: `0 20px 60px ${C.darkNavy}40` }}>
-            <h2 style={{ color: C.darkNavy, marginBottom: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16, backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: C.bgMod, border: `1px solid ${C.border}`, borderRadius: 24, padding: 32, width: '100%', maxWidth: 600, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
+            <h2 style={{ color: C.mint, marginBottom: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.15rem' }}>
               🤝 طلب اتفاقية جديدة
-              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+              <button onClick={() => setShowCreate(false)} style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', color: C.textMuted, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Field label="إلى / المؤسسة الأخرى *">
@@ -654,17 +733,15 @@ export default function InstitutionAgreementsPage() {
                 )}
               </div>
               <div style={{ display: 'flex', gap: 20 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.88rem', color: C.darkNavy }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.88rem', color: C.textMuted }}>
                   <input type="checkbox" checked={form.is_permanent} onChange={e => setForm({ ...form, is_permanent: e.target.checked })} />
                   اتفاقية دائمة
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.88rem', color: C.darkNavy }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.88rem', color: C.textMuted }}>
                   <input type="checkbox" checked={form.is_public} onChange={e => setForm({ ...form, is_public: e.target.checked })} />
                   ظاهرة للعموم
                 </label>
               </div>
-
-              {/* البنود */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: C.teal }}>البنود والشروط</label>
@@ -680,12 +757,11 @@ export default function InstitutionAgreementsPage() {
                   </div>
                 ))}
               </div>
-
               <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
-                <button type="submit" disabled={createLoading} style={{ flex: 1, padding: '12px', background: C.darkNavy, color: 'white', border: 'none', borderRadius: 30, fontWeight: 700, cursor: createLoading ? 'default' : 'pointer', opacity: createLoading ? 0.7 : 1 }}>
+                <button type="submit" disabled={createLoading} style={{ flex: 1, padding: '12px', background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`, color: 'white', border: 'none', borderRadius: 30, fontWeight: 700, cursor: createLoading ? 'default' : 'pointer', opacity: createLoading ? 0.7 : 1 }}>
                   {createLoading ? 'جاري الإرسال...' : '✦ إرسال الطلب'}
                 </button>
-                <button type="button" onClick={() => setShowCreate(false)} style={{ padding: '12px 24px', background: '#f0f0f0', color: '#555', border: 'none', borderRadius: 30, cursor: 'pointer' }}>إلغاء</button>
+                <button type="button" onClick={() => setShowCreate(false)} style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.06)', color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 30, cursor: 'pointer' }}>إلغاء</button>
               </div>
             </form>
           </div>
@@ -694,13 +770,13 @@ export default function InstitutionAgreementsPage() {
 
       {/* ══ مودال: البنود ══ */}
       {termsModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16 }}>
-          <div style={{ background: 'white', borderRadius: 22, padding: 30, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: `0 20px 60px ${C.darkNavy}40` }}>
-            <h2 style={{ color: C.darkNavy, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16, backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: C.bgMod, border: `1px solid ${C.border}`, borderRadius: 22, padding: 30, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
+            <h2 style={{ color: C.mint, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.1rem' }}>
               📝 تعديل البنود
-              <button onClick={() => setTermsModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+              <button onClick={() => setTermsModal(null)} style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', color: C.textMuted, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </h2>
-            <p style={{ fontSize: '0.83rem', color: C.teal, marginBottom: 14, background: `${C.teal}10`, padding: '8px 12px', borderRadius: 8 }}>
+            <p style={{ fontSize: '0.83rem', color: C.warning, marginBottom: 14, background: `${C.warning}10`, padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.warning}25` }}>
               ⚠️ تعديل البنود يُعيد تعيين التوقيعات ويطلب إعادة التوقيع من الطرفين.
             </p>
             {editTerms.map((t, i) => (
@@ -716,10 +792,10 @@ export default function InstitutionAgreementsPage() {
               + إضافة بند
             </button>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={handleSaveTerms} disabled={termsLoading} style={{ flex: 1, padding: '11px', background: C.darkNavy, color: 'white', border: 'none', borderRadius: 28, fontWeight: 700, cursor: termsLoading ? 'default' : 'pointer', opacity: termsLoading ? 0.7 : 1 }}>
+              <button onClick={handleSaveTerms} disabled={termsLoading} style={{ flex: 1, padding: '11px', background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`, color: 'white', border: 'none', borderRadius: 28, fontWeight: 700, cursor: termsLoading ? 'default' : 'pointer', opacity: termsLoading ? 0.7 : 1 }}>
                 {termsLoading ? 'جاري الحفظ...' : '💾 حفظ'}
               </button>
-              <button onClick={() => setTermsModal(null)} style={{ padding: '11px 22px', background: '#f0f0f0', color: '#555', border: 'none', borderRadius: 28, cursor: 'pointer' }}>إلغاء</button>
+              <button onClick={() => setTermsModal(null)} style={{ padding: '11px 22px', background: 'rgba(255,255,255,0.06)', color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 28, cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>
@@ -727,30 +803,30 @@ export default function InstitutionAgreementsPage() {
 
       {/* ══ مودال: التوقيع ══ */}
       {signModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16 }}>
-          <div style={{ background: 'white', borderRadius: 22, padding: 30, width: '100%', maxWidth: 500, boxShadow: `0 20px 60px ${C.darkNavy}40` }}>
-            <h2 style={{ color: C.darkNavy, marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16, backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: C.bgMod, border: `1px solid ${C.border}`, borderRadius: 22, padding: 30, width: '100%', maxWidth: 500, boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
+            <h2 style={{ color: C.mint, marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.1rem' }}>
               ✍️ التوقيع الإلكتروني
-              <button onClick={() => { setSignModal(null); setSavedSig(null); }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+              <button onClick={() => { setSignModal(null); setSavedSig(null); }} style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', color: C.textMuted, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </h2>
-            <p style={{ fontSize: '0.87rem', color: '#555', marginBottom: 14 }}>
+            <p style={{ fontSize: '0.87rem', color: C.textMuted, marginBottom: 14 }}>
               بتوقيعك توافق على جميع بنود:&nbsp;
-              <strong>{signModal.title || `اتفاقية ${TYPE_OPTIONS.find(t => t.value === signModal.type)?.label || signModal.type}`}</strong>
+              <strong style={{ color: C.text }}>{signModal.title || `اتفاقية ${TYPE_OPTIONS.find(t => t.value === signModal.type)?.label || signModal.type}`}</strong>
             </p>
             {savedSig ? (
               <div style={{ textAlign: 'center', marginBottom: 14 }}>
                 <div style={{ fontSize: '0.8rem', color: C.success, marginBottom: 6, fontWeight: 600 }}>✓ تم حفظ التوقيع</div>
                 <img src={savedSig} alt="توقيعك" style={{ border: `2px solid ${C.success}40`, borderRadius: 10, maxWidth: '100%' }} />
-                <button onClick={() => setSavedSig(null)} style={{ marginTop: 8, padding: '5px 14px', background: '#f0f0f0', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: '0.82rem' }}>إعادة الرسم</button>
+                <button onClick={() => setSavedSig(null)} style={{ marginTop: 8, padding: '5px 14px', background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, borderRadius: 12, cursor: 'pointer', fontSize: '0.82rem', color: C.textMuted }}>إعادة الرسم</button>
               </div>
             ) : (
               <SignatureCanvas onSave={sig => setSavedSig(sig)} />
             )}
             <div style={{ display: 'flex', gap: 12, marginTop: 14 }}>
-              <button onClick={handleSign} disabled={signLoading || !savedSig} style={{ flex: 1, padding: '11px', background: savedSig ? C.darkNavy : '#ccc', color: 'white', border: 'none', borderRadius: 28, fontWeight: 700, cursor: (signLoading || !savedSig) ? 'default' : 'pointer' }}>
+              <button onClick={handleSign} disabled={signLoading || !savedSig} style={{ flex: 1, padding: '11px', background: savedSig ? `linear-gradient(135deg, ${C.navy}, ${C.teal})` : 'rgba(255,255,255,0.06)', color: savedSig ? 'white' : C.textMuted, border: 'none', borderRadius: 28, fontWeight: 700, cursor: (signLoading || !savedSig) ? 'default' : 'pointer' }}>
                 {signLoading ? 'جاري التوقيع...' : '✍️ تأكيد التوقيع'}
               </button>
-              <button onClick={() => { setSignModal(null); setSavedSig(null); }} style={{ padding: '11px 22px', background: '#f0f0f0', color: '#555', border: 'none', borderRadius: 28, cursor: 'pointer' }}>إلغاء</button>
+              <button onClick={() => { setSignModal(null); setSavedSig(null); }} style={{ padding: '11px 22px', background: 'rgba(255,255,255,0.06)', color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 28, cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>
@@ -758,17 +834,17 @@ export default function InstitutionAgreementsPage() {
 
       {/* ══ مودال: التفاصيل ══ */}
       {detailModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16 }}>
-          <div style={{ background: 'white', borderRadius: 22, padding: 30, width: '100%', maxWidth: 580, maxHeight: '92vh', overflowY: 'auto', boxShadow: `0 20px 60px ${C.darkNavy}40` }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl', padding: 16, backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: C.bgMod, border: `1px solid ${C.border}`, borderRadius: 22, padding: 30, width: '100%', maxWidth: 580, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h2 style={{ color: C.darkNavy, margin: 0 }}>📄 تفاصيل الاتفاقية</h2>
+              <h2 style={{ color: C.mint, margin: 0, fontSize: '1.1rem' }}>📄 تفاصيل الاتفاقية</h2>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 {detailModal.status === 'signed' && (
-                  <button onClick={() => printAgreement(detailModal)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.softGreen}20`, color: C.softGreen, border: `1px solid ${C.softGreen}50`, cursor: 'pointer', fontSize: '0.82rem' }}>
+                  <button onClick={() => printAgreement(detailModal)} style={{ padding: '6px 14px', borderRadius: 18, background: `${C.green}16`, color: C.green, border: `1px solid ${C.green}40`, cursor: 'pointer', fontSize: '0.82rem' }}>
                     ⬇ PDF
                   </button>
                 )}
-                <button onClick={() => setDetailModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+                <button onClick={() => setDetailModal(null)} style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', color: C.textMuted, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
@@ -780,23 +856,23 @@ export default function InstitutionAgreementsPage() {
                 ...(detailModal.start_date ? [{ label: 'من', value: detailModal.start_date }] : []),
                 ...(detailModal.end_date   ? [{ label: 'إلى', value: detailModal.end_date }] : []),
               ].map((item, i) => (
-                <div key={i} style={{ background: '#f8f9ff', borderRadius: 10, padding: '10px 12px' }}>
-                  <div style={{ fontSize: '0.82rem', color: C.teal, marginBottom: 2 }}>{item.label}</div>
-                  <div style={{ fontWeight: 600, color: C.darkNavy, fontSize: '0.88rem' }}>{item.value}</div>
+                <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 12px', border: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: '0.8rem', color: C.teal, marginBottom: 3 }}>{item.label}</div>
+                  <div style={{ fontWeight: 600, color: C.text, fontSize: '0.88rem' }}>{item.value}</div>
                 </div>
               ))}
             </div>
             {detailModal.description && (
-              <div style={{ background: '#fafbff', borderRadius: 10, padding: 12, marginBottom: 14, fontSize: '0.88rem', color: '#444', lineHeight: 1.7 }}>{detailModal.description}</div>
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 14, fontSize: '0.87rem', color: C.textMuted, lineHeight: 1.7, borderRight: `3px solid ${C.teal}40` }}>{detailModal.description}</div>
             )}
             {(() => {
               const terms: Term[] = detailModal.terms ? JSON.parse(detailModal.terms) : [];
               return terms.length > 0 ? (
                 <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontWeight: 700, color: C.darkNavy, marginBottom: 8 }}>البنود والشروط</div>
+                  <div style={{ fontWeight: 700, color: C.text, marginBottom: 8 }}>البنود والشروط</div>
                   <ol style={{ margin: 0, paddingRight: 20 }}>
                     {terms.map((t, i) => (
-                      <li key={t.id || i} style={{ padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem', color: '#333', lineHeight: 1.6 }}>{t.text}</li>
+                      <li key={t.id || i} style={{ padding: '6px 0', borderBottom: `1px solid ${C.border}`, fontSize: '0.9rem', color: C.textMuted, lineHeight: 1.6 }}>{t.text}</li>
                     ))}
                   </ol>
                 </div>
@@ -804,19 +880,19 @@ export default function InstitutionAgreementsPage() {
             })()}
             {(detailModal.signature_from || detailModal.signature_to) && (
               <div>
-                <div style={{ fontWeight: 700, color: C.darkNavy, marginBottom: 8 }}>التوقيعات</div>
+                <div style={{ fontWeight: 700, color: C.text, marginBottom: 8 }}>التوقيعات</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {[
                     { label: detailModal.from_name_ar || detailModal.from_name || 'الطرف الأول', sig: detailModal.signature_from, date: detailModal.signed_at_from },
-                    { label: detailModal.to_name_ar   || detailModal.to_name   || 'الطرف الثاني', sig: detailModal.signature_to, date: detailModal.signed_at_to },
+                    { label: detailModal.to_name_ar   || detailModal.to_name   || 'الطرف الثاني', sig: detailModal.signature_to,   date: detailModal.signed_at_to },
                   ].map((s, i) => (
-                    <div key={i} style={{ border: `1px solid ${s.sig ? C.success : '#e0e0e0'}`, borderRadius: 10, padding: 10, textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.83rem', fontWeight: 600, color: s.sig ? C.success : '#999', marginBottom: 6 }}>{s.label}</div>
+                    <div key={i} style={{ border: `1px solid ${s.sig ? C.success + '40' : C.border}`, borderRadius: 10, padding: 10, textAlign: 'center', background: s.sig ? `${C.success}08` : 'rgba(255,255,255,0.02)' }}>
+                      <div style={{ fontSize: '0.83rem', fontWeight: 600, color: s.sig ? C.success : C.textMuted, marginBottom: 6 }}>{s.label}</div>
                       {s.sig
                         ? <img src={s.sig} alt="توقيع" style={{ maxWidth: '100%', height: 65, objectFit: 'contain' }} />
-                        : <div style={{ padding: '16px 0', color: '#ccc', fontSize: '0.83rem' }}>لم يوقّع بعد</div>
+                        : <div style={{ padding: '16px 0', color: C.textMuted, fontSize: '0.83rem', opacity: 0.6 }}>لم يوقّع بعد</div>
                       }
-                      {s.sig && s.date && <div style={{ fontSize: '0.7rem', color: '#aaa', marginTop: 3 }}>{new Date(s.date).toLocaleDateString('ar-SA')}</div>}
+                      {s.sig && s.date && <div style={{ fontSize: '0.7rem', color: C.textMuted, marginTop: 3, opacity: 0.7 }}>{new Date(s.date).toLocaleDateString('ar-SA')}</div>}
                     </div>
                   ))}
                 </div>
