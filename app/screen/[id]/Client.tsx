@@ -7,18 +7,38 @@ import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
 import PulseDetailPopup from '@/components/PulseDetailPopup';
 
+// ─── Relative time in Arabic ────────────────────────────────────────────────
+function timeAgoAr(dateStr: string): string {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return 'منذ لحظات';
+  if (diff < 3600) {
+    const m = Math.floor(diff / 60);
+    return `منذ ${m} ${m === 1 ? 'دقيقة' : m < 11 ? 'دقائق' : 'دقيقة'}`;
+  }
+  if (diff < 86400) {
+    const h = Math.floor(diff / 3600);
+    return `منذ ${h} ${h === 1 ? 'ساعة' : h < 11 ? 'ساعات' : 'ساعة'}`;
+  }
+  const d = Math.floor(diff / 86400);
+  return `منذ ${d} ${d === 1 ? 'يوم' : d < 11 ? 'أيام' : 'يوم'}`;
+}
+
 // ─── External Video URL Parser ───────────────────────────────────────────────
 function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'youtube' | 'vimeo' | 'dailymotion' } | null {
   if (!url) return null;
   const u = url.trim();
   const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1`, platform: 'youtube' };
+  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`, platform: 'youtube' };
   const vm = u.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
   if (vm) return { embedUrl: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1`, platform: 'vimeo' };
   const dm = u.match(/(?:dailymotion\.com\/(?:video\/|embed\/video\/)|dai\.ly\/)([a-zA-Z0-9]+)/);
   if (dm) return { embedUrl: `https://www.dailymotion.com/embed/video/${dm[1]}?autoplay=1&mute=1`, platform: 'dailymotion' };
-  // Already an embed URL
-  if (u.includes('youtube.com/embed/')) return { embedUrl: u, platform: 'youtube' };
+  // Already an embed URL — ensure YouTube controls are hidden
+  if (u.includes('youtube.com/embed/')) {
+    const sep = u.includes('?') ? '&' : '?';
+    const clean = u.replace(/[&?](controls|modestbranding|rel|iv_load_policy|disablekb)=[^&]*/g, '');
+    return { embedUrl: `${clean}${sep}controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1`, platform: 'youtube' };
+  }
   if (u.includes('player.vimeo.com/video/')) return { embedUrl: u, platform: 'vimeo' };
   if (u.includes('dailymotion.com/embed/video/')) return { embedUrl: u, platform: 'dailymotion' };
   return null;
@@ -50,6 +70,7 @@ export default function ScreenPage() {
   const [expandedQuadrant, setExpandedQuadrant] = useState<number | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [selectedPulse, setSelectedPulse] = useState<PulseItem | null>(null);
+  const [adCountdown, setAdCountdown] = useState(5);
 
   // إطلاق حدث resize بعد تغيير الربع الموسّع حتى يتحدّث Three.js بحجم الحاوية الجديد
   useEffect(() => {
@@ -252,7 +273,7 @@ export default function ScreenPage() {
             }
           }
           setCurrentAd(shuffled[index]);
-        }, 10000);
+        }, 5000);
       } catch (err) {
         console.error('Error fetching ads:', err);
       }
@@ -267,6 +288,16 @@ export default function ScreenPage() {
       clearInterval(refreshInterval);
     };
   }, [authenticated, institution]);
+
+  // ─── عداد الإعلان التنازلي ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!currentAd) return;
+    setAdCountdown(5);
+    const tick = setInterval(() => {
+      setAdCountdown(c => (c > 0 ? c - 1 : 0));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [currentAd]);
 
   // ─── صوت المجرة — يُهيَّأ عند أول تفاعل (متطلب المتصفح) ─────────────────
   useEffect(() => {
@@ -853,6 +884,24 @@ export default function ScreenPage() {
           direction: rtl;
           color: white;
         }
+        /* عداد الإعلان */
+        .ad-countdown {
+          position: absolute;
+          bottom: 14px; left: 14px;
+          width: 48px; height: 48px;
+          z-index: 20;
+          pointer-events: none;
+        }
+        .ad-countdown svg { display: block; }
+        .ad-countdown-num {
+          position: absolute;
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          color: #FFD700;
+          font-size: 0.92rem;
+          font-weight: 800;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+        }
         .ad-placeholder-star {
           font-size: 3.5rem;
           animation: adStarPulse 3s ease-in-out infinite;
@@ -1216,7 +1265,7 @@ export default function ScreenPage() {
               <div className="pulse-body">
                 <div className="pulse-content">{item.content}</div>
                 <div className="pulse-time">
-                  {new Date(item.pulse_date).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
+                  {timeAgoAr(item.pulse_date)}
                 </div>
               </div>
               {item.image_url && (
@@ -1241,6 +1290,24 @@ export default function ScreenPage() {
         </button>
         {currentAd ? (
           <div key={currentAd.id} className="ad-full">
+            {/* عداد تنازلي دائري */}
+            <div className="ad-countdown">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+                <circle
+                  cx="24" cy="24" r="19"
+                  fill="none"
+                  stroke="#FFD700"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 19}`}
+                  strokeDashoffset={`${2 * Math.PI * 19 * (1 - adCountdown / 5)}`}
+                  transform="rotate(-90 24 24)"
+                  style={{ transition: 'stroke-dashoffset 0.95s linear' }}
+                />
+              </svg>
+              <div className="ad-countdown-num">{adCountdown}</div>
+            </div>
             {currentAd.image_url ? (
               <>
                 <div
