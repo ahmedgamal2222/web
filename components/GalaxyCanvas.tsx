@@ -372,8 +372,8 @@ export default function GalaxyCanvas({
           float glow  = (0.5 - dist) * 2.0 * pulse;
           float alpha = glow * (0.55 + vImp * 0.35);
           if (alpha < 0.01) discard;
-          vec3 topTint  = vec3(1.0, 0.88, 0.55);
-          vec3 cyanTint = vec3(0.0, 0.93, 1.0);
+          vec3 topTint  = vec3(0.90, 0.95, 1.0);
+          vec3 cyanTint = vec3(0.65, 0.88, 1.0);
           vec3 tint     = mix(cyanTint, topTint, vImp * 0.6);
           vec3 finalCol = mix(vColor, tint, 0.5);
           gl_FragColor  = vec4(finalCol, alpha);
@@ -768,15 +768,15 @@ export default function GalaxyCanvas({
           pointerEvents: 'none',
           zIndex: 400,
           background: 'rgba(5,4,20,0.88)',
-          border: '1.5px solid #FFD700',
+          border: '1.5px solid rgba(200,225,255,0.55)',
           borderRadius: 24,
           padding: '6px 18px',
-          color: '#FFD700',
+          color: '#e8f4ff',
           fontFamily: "'Tajawal', sans-serif",
           fontSize: '0.92rem',
           fontWeight: 700,
           whiteSpace: 'nowrap',
-          boxShadow: '0 0 14px rgba(255,215,0,0.45)',
+          boxShadow: '0 0 18px rgba(200,225,255,0.35), 0 0 6px rgba(255,255,255,0.2)',
           backdropFilter: 'blur(8px)',
           letterSpacing: '0.02em',
         }}

@@ -277,11 +277,13 @@ function TopBar({
 
           ...(user?.institution_id
             ? [{ href: `/screen/${user.institution_id}`, icon: '📺', label: 'الشاشة الحضارية' }]
-            : [{ href: '/tv.hadmaj', icon: '📺', label: 'الشاشة الحضارية' }]),
+            : [{ href: 'https://tv.hadmaj.com', icon: '📺', label: 'الشاشة الحضارية' }]),
         ] as Array<{ href: string; icon: string; label: string }>).map(link => (
           <Link
             key={link.href}
             href={link.href}
+            target={link.href.startsWith('https://') ? '_blank' : undefined}
+            rel={link.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '7px 14px',
