@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Institution } from '@/lib/types';
@@ -9,477 +9,135 @@ import Link from 'next/link';
 // ============================================================
 // الألوان الأساسية
 // ============================================================
-const COLORS = {
-  lightMint: '#EDF7BD',
-  softGreen: '#85C79A',
-  teal: '#4E8D9C',
-  darkNavy: '#281C59',
+const C = {
+  bg:         '#07091e',
+  bgCard:     'rgba(12,16,40,0.95)',
+  bgCardHov:  'rgba(18,24,56,0.98)',
+  border:     'rgba(78,141,156,0.18)',
+  borderHov:  'rgba(78,141,156,0.5)',
+  teal:       '#4E8D9C',
+  mint:       '#EDF7BD',
+  green:      '#85C79A',
+  navy:       '#281C59',
+  text:       '#e2eaf2',
+  textMuted:  '#7a96aa',
+  input:      'rgba(255,255,255,0.06)',
+  inputBord:  'rgba(78,141,156,0.4)',
+  inputFocus: '#4E8D9C',
 };
 
-// ============================================================
-// أنواع المؤسسات مع ألوانها
-// ============================================================
 const TYPE_STYLES: Record<string, { label: string; color: string }> = {
-  educational: { label: 'تعليمية', color: COLORS.lightMint },
-  research: { label: 'بحثية', color: COLORS.softGreen },
-  cultural: { label: 'ثقافية', color: COLORS.teal },
-  charitable: { label: 'خيرية', color: COLORS.darkNavy },
-  media: { label: 'إعلامية', color: '#E6B89C' },
-  developmental: { label: 'تنموية', color: '#A7C4B5' },
-  default: { label: 'عامة', color: '#B8B8B8' },
+  educational:  { label: 'تعليمية',   color: '#4fc3f7' },
+  research:     { label: 'بحثية',     color: '#85C79A' },
+  cultural:     { label: 'ثقافية',    color: '#ce93d8' },
+  charitable:   { label: 'خيرية',     color: '#ffb74d' },
+  media:        { label: 'إعلامية',   color: '#f48fb1' },
+  developmental:{ label: 'تنموية',   color: '#a5d6a7' },
+  default:      { label: 'عامة',      color: '#90a4ae' },
 };
 
 // ============================================================
-// Header Component
+// دالة مساعدة لحساب عدد الاتفاقيات
 // ============================================================
-function PageHeader() {
-  return (
-    <div className="institutions-hero" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* خلفية بنقوش */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        opacity: 0.1,
-        background: `
-          radial-gradient(circle at 20% 30%, ${COLORS.lightMint} 0%, transparent 20%),
-          radial-gradient(circle at 80% 70%, ${COLORS.softGreen} 0%, transparent 25%),
-          repeating-linear-gradient(45deg, transparent 0px, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 40px)
-        `,
-      }} />
-      
-      <div style={{
-        maxWidth: 1200,
-        margin: '0 auto',
-        position: 'relative',
-        zIndex: 2,
-      }}>
-        {/* مسار التنقل */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-          <Link href="/" style={{
-            color: COLORS.lightMint,
-            textDecoration: 'none',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            background: 'rgba(255,255,255,0.12)',
-            padding: '6px 16px',
-            borderRadius: 30,
-            border: `1px solid ${COLORS.lightMint}60`,
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-          >
-            ✦ المجرة الحضارية
-          </Link>
-          <span style={{ color: `${COLORS.lightMint}80`, fontSize: '1rem' }}>›</span>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>المؤسسات</span>
-        </div>
-
-        {/* عنوان الصفحة */}
-        <h1 className="text-hero" style={{
-          color: COLORS.lightMint,
-          marginBottom: 20,
-          textShadow: `3px 3px 0 ${COLORS.darkNavy}`,
-          letterSpacing: '-0.02em',
-        }}>
-          المؤسسات الحضارية
-        </h1>
-        
-        {/* وصف */}
-        <p style={{
-          fontSize: '1.2rem',
-          color: 'rgba(255,255,255,0.9)',
-          maxWidth: 600,
-          marginBottom: 40,
-          lineHeight: 1.6,
-        }}>
-          منصة رقمية تجمع المؤسسات التعليمية والبحثية والثقافية في المجرة الحضارية
-        </p>
-        
-        {/* إحصائيات سريعة */}
-        <div style={{
-          display: 'flex',
-          gap: 30,
-          flexWrap: 'wrap',
-        }}>
-          <StatBadge number="150+" label="مؤسسة" color={COLORS.lightMint} />
-          <StatBadge number="45+" label="اتفاقية" color={COLORS.softGreen} />
-          <StatBadge number="12" label="دولة" color={COLORS.teal} />
-          <StatBadge number="5000+" label="مستفيد" color="#E6B89C" />
-        </div>
-      </div>
-    </div>
-  );
+function getAgreementsCount(inst: Institution): number {
+  if (!inst.agreements) return 0;
+  if (typeof inst.agreements === 'number') return inst.agreements;
+  if (Array.isArray(inst.agreements)) return inst.agreements.length;
+  if (typeof inst.agreements === 'object' && inst.agreements !== null) {
+    const v = (inst.agreements as any).count ?? (inst.agreements as any).total;
+    if (typeof v === 'number') return v;
+  }
+  return 0;
 }
 
 // ============================================================
-// Stat Badge Component
-// ============================================================
-function StatBadge({ number, label, color }: { number: string; label: string; color: string }) {
-  return (
-    <div style={{
-      background: 'rgba(255,255,255,0.1)',
-      backdropFilter: 'blur(10px)',
-      border: `1px solid ${color}`,
-      borderRadius: 40,
-      padding: '12px 25px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-    }}>
-      <span style={{
-        fontSize: '1.8rem',
-        fontWeight: 700,
-        color: color,
-      }}>{number}</span>
-      <span style={{
-        fontSize: '0.9rem',
-        color: 'white',
-        opacity: 0.9,
-      }}>{label}</span>
-    </div>
-  );
-}
-
-// ============================================================
-// Search Bar Component
-// ============================================================
-function SearchBar({ onSearch }: { onSearch: (query: string) => void }) {
-  const [query, setQuery] = useState('');
-
-  return (
-    <div style={{
-      maxWidth: 800,
-      margin: '-30px auto 40px',
-      position: 'relative',
-      zIndex: 10,
-      padding: '0 20px',
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 60,
-        boxShadow: `0 20px 40px ${COLORS.darkNavy}30`,
-        display: 'flex',
-        overflow: 'hidden',
-        border: `2px solid ${COLORS.softGreen}`,
-      }}>
-        <input
-          type="text"
-          placeholder="🔍 ابحث عن مؤسسة بالاسم، البلد، أو النوع..."
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            onSearch(e.target.value);
-          }}
-          style={{
-            flex: 1,
-            padding: '20px 30px',
-            border: 'none',
-            outline: 'none',
-            fontSize: '1rem',
-            direction: 'rtl',
-          }}
-        />
-        <button style={{
-          background: COLORS.teal,
-          border: 'none',
-          padding: '0 40px',
-          color: 'white',
-          fontSize: '1.1rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'all 0.3s',
-          borderRight: `2px solid ${COLORS.softGreen}`,
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.background = COLORS.darkNavy;
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background = COLORS.teal;
-        }}
-        >
-          بحث
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// Filter Bar Component
-// ============================================================
-function FilterBar({ 
-  activeType, 
-  onTypeChange,
-  activeCountry,
-  onCountryChange,
-  countries,
-  onSortChange,
-}: { 
-  activeType: string;
-  onTypeChange: (type: string) => void;
-  activeCountry: string;
-  onCountryChange: (country: string) => void;
-  countries: string[];
-  onSortChange: (sort: string) => void;
-}) {
-  const types = [
-    { id: 'all', label: 'الكل', color: COLORS.teal },
-    { id: 'educational', label: 'تعليمية', color: COLORS.lightMint },
-    { id: 'research', label: 'بحثية', color: COLORS.softGreen },
-    { id: 'cultural', label: 'ثقافية', color: COLORS.teal },
-    { id: 'charitable', label: 'خيرية', color: COLORS.darkNavy },
-    { id: 'media', label: 'إعلامية', color: '#E6B89C' },
-    { id: 'developmental', label: 'تنموية', color: '#A7C4B5' },
-  ];
-
-  return (
-    <div style={{
-      maxWidth: 1200,
-      margin: '0 auto 30px',
-      padding: '0 20px',
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 20,
-        padding: '20px',
-        boxShadow: `0 5px 20px ${COLORS.darkNavy}20`,
-        border: `1px solid ${COLORS.softGreen}40`,
-      }}>
-        {/* صف التصفية */}
-        <div style={{
-          display: 'flex',
-          gap: 20,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          marginBottom: 15,
-        }}>
-          <span style={{
-            color: COLORS.darkNavy,
-            fontWeight: 600,
-            fontSize: '0.9rem',
-          }}>
-            تصفية حسب:
-          </span>
-          
-          {/* أزرار الأنواع */}
-          <div style={{
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            flex: 1,
-          }}>
-            {types.map(type => (
-              <button
-                key={type.id}
-                onClick={() => onTypeChange(type.id)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 30,
-                  border: `2px solid ${type.color}`,
-                  background: activeType === type.id ? type.color : 'transparent',
-                  color: activeType === type.id ? 'white' : type.color,
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                }}
-                onMouseEnter={e => {
-                  if (activeType !== type.id) {
-                    e.currentTarget.style.background = `${type.color}20`;
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (activeType !== type.id) {
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              >
-                {type.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* صف إضافي للبلد والترتيب */}
-        <div style={{
-          display: 'flex',
-          gap: 15,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          borderTop: `1px solid ${COLORS.softGreen}20`,
-          paddingTop: 15,
-        }}>
-          {/* اختيار البلد */}
-          <select
-            value={activeCountry}
-            onChange={(e) => onCountryChange(e.target.value)}
-            style={{
-              padding: '10px 20px',
-              borderRadius: 30,
-              border: `2px solid ${COLORS.teal}`,
-              background: 'white',
-              color: COLORS.darkNavy,
-              fontSize: '0.9rem',
-              outline: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="all">🌍 جميع البلدان</option>
-            {countries.map(country => (
-              <option key={country} value={country}>{country}</option>
-            ))}
-          </select>
-
-          {/* ترتيب حسب */}
-          <select
-            onChange={(e) => onSortChange(e.target.value)}
-            style={{
-              padding: '10px 20px',
-              borderRadius: 30,
-              border: `2px solid ${COLORS.softGreen}`,
-              background: 'white',
-              color: COLORS.darkNavy,
-              fontSize: '0.9rem',
-              outline: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <option value="name">📝 ترتيب حسب الاسم</option>
-            <option value="weight">⭐ الأكثر تأثيراً</option>
-            <option value="founded">📅 الأحدث</option>
-            <option value="agreements">🔗 الأكثر اتفاقيات</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// Institution Card Component
+// Institution Card
 // ============================================================
 function InstitutionCard({ institution }: { institution: Institution }) {
-  // تحديد اللون بناءً على النوع
-  const typeStyle = TYPE_STYLES[institution.type] || TYPE_STYLES.default;
-  
+  const type = TYPE_STYLES[institution.type] || TYPE_STYLES.default;
+  const agreementsCount = getAgreementsCount(institution);
+  const name = institution.name_ar || institution.name;
+
   return (
-    <Link href={`/institutions/${institution.id}`} style={{ textDecoration: 'none' }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 30,
-        overflow: 'hidden',
-        boxShadow: `0 10px 30px ${COLORS.darkNavy}20`,
-        transition: 'all 0.3s',
-        height: '100%',
-        position: 'relative',
-        border: `1px solid ${typeStyle.color}40`,
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-10px)';
-        e.currentTarget.style.boxShadow = `0 20px 40px ${COLORS.darkNavy}40`;
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = `0 10px 30px ${COLORS.darkNavy}20`;
-      }}
+    <Link href={`/institutions/${institution.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <div
+        style={{
+          background: C.bgCard,
+          borderRadius: 20,
+          border: `1px solid ${C.border}`,
+          overflow: 'hidden',
+          transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = C.bgCardHov;
+          e.currentTarget.style.borderColor = type.color + '60';
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = `0 16px 40px rgba(0,0,0,0.6), 0 0 0 1px ${type.color}30`;
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = C.bgCard;
+          e.currentTarget.style.borderColor = C.border;
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = 'none';
+        }}
       >
-        {/* الشريط العلوي حسب النوع */}
-        <div style={{
-          height: '8px',
-          background: `linear-gradient(90deg, ${typeStyle.color}, ${COLORS.softGreen})`,
-        }} />
+        {/* شريط لوني علوي */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${type.color}, ${type.color}44)` }} />
 
-        {/* حالة الشاشة */}
-        {institution.screen_active && (
-          <div style={{
-            position: 'absolute',
-            top: 15,
-            left: 15,
-            background: COLORS.lightMint,
-            color: COLORS.darkNavy,
-            padding: '5px 12px',
-            borderRadius: 30,
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            zIndex: 2,
-          }}>
-            <span>✨</span>
-            <span>الشاشة نشطة</span>
-          </div>
-        )}
-
-        {/* المحتوى */}
-        <div style={{ padding: '25px 20px' }}>
-          {/* الشعار والاسم */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 15,
-            marginBottom: 20,
-          }}>
+        <div style={{ padding: '20px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* الرأس */}
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
             <div style={{
-              width: 70,
-              height: 70,
-              borderRadius: 20,
-              background: `linear-gradient(135deg, ${typeStyle.color}, ${COLORS.softGreen})`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.8rem',
-              color: 'white',
-              boxShadow: `0 5px 15px ${typeStyle.color}`,
+              width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+              background: `${type.color}18`,
+              border: `1.5px solid ${type.color}40`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.4rem', color: type.color, fontWeight: 800,
+              overflow: 'hidden',
             }}>
-              {institution.logo_url ? (
-                <Image src={institution.logo_url} alt={institution.name} width={50} height={50} />
-              ) : (
-                (institution.name_ar || institution.name).charAt(0)
-              )}
+              {institution.logo_url
+                ? <Image src={institution.logo_url} alt={name} width={52} height={52} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+                : name.charAt(0)}
             </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{
-                margin: 0,
-                fontSize: '1.2rem',
-                fontWeight: 700,
-                color: COLORS.darkNavy,
-                marginBottom: 5,
-              }}>
-                {institution.name_ar || institution.name}
-              </h3>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                display: 'flex',
-                gap: 8,
-                flexWrap: 'wrap',
+                fontWeight: 700, fontSize: '0.97rem', color: C.text,
+                lineHeight: 1.35, marginBottom: 6,
+                overflow: 'hidden', display: '-webkit-box',
+                WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
               }}>
+                {name}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                 <span style={{
-                    background: `${typeStyle.color}20`,
-                    color: typeStyle.color,
-                    padding: '4px 12px',
-                    borderRadius: 30,
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                  }}>
-                    {typeStyle.label}
-                  </span>
-                  {institution.is_verified && (
+                  background: `${type.color}18`, color: type.color,
+                  border: `1px solid ${type.color}35`,
+                  padding: '2px 10px', borderRadius: 20,
+                  fontSize: '0.75rem', fontWeight: 700,
+                }}>
+                  {type.label}
+                </span>
+                {institution.is_verified && (
                   <span style={{
-                    background: COLORS.softGreen,
-                    color: 'white',
-                    padding: '4px 12px',
-                    borderRadius: 30,
-                    fontSize: '0.82rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
+                    background: `${C.green}18`, color: C.green,
+                    border: `1px solid ${C.green}35`,
+                    padding: '2px 8px', borderRadius: 20,
+                    fontSize: '0.75rem', fontWeight: 700,
                   }}>
-                    <span>✓</span>
-                    موثقة
+                    ✓ موثقة
+                  </span>
+                )}
+                {institution.screen_active && (
+                  <span style={{
+                    background: `${C.mint}12`, color: C.mint,
+                    border: `1px solid ${C.mint}28`,
+                    padding: '2px 8px', borderRadius: 20,
+                    fontSize: '0.72rem', fontWeight: 600,
+                  }}>
+                    ✨ شاشة نشطة
                   </span>
                 )}
               </div>
@@ -487,71 +145,40 @@ function InstitutionCard({ institution }: { institution: Institution }) {
           </div>
 
           {/* الموقع */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            marginBottom: 15,
-            color: COLORS.teal,
-            fontSize: '0.9rem',
-          }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.textMuted, fontSize: '0.83rem' }}>
             <span>📍</span>
             <span>{institution.city}، {institution.country}</span>
           </div>
 
-          {/* الإحصائيات */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 10,
-            marginBottom: 20,
-            padding: '15px 0',
-            borderTop: `1px solid ${COLORS.softGreen}20`,
-            borderBottom: `1px solid ${COLORS.softGreen}20`,
-          }}>
-            <StatItem icon="👥" value={institution.employees_count} label="موظف" />
-            <StatItem icon="📊" value={institution.projects_count} label="مشروع" />
-            <StatItem icon="🎯" value={institution.beneficiaries_count} label="مستفيد" />
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
+
+          {/* إحصائيات */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {[
+              { icon: '👥', val: institution.employees_count || 0,   label: 'موظف',     hi: false },
+              { icon: '📊', val: institution.projects_count || 0,    label: 'مشروع',    hi: false },
+              { icon: '🔗', val: agreementsCount,                    label: 'اتفاقية',  hi: true  },
+            ].map(s => (
+              <div key={s.label} style={{
+                textAlign: 'center', padding: '8px 4px',
+                background: s.hi ? `${type.color}0d` : 'rgba(255,255,255,0.02)',
+                borderRadius: 10,
+                border: s.hi ? `1px solid ${type.color}25` : '1px solid transparent',
+              }}>
+                <div style={{ fontSize: '0.9rem', marginBottom: 2 }}>{s.icon}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: s.hi ? type.color : C.text }}>{s.val}</div>
+                <div style={{ fontSize: '0.72rem', color: C.textMuted }}>{s.label}</div>
+              </div>
+            ))}
           </div>
 
-          {/* الاتفاقيات */}
-        <div style={{
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-}}>
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-  }}>
-    <span style={{ color: COLORS.teal }}>🔗</span>
-    <span style={{ color: COLORS.darkNavy, fontWeight: 600 }}>
-      {institution.agreements?.length || 0} اتفاقية
-    </span>
-  </div>
-            <button style={{
-              background: 'transparent',
-              border: `2px solid ${COLORS.teal}`,
-              color: COLORS.teal,
-              padding: '8px 16px',
-              borderRadius: 30,
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = COLORS.teal;
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = COLORS.teal;
-            }}
-            >
-              عرض التفاصيل
-            </button>
+          <div style={{
+            marginTop: 'auto',
+            padding: '9px 16px', background: `${type.color}12`,
+            border: `1px solid ${type.color}30`, borderRadius: 12,
+            color: type.color, fontSize: '0.82rem', fontWeight: 600, textAlign: 'center',
+          }}>
+            عرض التفاصيل ←
           </div>
         </div>
       </div>
@@ -560,129 +187,7 @@ function InstitutionCard({ institution }: { institution: Institution }) {
 }
 
 // ============================================================
-// Stat Item Component
-// ============================================================
-function StatItem({ icon, value, label }: { icon: string; value: number; label: string }) {
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '1.2rem', marginBottom: 4 }}>{icon}</div>
-      <div style={{ fontSize: '1rem', fontWeight: 700, color: COLORS.darkNavy }}>{value}</div>
-      <div style={{ fontSize: '0.8rem', color: COLORS.teal }}>{label}</div>
-    </div>
-  );
-}
-
-// ============================================================
-// Featured Institutions Section
-// ============================================================
-function FeaturedSection({ institutions }: { institutions: Institution[] }) {
-  const featured = institutions
-    .filter(inst => inst.weight > 7)
-    .slice(0, 3);
-
-  if (featured.length === 0) return null;
-
-  return (
-    <div style={{
-      maxWidth: 1200,
-      margin: '50px auto',
-      padding: '0 20px',
-    }}>
-      <h2 style={{
-        fontSize: '2rem',
-        color: COLORS.darkNavy,
-        marginBottom: 30,
-        textAlign: 'center',
-      }}>
-        ⭐ المؤسسات الأكثر تأثيراً
-      </h2>
-      
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: 25,
-      }}>
-        {featured.map(inst => (
-          <div key={inst.id} style={{
-            background: `linear-gradient(135deg, ${COLORS.lightMint}40, white)`,
-            borderRadius: 30,
-            padding: 25,
-            border: `2px solid ${COLORS.teal}`,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            {/* خلفية زخرفية */}
-            <div style={{
-              position: 'absolute',
-              top: -20,
-              right: -20,
-              width: 100,
-              height: 100,
-              background: COLORS.softGreen,
-              opacity: 0.1,
-              borderRadius: '50%',
-            }} />
-            
-            <div style={{ position: 'relative', zIndex: 2 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 15,
-                marginBottom: 15,
-              }}>
-                <div style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 15,
-                  background: COLORS.teal,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '1.5rem',
-                }}>
-                  ⭐
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, color: COLORS.darkNavy }}>
-                    {inst.name_ar || inst.name}
-                  </h3>
-                  <p style={{ color: COLORS.teal, fontSize: '0.9rem' }}>
-                    {inst.city}، {inst.country}
-                  </p>
-                </div>
-              </div>
-              
-              <Link href={`/institutions/${inst.id}`} style={{
-                display: 'block',
-                textAlign: 'center',
-                background: COLORS.teal,
-                color: 'white',
-                padding: '12px',
-                borderRadius: 40,
-                textDecoration: 'none',
-                fontWeight: 600,
-                transition: 'all 0.3s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = COLORS.darkNavy;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = COLORS.teal;
-              }}
-              >
-                اكتشف المزيد
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// Main Page Component
+// Main Page
 // ============================================================
 export default function InstitutionsPage() {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
@@ -695,199 +200,249 @@ export default function InstitutionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // جلب البيانات
   useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const data = await fetchInstitutions({ limit: 2000 });
-        setInstitutions(data);
-        setFiltered(data);
-      } catch (error) {
-        console.error('Error loading institutions:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    fetchInstitutions({ limit: 2000 })
+      .then(data => { setInstitutions(data); setFiltered(data); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  // تطبيق الفلاتر والبحث
   useEffect(() => {
     let result = [...institutions];
-
-    // فلترة حسب البحث
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(inst => 
-        (inst.name_ar || inst.name).toLowerCase().includes(query) ||
-        inst.country.toLowerCase().includes(query) ||
-        inst.city.toLowerCase().includes(query)
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(inst =>
+        (inst.name_ar || inst.name).toLowerCase().includes(q) ||
+        inst.country.toLowerCase().includes(q) ||
+        inst.city.toLowerCase().includes(q)
       );
     }
-
-    // فلترة حسب النوع
-    if (activeType !== 'all') {
-      result = result.filter(inst => inst.type === activeType);
-    }
-
-    // فلترة حسب البلد
-    if (activeCountry !== 'all') {
-      result = result.filter(inst => inst.country === activeCountry);
-    }
-
-    // الترتيب
+    if (activeType !== 'all') result = result.filter(i => i.type === activeType);
+    if (activeCountry !== 'all') result = result.filter(i => i.country === activeCountry);
     result.sort((a, b) => {
-      switch(sortBy) {
-        case 'name':
-          return (a.name_ar || a.name).localeCompare(b.name_ar || b.name);
-        case 'weight':
-          return (b.weight || 0) - (a.weight || 0);
-        case 'founded':
-          return (b.founded_year || 0) - (a.founded_year || 0);
-        default:
-          return 0;
-      }
+      if (sortBy === 'weight') return (b.weight || 0) - (a.weight || 0);
+      if (sortBy === 'founded') return (b.founded_year || 0) - (a.founded_year || 0);
+      if (sortBy === 'agreements') return getAgreementsCount(b) - getAgreementsCount(a);
+      return (a.name_ar || a.name).localeCompare(b.name_ar || b.name);
     });
-
     setFiltered(result);
     setCurrentPage(1);
   }, [searchQuery, activeType, activeCountry, sortBy, institutions]);
 
-  // استخراج قائمة البلدان للفلتر
-  const countries = [...new Set(institutions.map(inst => inst.country))].sort();
-
-  // حساب الصفحة الحالية
+  const countries = [...new Set(institutions.map(i => i.country))].sort();
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const currentItems = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const pageItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const types = [
+    { id: 'all',          label: 'الكل',      color: C.teal    },
+    { id: 'educational',  label: 'تعليمية',   color: '#4fc3f7' },
+    { id: 'research',     label: 'بحثية',     color: C.green   },
+    { id: 'cultural',     label: 'ثقافية',    color: '#ce93d8' },
+    { id: 'charitable',   label: 'خيرية',     color: '#ffb74d' },
+    { id: 'media',        label: 'إعلامية',   color: '#f48fb1' },
+    { id: 'developmental',label: 'تنموية',    color: '#a5d6a7' },
+  ];
 
   if (loading) {
     return (
-      <div className="loading-page">
-        <div className="spinner" style={{ width: 56, height: 56, borderWidth: 4 }} />
-        <h3 style={{ color: '#281C59', margin: '8px 0 0' }}>جاري تحميل المؤسسات...</h3>
+      <div style={{
+        minHeight: '100vh', background: C.bg,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 16, direction: 'rtl',
+      }}>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          border: `3px solid ${C.teal}`, borderTopColor: 'transparent',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <p style={{ color: C.textMuted, fontSize: '0.9rem' }}>جاري تحميل المؤسسات...</p>
       </div>
     );
   }
 
   return (
-    <div className="page-wrap" style={{ direction: 'rtl' }}>
-      {/* الهيدر */}
-      <PageHeader />
+    <div style={{
+      minHeight: '100vh', background: C.bg, direction: 'rtl',
+      fontFamily: "'Tajawal', 'Segoe UI', sans-serif", color: C.text,
+    }}>
+      <style>{`
+        input::placeholder { color: ${C.textMuted}; }
+        select option { background: #0d1828; color: ${C.text}; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
 
-      {/* شريط البحث */}
-      <SearchBar onSearch={setSearchQuery} />
-
-      {/* شريط الفلاتر */}
-      <FilterBar
-        activeType={activeType}
-        onTypeChange={setActiveType}
-        activeCountry={activeCountry}
-        onCountryChange={setActiveCountry}
-        countries={countries}
-        onSortChange={setSortBy}
-      />
-
-      {/* قسم المؤسسات المميزة (يظهر فقط في الصفحة الرئيسية) */}
-      {searchQuery === '' && activeType === 'all' && activeCountry === 'all' && (
-        <FeaturedSection institutions={institutions} />
-      )}
-
-      {/* شبكة المؤسسات */}
+      {/* Hero */}
       <div style={{
-        maxWidth: 1200,
-        margin: '0 auto 50px',
-        padding: '0 20px',
+        background: 'linear-gradient(160deg, #0c0f2a 0%, #07091e 60%)',
+        borderBottom: `1px solid ${C.border}`, padding: '32px 24px 36px',
       }}>
-        {/* عدد النتائج */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 20,
-          color: COLORS.teal,
-        }}>
-          <span>
-            عرض {currentItems.length} من أصل {filtered.length} مؤسسة
-          </span>
-          <span>
-            الصفحة {currentPage} من {totalPages}
-          </span>
-        </div>
-
-        {/* شبكة البطاقات */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: 25,
-        }}>
-          {currentItems.map(institution => (
-            <InstitutionCard key={institution.id} institution={institution} />
-          ))}
-        </div>
-
-        {/* إذا لم توجد نتائج */}
-        {currentItems.length === 0 && (
-          <div style={{
-            textAlign: 'center',
-            padding: '80px 20px',
-            background: 'white',
-            borderRadius: 30,
-            border: `2px dashed ${COLORS.teal}`,
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: '0.85rem' }}>
+            <Link href="/" style={{
+              color: C.teal, textDecoration: 'none', fontWeight: 600,
+              padding: '5px 14px', borderRadius: 20,
+              background: `${C.teal}12`, border: `1px solid ${C.teal}30`,
+            }}>✦ المجرة الحضارية</Link>
+            <span style={{ color: C.textMuted }}>›</span>
+            <span style={{ color: C.textMuted }}>المؤسسات</span>
+          </div>
+          <h1 style={{
+            fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800,
+            color: C.mint, margin: '0 0 10px', letterSpacing: '-0.02em',
+            textShadow: `0 2px 20px ${C.teal}40`,
           }}>
-            <span style={{ fontSize: '4rem', display: 'block', marginBottom: 20 }}>🌌</span>
-            <h3 style={{ color: COLORS.darkNavy, marginBottom: 10 }}>لا توجد نتائج</h3>
-            <p style={{ color: COLORS.teal }}>حاول تغيير معايير البحث</p>
+            المؤسسات الحضارية
+          </h1>
+          <p style={{ color: C.textMuted, fontSize: '1rem', margin: '0 0 28px' }}>
+            منصة رقمية تجمع المؤسسات التعليمية والبحثية والثقافية
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {[
+              { n: institutions.length,                                               label: 'مؤسسة',     c: C.teal    },
+              { n: institutions.filter(i => i.screen_active).length,                 label: 'شاشة نشطة', c: C.mint    },
+              { n: institutions.filter(i => i.status === 'active').length,           label: 'نشطة',      c: C.green   },
+              { n: institutions.reduce((s, i) => s + getAgreementsCount(i), 0),      label: 'اتفاقية',   c: '#ffb74d' },
+            ].map(s => (
+              <div key={s.label} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 18px', background: `${s.c}0f`,
+                border: `1px solid ${s.c}30`, borderRadius: 30,
+              }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: s.c }}>{s.n}</span>
+                <span style={{ fontSize: '0.82rem', color: C.textMuted }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Search + Filters */}
+      <div style={{
+        background: 'rgba(10,14,32,0.98)', borderBottom: `1px solid ${C.border}`,
+        padding: '18px 24px 16px', position: 'sticky', top: 0, zIndex: 30,
+        backdropFilter: 'blur(20px)',
+      }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 480 }}>
+              <span style={{
+                position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)',
+                color: C.textMuted, pointerEvents: 'none', fontSize: '0.95rem',
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="ابحث بالاسم، البلد، أو المدينة..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%', padding: '11px 40px 11px 14px',
+                  background: C.input, border: `1.5px solid ${C.inputBord}`,
+                  borderRadius: 12, color: C.text, fontSize: '0.9rem',
+                  outline: 'none', transition: 'all 0.2s',
+                  boxSizing: 'border-box', fontFamily: 'inherit', direction: 'rtl',
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = C.inputFocus; e.currentTarget.style.background = 'rgba(78,141,156,0.1)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = C.inputBord; e.currentTarget.style.background = C.input; }}
+              />
+            </div>
+            <select value={activeCountry} onChange={e => setActiveCountry(e.target.value)} style={{
+              padding: '11px 14px', background: C.input, border: `1.5px solid ${C.inputBord}`,
+              borderRadius: 12, color: C.textMuted, fontSize: '0.88rem',
+              outline: 'none', cursor: 'pointer', fontFamily: 'inherit', direction: 'rtl',
+            }}>
+              <option value="all">🌍 كل الدول</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{
+              padding: '11px 14px', background: C.input, border: `1.5px solid ${C.inputBord}`,
+              borderRadius: 12, color: C.textMuted, fontSize: '0.88rem',
+              outline: 'none', cursor: 'pointer', fontFamily: 'inherit', direction: 'rtl',
+            }}>
+              <option value="name">ترتيب أبجدي</option>
+              <option value="weight">الأكثر تأثيراً</option>
+              <option value="founded">الأحدث تأسيساً</option>
+              <option value="agreements">الأكثر اتفاقيات</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {types.map(t => (
+              <button key={t.id} onClick={() => setActiveType(t.id)} style={{
+                padding: '5px 14px', borderRadius: 20,
+                border: `1.5px solid ${activeType === t.id ? t.color : 'rgba(255,255,255,0.08)'}`,
+                background: activeType === t.id ? `${t.color}22` : 'transparent',
+                color: activeType === t.id ? t.color : C.textMuted,
+                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                transition: 'all 0.18s', outline: 'none',
+              }}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px 60px' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: 20, color: C.textMuted, fontSize: '0.85rem',
+        }}>
+          <span>{filtered.length} مؤسسة{searchQuery && ` — نتائج "${searchQuery}"`}</span>
+          <span>الصفحة {currentPage} / {totalPages || 1}</span>
+        </div>
+
+        {pageItems.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 18 }}>
+            {pageItems.map(inst => <InstitutionCard key={inst.id} institution={inst} />)}
+          </div>
+        ) : (
+          <div style={{
+            textAlign: 'center', padding: '80px 20px',
+            border: `2px dashed ${C.teal}30`, borderRadius: 20, color: C.textMuted,
+          }}>
+            <span style={{ fontSize: '3rem', display: 'block', marginBottom: 14 }}>🌌</span>
+            <div style={{ fontSize: '1rem', fontWeight: 600 }}>لا توجد نتائج</div>
+            <div style={{ fontSize: '0.85rem', marginTop: 6 }}>حاول تغيير معايير البحث أو الفلتر</div>
           </div>
         )}
 
-        {/* أزرار التنقل بين الصفحات */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 40, alignItems: 'center' }}>
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="btn-outline btn-sm"
-              style={{ borderRadius: 40 }}
-            >
-              ← السابق
-            </button>
-            <span style={{
-              padding: '10px 22px',
-              background: 'white',
-              borderRadius: 40,
-              color: '#281C59',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              boxShadow: '0 2px 8px rgba(40,28,89,0.1)',
-            }}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="btn-outline btn-sm"
-              style={{ borderRadius: 40 }}
-            >
-              التالي →
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 40, alignItems: 'center' }}>
+            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{
+              padding: '8px 20px', borderRadius: 20,
+              background: currentPage === 1 ? 'transparent' : `${C.teal}15`,
+              border: `1.5px solid ${currentPage === 1 ? 'rgba(255,255,255,0.08)' : C.teal}`,
+              color: currentPage === 1 ? C.textMuted : C.teal,
+              cursor: currentPage === 1 ? 'default' : 'pointer', fontSize: '0.88rem', fontWeight: 600,
+            }}>← السابق</button>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                const start = Math.max(1, currentPage - 3);
+                const page = totalPages > 7 ? start + i : i + 1;
+                if (page > totalPages) return null;
+                return (
+                  <button key={page} onClick={() => setCurrentPage(page)} style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    border: `1.5px solid ${page === currentPage ? C.teal : 'rgba(255,255,255,0.08)'}`,
+                    background: page === currentPage ? C.teal : 'transparent',
+                    color: page === currentPage ? '#fff' : C.textMuted,
+                    cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
+                  }}>{page}</button>
+                );
+              })}
+            </div>
+            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{
+              padding: '8px 20px', borderRadius: 20,
+              background: currentPage === totalPages ? 'transparent' : `${C.teal}15`,
+              border: `1.5px solid ${currentPage === totalPages ? 'rgba(255,255,255,0.08)' : C.teal}`,
+              color: currentPage === totalPages ? C.textMuted : C.teal,
+              cursor: currentPage === totalPages ? 'default' : 'pointer', fontSize: '0.88rem', fontWeight: 600,
+            }}>التالي →</button>
           </div>
         )}
       </div>
 
-      {/* فوتر بسيط */}
-      <footer style={{
-        background: COLORS.darkNavy,
-        color: 'white',
-        padding: '30px',
-        textAlign: 'center',
-        marginTop: 50,
-      }}>
-        <p style={{ opacity: 0.8 }}>© 2026 المجرة الحضارية - جميع الحقوق محفوظة</p>
-        <p style={{ opacity: 0.6, fontSize: '0.8rem' }}>منصة رقمية للمؤسسات الحضارية</p>
+      <footer style={{ borderTop: `1px solid ${C.border}`, padding: '24px', textAlign: 'center', color: C.textMuted, fontSize: '0.82rem' }}>
+        © 2026 المجرة الحضارية — جميع الحقوق محفوظة
       </footer>
     </div>
   );

@@ -232,15 +232,16 @@ export default function InstitutionAgreementsPage() {
       const API = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
       const [instRes, agRes, allAgRes] = await Promise.all([
         fetch(`${API}/api/institutions?limit=2000`).then(r => r.json()),
-        fetchAgreements({ institution_id: institutionId, limit: 2000 }) as Promise<any>,
-        fetchAgreements({ limit: 2000 }) as Promise<any>,
+        fetchAgreements({ institution_id: institutionId }) as Promise<any>,
+        fetchAgreements({}) as Promise<any>,
       ]);
       const insts: any[] = instRes?.data || [];
       setAllInstitutions(insts);
       const me = insts.find((i: any) => i.id === institutionId);
       if (me) setInstitutionName(me.name_ar || me.name || '');
-      setAgreements((agRes?.data || []) as Agreement[]);
-      setMineTotal(agRes?.total ?? (agRes?.data || []).length);
+      const myAgs = (agRes?.data || []) as Agreement[];
+      setAgreements(myAgs);
+      setMineTotal(myAgs.length);
       const allAgs: Agreement[] = (allAgRes?.data || []) as Agreement[];
       setOtherAgreements(allAgs.filter(a => a.from_id !== institutionId && a.to_id !== institutionId && a.is_public !== false));
     } finally {
@@ -349,7 +350,7 @@ export default function InstitutionAgreementsPage() {
         {/* ── تبويبات ── */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 24, background: 'white', padding: 6, borderRadius: 16, boxShadow: `0 3px 12px ${C.darkNavy}10`, width: 'fit-content' }}>
           {([
-            { key: 'mine',   label: '🏛️ اتفاقياتنا',            count: mineTotal },
+            { key: 'mine',   label: '🏛️ اتفاقياتنا',            count: agreements.length },
             { key: 'others', label: '🌐 اتفاقيات المؤسسات الأخرى', count: otherAgreements.length },
           ] as const).map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
