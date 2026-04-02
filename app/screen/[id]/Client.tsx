@@ -306,7 +306,7 @@ export default function ScreenPage() {
     const unlock = () => {
       if (audioRef.current) return;
       try {
-        const audio = new Audio('/sound/DSGNDron_Trailer_Drones_Universe_Atmospheric_Abstract_Misterious_Deep_Ambiance_ESM_TFOR.mp3');
+        const audio = new Audio('/sound/DSGNDron_Trailer_Drones_Universe_Atmospheric_Abstract_Misterious_Deep_Ambiance_ESM_TFOR.wav');
         audio.loop = true;
         audio.volume = 0;
         audioRef.current = audio;
