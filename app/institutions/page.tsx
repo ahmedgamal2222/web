@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Institution } from '@/lib/types';
-import { fetchInstitutions } from '@/lib/api';
+import { fetchInstitutions, fetchAgreements } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -37,29 +37,10 @@ const TYPE_STYLES: Record<string, { label: string; color: string }> = {
 };
 
 // ============================================================
-// دالة مساعدة لحساب عدد الاتفاقيات
-// ============================================================
-function getAgreementsCount(inst: Institution): number {
-  const i = inst as any;
-  // حقول مباشرة قد يرسلها الـ API
-  if (typeof i.agreements_count === 'number') return i.agreements_count;
-  if (typeof i.total_agreements === 'number')  return i.total_agreements;
-  if (typeof i.agreements === 'number')        return i.agreements;
-  if (!i.agreements) return 0;
-  if (Array.isArray(i.agreements)) return i.agreements.length;
-  if (typeof i.agreements === 'object' && i.agreements !== null) {
-    const v = i.agreements.count ?? i.agreements.total ?? i.agreements.length;
-    if (typeof v === 'number') return v;
-  }
-  return 0;
-}
-
-// ============================================================
 // Institution Card
 // ============================================================
-function InstitutionCard({ institution }: { institution: Institution }) {
+function InstitutionCard({ institution, agreementsCount }: { institution: Institution; agreementsCount: number }) {
   const type = TYPE_STYLES[institution.type] || TYPE_STYLES.default;
-  const agreementsCount = getAgreementsCount(institution);
   const name = institution.name_ar || institution.name;
 
   return (
@@ -196,6 +177,7 @@ function InstitutionCard({ institution }: { institution: Institution }) {
 export default function InstitutionsPage() {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [filtered, setFiltered] = useState<Institution[]>([]);
+  const [agMap, setAgMap] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeType, setActiveType] = useState('all');
@@ -205,8 +187,21 @@ export default function InstitutionsPage() {
   const itemsPerPage = 12;
 
   useEffect(() => {
-    fetchInstitutions({ limit: 2000 })
-      .then(data => { setInstitutions(data); setFiltered(data); })
+    Promise.all([
+      fetchInstitutions({ limit: 2000 }),
+      fetchAgreements({}) as Promise<any>,
+    ])
+      .then(([insts, agRes]) => {
+        setInstitutions(insts);
+        setFiltered(insts);
+        const map: Record<number, number> = {};
+        const ags: any[] = agRes?.data || [];
+        ags.forEach(a => {
+          if (a.from_id) map[a.from_id] = (map[a.from_id] || 0) + 1;
+          if (a.to_id)   map[a.to_id]   = (map[a.to_id]   || 0) + 1;
+        });
+        setAgMap(map);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -226,7 +221,7 @@ export default function InstitutionsPage() {
     result.sort((a, b) => {
       if (sortBy === 'weight') return (b.weight || 0) - (a.weight || 0);
       if (sortBy === 'founded') return (b.founded_year || 0) - (a.founded_year || 0);
-      if (sortBy === 'agreements') return getAgreementsCount(b) - getAgreementsCount(a);
+      if (sortBy === 'agreements') return (agMap[b.id] || 0) - (agMap[a.id] || 0);
       return (a.name_ar || a.name).localeCompare(b.name_ar || b.name);
     });
     setFiltered(result);
@@ -303,10 +298,10 @@ export default function InstitutionsPage() {
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {[
-              { n: institutions.length,                                               label: 'مؤسسة',     c: C.teal    },
-              { n: institutions.filter(i => i.screen_active).length,                 label: 'شاشة نشطة', c: C.mint    },
-              { n: institutions.filter(i => i.status === 'active').length,           label: 'نشطة',      c: C.green   },
-              { n: institutions.reduce((s, i) => s + getAgreementsCount(i), 0),      label: 'اتفاقية',   c: '#ffb74d' },
+              { n: institutions.length,                                                          label: 'مؤسسة',     c: C.teal    },
+              { n: institutions.filter(i => !!i.screen_active).length,                          label: 'شاشة نشطة', c: C.mint    },
+              { n: institutions.filter(i => i.status === 'active').length,                       label: 'نشطة',      c: C.green   },
+              { n: Object.values(agMap).reduce((s, v) => s + v, 0),                             label: 'اتفاقية',   c: '#ffb74d' },
             ].map(s => (
               <div key={s.label} style={{
                 display: 'flex', alignItems: 'center', gap: 8,
@@ -396,7 +391,7 @@ export default function InstitutionsPage() {
 
         {pageItems.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 18 }}>
-            {pageItems.map(inst => <InstitutionCard key={inst.id} institution={inst} />)}
+            {pageItems.map(inst => <InstitutionCard key={inst.id} institution={inst} agreementsCount={agMap[inst.id] || 0} />)}
           </div>
         ) : (
           <div style={{
