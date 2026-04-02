@@ -81,9 +81,10 @@ export default function GalaxyCanvas({
   const focusTargetRef = useRef<{ x: number; y: number; z: number } | null>(null);
   const starPosRef     = useRef<Array<{ x: number; y: number; z: number }>>([]);
   const idToIdxRef     = useRef<Map<number, number>>(new Map());
-  const focusBeaconRef = useRef<THREE.Mesh | null>(null);
-  const focusLabelRef  = useRef<HTMLDivElement>(null);
-  const sortedStarsRef = useRef<GalaxyStar[]>([]);
+  const focusBeaconRef    = useRef<THREE.Mesh | null>(null);
+  const highlightMeshRef   = useRef<THREE.Mesh | null>(null);
+  const focusLabelRef      = useRef<HTMLDivElement>(null);
+  const sortedStarsRef     = useRef<GalaxyStar[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -389,13 +390,46 @@ export default function GalaxyCanvas({
     // Expose sorted stars so focusStarId effect can look up the name
     sortedStarsRef.current = sortedStars;
 
-    // ── Focus Beacon: single clean gold ring that circles the focused star ────
+    // ── Focus Beacon: radiant multi-ring glow that illuminates the focused star ──
+    const beaconGlowVert = `
+      varying vec2 vUv;
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+    `;
+    const beaconGlowFrag = `
+      uniform float uTime;
+      varying vec2 vUv;
+      void main() {
+        vec2 uv = vUv - 0.5;
+        float d = length(uv);
+        if (d > 0.5) discard;
+        float p1 = 0.68 + 0.32 * sin(uTime * 2.8);
+        float p2 = 0.68 + 0.32 * sin(uTime * 2.0 + 1.5);
+        float p3 = 0.65 + 0.35 * sin(uTime * 3.6 + 0.8);
+        float r1 = smoothstep(0.045, 0.0, abs(d - 0.15 * p1));
+        float r2 = smoothstep(0.035, 0.0, abs(d - 0.28 * p2)) * 0.75;
+        float r3 = smoothstep(0.028, 0.0, abs(d - 0.43 * p3)) * 0.55;
+        float core = smoothstep(0.07, 0.0, d) * 2.8;
+        float angle = atan(uv.y, uv.x);
+        float rays  = pow(max(0.0, sin(angle * 4.0 + uTime * 1.4)), 8.0)  * smoothstep(0.42, 0.0, d) * 0.65;
+        float rays2 = pow(max(0.0, sin(angle * 4.0 - uTime * 2.1 + 0.8)), 12.0) * smoothstep(0.30, 0.0, d) * 0.45;
+        float outerGlow = smoothstep(0.5, 0.1, d) * 0.28 * (0.55 + 0.45 * sin(uTime * 1.6));
+        float total = r1 + r2 + r3 + core + rays + rays2 + outerGlow;
+        if (total < 0.008) discard;
+        total = clamp(total, 0.0, 1.0);
+        float dn = d * 2.0;
+        vec3 col = mix(vec3(1.0, 0.97, 0.88), vec3(1.0, 0.80, 0.25), smoothstep(0.0, 0.55, dn));
+        col = mix(col, vec3(0.25, 0.85, 1.0), smoothstep(0.45, 1.0, dn));
+        col = mix(col, vec3(1.0), smoothstep(0.04, 0.0, d));
+        gl_FragColor = vec4(col, total * 0.95);
+      }
+    `;
     const beacon = new THREE.Mesh(
-      new THREE.RingGeometry(5, 8, 64),
-      new THREE.MeshBasicMaterial({
-        color: 0xFFD700, side: THREE.DoubleSide,
-        transparent: true, opacity: 0.95,
-        blending: THREE.AdditiveBlending, depthTest: false,
+      new THREE.PlaneGeometry(54, 54),
+      new THREE.ShaderMaterial({
+        uniforms: { uTime: { value: 0 } },
+        vertexShader: beaconGlowVert,
+        fragmentShader: beaconGlowFrag,
+        blending: THREE.AdditiveBlending, depthTest: false, transparent: true, side: THREE.DoubleSide,
       }),
     );
     beacon.visible = false;
@@ -468,18 +502,23 @@ export default function GalaxyCanvas({
       scene.add(linksSystem);
     }
 
-    // Highlight ring (uses sortedIdx)
+    // Highlight glow (uses sortedIdx) — same radiant shader as focus beacon
     if (highlightStarId !== undefined) {
       const hlIdx = idToSortedIdx.get(highlightStarId);
       if (hlIdx !== undefined) {
         const { x, y, z } = starPositions[hlIdx];
-        const ring = new THREE.Mesh(
-          new THREE.RingGeometry(6, 8, 32),
-          new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }),
+        const hlMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(44, 44),
+          new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 } },
+            vertexShader: beaconGlowVert,
+            fragmentShader: beaconGlowFrag,
+            blending: THREE.AdditiveBlending, depthTest: false, transparent: true, side: THREE.DoubleSide,
+          }),
         );
-        ring.position.set(x, y, z);
-        ring.lookAt(camera.position);
-        scene.add(ring);
+        hlMesh.position.set(x, y, z);
+        scene.add(hlMesh);
+        highlightMeshRef.current = hlMesh;
       }
     }
 
@@ -589,7 +628,12 @@ export default function GalaxyCanvas({
       if (linksSystem) linksMat.uniforms.uTime.value = time;
       // Pulse is now GPU-side in the vertex shader — no CPU loop needed for any N
 
-      // ── Keep ring facing camera + track label position ────────────────────
+      // ── Keep glow planes facing camera + update shaders ─────────────────
+      (beacon.material as THREE.ShaderMaterial).uniforms.uTime.value = time;
+      if (highlightMeshRef.current) {
+        highlightMeshRef.current.lookAt(camera.position);
+        (highlightMeshRef.current.material as THREE.ShaderMaterial).uniforms.uTime.value = time;
+      }
       if (beacon.visible) {
         beacon.lookAt(camera.position);
         if (focusLabelRef.current) {
@@ -646,6 +690,11 @@ export default function GalaxyCanvas({
       window.removeEventListener('resize', onResize);
       if (tooltipRef.current) tooltipRef.current.style.display = 'none';
       if (focusLabelRef.current) focusLabelRef.current.style.display = 'none';
+      if (highlightMeshRef.current) {
+        highlightMeshRef.current.geometry.dispose();
+        (highlightMeshRef.current.material as THREE.Material).dispose();
+        highlightMeshRef.current = null;
+      }
       if (focusBeaconRef.current) {
         focusBeaconRef.current.geometry.dispose();
         (focusBeaconRef.current.material as THREE.Material).dispose();
