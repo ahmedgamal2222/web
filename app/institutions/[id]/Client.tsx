@@ -861,7 +861,7 @@ function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string
     { href: '#about',         icon: '🏛️', label: 'عن المؤسسة' },
     { href: '#announcements', icon: '📢', label: 'إعلانات' },
     { href: '#agreements',    icon: '🔗', label: 'الاتفاقيات' },
-    ...(isOwner || isAdmin ? [{ href: '#screen', icon: '📺', label: 'الشاشة الحضارية' }] : []),
+    ...(isOwner || isAdmin ? [{ href: `/screen/${institutionId}`, icon: '📺', label: 'الشاشة الحضارية' }] : []),
   ];
   return (
     <div style={{ background: 'white', borderRadius: 22, padding: '20px 14px', boxShadow: `0 5px 24px ${COLORS.darkNavy}18`, border: `1px solid ${COLORS.softGreen}40` }}>

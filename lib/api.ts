@@ -198,9 +198,10 @@ export async function fetchGalaxyData(): Promise<GalaxyData> {
 // 🏢 Institutions
 // ============================================================
 
-export async function fetchInstitutions(): Promise<Institution[]> {
+export async function fetchInstitutions(params?: { limit?: number }): Promise<Institution[]> {
+  const limitParam = params?.limit ? `?limit=${params.limit}` : '';
   const res = await fetchWithRetry<{ success: boolean; data: Institution[] }>(
-    `${API_BASE}/api/institutions`
+    `${API_BASE}/api/institutions${limitParam}`
   );
 
   if (!res.success) throw new Error('فشل جلب المؤسسات');

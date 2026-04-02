@@ -223,6 +223,7 @@ export default function InstitutionAgreementsPage() {
   const [activeTab, setActiveTab]         = useState<'mine' | 'others'>('mine');
   const [otherAgreements, setOtherAgreements] = useState<Agreement[]>([]);
   const [filterOther, setFilterOther]     = useState('');
+  const [mineTotal, setMineTotal]         = useState(0);
 
   // ── Load data ────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -230,15 +231,16 @@ export default function InstitutionAgreementsPage() {
     try {
       const API = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
       const [instRes, agRes, allAgRes] = await Promise.all([
-        fetch(`${API}/api/institutions?limit=200`).then(r => r.json()),
-        fetchAgreements({ institution_id: institutionId, limit: 100 }) as Promise<any>,
-        fetchAgreements({ limit: 200 }) as Promise<any>,
+        fetch(`${API}/api/institutions?limit=2000`).then(r => r.json()),
+        fetchAgreements({ institution_id: institutionId, limit: 2000 }) as Promise<any>,
+        fetchAgreements({ limit: 2000 }) as Promise<any>,
       ]);
       const insts: any[] = instRes?.data || [];
       setAllInstitutions(insts);
       const me = insts.find((i: any) => i.id === institutionId);
       if (me) setInstitutionName(me.name_ar || me.name || '');
       setAgreements((agRes?.data || []) as Agreement[]);
+      setMineTotal(agRes?.total ?? (agRes?.data || []).length);
       const allAgs: Agreement[] = (allAgRes?.data || []) as Agreement[];
       setOtherAgreements(allAgs.filter(a => a.from_id !== institutionId && a.to_id !== institutionId && a.is_public !== false));
     } finally {
@@ -347,7 +349,7 @@ export default function InstitutionAgreementsPage() {
         {/* ── تبويبات ── */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 24, background: 'white', padding: 6, borderRadius: 16, boxShadow: `0 3px 12px ${C.darkNavy}10`, width: 'fit-content' }}>
           {([
-            { key: 'mine',   label: '🏛️ اتفاقياتنا',            count: agreements.length },
+            { key: 'mine',   label: '🏛️ اتفاقياتنا',            count: mineTotal },
             { key: 'others', label: '🌐 اتفاقيات المؤسسات الأخرى', count: otherAgreements.length },
           ] as const).map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{

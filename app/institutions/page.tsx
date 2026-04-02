@@ -700,7 +700,7 @@ export default function InstitutionsPage() {
     async function load() {
       try {
         setLoading(true);
-        const data = await fetchInstitutions();
+        const data = await fetchInstitutions({ limit: 2000 });
         setInstitutions(data);
         setFiltered(data);
       } catch (error) {
