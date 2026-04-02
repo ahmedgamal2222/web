@@ -28,16 +28,18 @@ function parseExternalVideoUrl(url: string): { embedUrl: string; platform: 'yout
   if (!url) return null;
   const u = url.trim();
   const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&enablejsapi=1`, platform: 'youtube' };
+  if (yt) return { embedUrl: `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&enablejsapi=1&loop=1&playlist=${yt[1]}&playsinline=1`, platform: 'youtube' };
   const vm = u.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
   if (vm) return { embedUrl: `https://player.vimeo.com/video/${vm[1]}?autoplay=1&muted=1`, platform: 'vimeo' };
   const dm = u.match(/(?:dailymotion\.com\/(?:video\/|embed\/video\/)|dai\.ly\/)([a-zA-Z0-9]+)/);
   if (dm) return { embedUrl: `https://www.dailymotion.com/embed/video/${dm[1]}?autoplay=1&mute=1`, platform: 'dailymotion' };
   // Already an embed URL — ensure YouTube controls are hidden
   if (u.includes('youtube.com/embed/')) {
+    const idMatch = u.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
+    const ytId = idMatch?.[1] ?? '';
     const sep = u.includes('?') ? '&' : '?';
-    const clean = u.replace(/[&?](controls|modestbranding|rel|iv_load_policy|disablekb|fs|cc_load_policy|enablejsapi)=[^&]*/g, '');
-    return { embedUrl: `${clean}${sep}controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&enablejsapi=1`, platform: 'youtube' };
+    const clean = u.replace(/[&?](controls|modestbranding|rel|iv_load_policy|disablekb|fs|cc_load_policy|enablejsapi|loop|playlist|playsinline)=[^&]*/g, '');
+    return { embedUrl: `${clean}${sep}controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&enablejsapi=1&loop=1&playlist=${ytId}&playsinline=1`, platform: 'youtube' };
   }
   if (u.includes('player.vimeo.com/video/')) return { embedUrl: u, platform: 'vimeo' };
   if (u.includes('dailymotion.com/embed/video/')) return { embedUrl: u, platform: 'dailymotion' };
@@ -1226,7 +1228,7 @@ export default function ScreenPage() {
         }
         .vol-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
 
-        /* ── إخفاء واجهة يوتيوب بدون تقليص الفيديو ── */
+        /* ── حاوية الفيديو الخارجي — بدون قص ── */
         .yt-clip-wrap {
           position: absolute;
           inset: 0;
@@ -1235,12 +1237,26 @@ export default function ScreenPage() {
         }
         .yt-clip-wrap iframe {
           position: absolute;
-          top: -56px;
+          top: 0;
           left: 0;
           width: 100%;
-          height: calc(100% + 110px);
+          height: 100%;
           border: none;
           display: block;
+        }
+        /* طبقة شفافة تمنع أي تفاعل + vignette تغطي شعار/عنوان يوتيوب في الزوايا */
+        .yt-block-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 15;
+          cursor: default;
+          background: transparent;
+          /* ظل داكن من الحواف يغطي شعار يوتيوب وأي عناصر في الأركان */
+          box-shadow:
+            inset 0  60px 20px -10px rgba(0,0,0,0.96),
+            inset 0 -55px 20px -10px rgba(0,0,0,0.96),
+            inset  50px 0 20px -10px rgba(0,0,0,0.92),
+            inset -50px 0 20px -10px rgba(0,0,0,0.92);
         }
 
         /* ── توهّج البث المباشر على الربع ── */
@@ -1352,6 +1368,8 @@ export default function ScreenPage() {
                     allowFullScreen
                     style={{ border: 'none' }}
                   />
+                  {/* طبقة تمنع التفاعل مع يوتيوب: لا إيقاف، لا شعار، لا اقتراحات */}
+                  <div className="yt-block-overlay" />
                   {playlistUrls.length > 1 && (
                     <div style={{
                       position: 'absolute', top: 10, left: 10, zIndex: 20,
