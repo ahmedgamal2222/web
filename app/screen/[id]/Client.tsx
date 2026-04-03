@@ -387,23 +387,41 @@ export default function ScreenPage() {
   const toggleVideoMute = () => {
     const newMuted = !isVideoMuted;
     setIsVideoMuted(newMuted);
-    // YouTube: لا حاجة لـ postMessage — الـ iframe يُعاد تحميله تلقائياً عبر تغيير key مع mute=0/1
     const iframe = lectureIframeRef.current;
-    if (!iframe?.contentWindow) return;
-    const src = iframe.src || '';
-    if (src.includes('cloudflarestream.com')) {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ type: newMuted ? 'mute' : 'unmute' }),
-        'https://iframe.cloudflarestream.com'
-      );
-    } else if (src.includes('vimeo.com')) {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ method: 'setMuted', value: newMuted }),
-        'https://player.vimeo.com'
-      );
+    if (iframe?.contentWindow) {
+      const src = iframe.src || '';
+      if (src.includes('youtube.com')) {
+        // YouTube: استخدام postMessage بدون إعادة تحميل الـ iframe
+        const iw = iframe.contentWindow;
+        const send = () => {
+          try {
+            iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
+            iw.postMessage(JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }), '*');
+            iw.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [newMuted ? 0 : 100] }), '*');
+          } catch {}
+        };
+        send();
+        setTimeout(send, 200);
+        setTimeout(send, 600);
+      } else if (src.includes('cloudflarestream.com')) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ type: newMuted ? 'mute' : 'unmute' }),
+          'https://iframe.cloudflarestream.com'
+        );
+      } else if (src.includes('vimeo.com')) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ method: 'setMuted', value: newMuted }),
+          'https://player.vimeo.com'
+        );
+      }
     }
-    // <video> element
     if (videoRef.current) videoRef.current.muted = newMuted;
+  };
+
+  // ─── انتقال للفيديو التالي (يُستخدم من <video> onEnded) ─────────────────
+  const advancePlaylist = () => {
+    const entries = buildMasterPlaylist(lectures);
+    if (entries.length > 1) setPlaylistIdx(prev => (prev + 1) % entries.length);
   };
 
   // ─── إعادة ضبط فهرس قائمة التشغيل عند تغيير المحاضرات ──────────────────
@@ -440,14 +458,9 @@ export default function ScreenPage() {
       } catch {}
     }, 3000);
 
-    // fallback: الانتقال تلقائياً بعد 3 دقائق إذا لم يصل الحدث
-    if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
-    playlistTimerRef.current = setTimeout(advance, 3 * 60 * 1000);
-
     return () => {
       window.removeEventListener('message', handler);
       clearInterval(subscribeInterval);
-      if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
     };
   }, [lectures, playlistIdx]);
 
@@ -571,12 +584,11 @@ export default function ScreenPage() {
   // تحديد نوع الفيديو الحالي
   const rawEmbed = currentVideoEntry?.embedUrl || '';
   const currentCfVideoId = rawEmbed.startsWith('__cf:') ? rawEmbed.slice(5) : null;
-  // دائماً نحذف loop حتى يطلق YouTube حدث الانتهاء + نتحكم بـ mute عبر الرابط
+  // دائماً نحذف loop حتى يطلق YouTube حدث الانتهاء — الصوت يبدأ muted دائماً للتشغيل التلقائي
   const currentDisplayEmbed = (!rawEmbed.startsWith('__cf:') && rawEmbed)
     ? rawEmbed
         .replace(/&loop=1/g, '').replace(/\?loop=1&?/, '?')
         .replace(/&playlist=[a-zA-Z0-9_-]*/g, '')
-        .replace(/mute=1/, `mute=${isVideoMuted ? '1' : '0'}`)
     : null;
 
   // دمج الأخبار + الفعاليات + الاتفاقيات في تدفق موحّد مرتّب زمنياً
@@ -1387,7 +1399,7 @@ export default function ScreenPage() {
               ) : currentDisplayEmbed ? (
                 <div className="yt-clip-wrap">
                   <iframe
-                    key={`pl-${safePlayIdx}-${isVideoMuted ? 'm' : 'u'}`}
+                    key={`pl-${safePlayIdx}`}
                     ref={lectureIframeRef}
                     src={currentDisplayEmbed}
                     className="lecture-video"
@@ -1431,8 +1443,9 @@ export default function ScreenPage() {
                   src={displayLecture.stream_url || displayLecture.video_url}
                   autoPlay
                   muted={isVideoMuted}
-                  loop={!liveLecture}
+                  loop={false}
                   controls={false}
+                  onEnded={advancePlaylist}
                 />
               )
             ) : (
