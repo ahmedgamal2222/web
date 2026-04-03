@@ -900,21 +900,21 @@ export default function ScreenPage() {
         .pulse-ticker-bar {
           position: fixed;
           bottom: 0; left: 0; right: 0;
-          height: 44px;
+          height: 28px;
           background: #c0392b;
           display: flex;
           align-items: center;
           z-index: 90;
           overflow: hidden;
-          box-shadow: 0 -2px 12px rgba(0,0,0,0.5);
+          box-shadow: 0 -1px 8px rgba(0,0,0,0.4);
         }
         .pulse-ticker-label {
           flex-shrink: 0;
           background: #922b21;
           color: #fff;
           font-weight: 800;
-          font-size: 0.92rem;
-          padding: 0 18px;
+          font-size: 0.75rem;
+          padding: 0 12px;
           height: 100%;
           display: flex;
           align-items: center;
@@ -934,15 +934,15 @@ export default function ScreenPage() {
         }
         .pulse-ticker-item {
           color: #fff;
-          font-size: 1rem;
+          font-size: 0.82rem;
           font-weight: 600;
-          padding: 0 24px;
+          padding: 0 20px;
           direction: rtl;
         }
         .pulse-ticker-sep {
           color: rgba(255,255,255,0.35);
-          margin: 0 8px;
-          font-size: 0.6rem;
+          margin: 0 6px;
+          font-size: 0.5rem;
           vertical-align: middle;
         }
         @keyframes pulse-scroll {
