@@ -76,7 +76,6 @@ export default function ScreenPage() {
   const [isVideoMuted, setIsVideoMuted] = useState(true);
   const [playlistIdx, setPlaylistIdx] = useState(0);
   const playlistTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const [hoveredQuadrant, setHoveredQuadrant] = useState<null | 1 | 3 | 4>(null);
 
   // إطلاق حدث resize بعد تغيير الربع الموسّع حتى يتحدّث Three.js بحجم الحاوية الجديد
   useEffect(() => {
@@ -367,9 +366,18 @@ export default function ScreenPage() {
     if (!iframe?.contentWindow) return;
     const src = iframe.src || '';
     if (src.includes('youtube.com')) {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }), '*'
-      );
+      const iw = iframe.contentWindow;
+      const cmd = newMuted ? 'mute' : 'unMute';
+      const sendCmd = () => {
+        try {
+          iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
+          iw.postMessage(JSON.stringify({ event: 'command', func: cmd, args: '' }), '*');
+          iw.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [newMuted ? 0 : 100] }), '*');
+        } catch {}
+      };
+      sendCmd();
+      setTimeout(sendCmd, 300);
+      setTimeout(sendCmd, 800);
     } else if (src.includes('cloudflarestream.com')) {
       iframe.contentWindow.postMessage(
         JSON.stringify({ type: newMuted ? 'mute' : 'unmute' }),
@@ -423,12 +431,23 @@ export default function ScreenPage() {
     };
     window.addEventListener('message', handler);
 
-    // fallback: الانتقال تلقائياً بعد 10 دقائق إذا لم يصل الحدث
+    // إعادة إرسال الاشتراك بشكل دوري لضمان استلام أحداث YouTube
+    const subscribeInterval = setInterval(() => {
+      const iw = lectureIframeRef.current?.contentWindow;
+      if (!iw) return;
+      try {
+        iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
+        iw.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
+      } catch {}
+    }, 4000);
+
+    // fallback: الانتقال تلقائياً بعد 3 دقائق إذا لم يصل الحدث
     if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
-    playlistTimerRef.current = setTimeout(advance, 10 * 60 * 1000);
+    playlistTimerRef.current = setTimeout(advance, 3 * 60 * 1000);
 
     return () => {
       window.removeEventListener('message', handler);
+      clearInterval(subscribeInterval);
       if (playlistTimerRef.current) clearTimeout(playlistTimerRef.current);
     };
   }, [lectures, playlistIdx]);
@@ -1268,6 +1287,7 @@ export default function ScreenPage() {
           z-index: 15;
           cursor: default;
           background: transparent;
+          pointer-events: none;
         }
 
         /* ── توهّج البث المباشر على الربع ── */
@@ -1298,50 +1318,7 @@ export default function ScreenPage() {
           50%      { box-shadow: 0 0 22px rgba(255,68,68,0.85), 0 0 40px rgba(255,68,68,0.22); }
         }
 
-        /* ── تأثير توقف النجم: tooltip عند الوقوف على الأقسام ── */
-        .q-star-hover {
-          position: absolute;
-          inset: 0;
-          z-index: 50;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(4, 6, 22, 0.48);
-          backdrop-filter: blur(3px);
-          pointer-events: none;
-        }
-        .q-star-card {
-          background: rgba(8, 16, 46, 0.94);
-          border: 1px solid rgba(79, 195, 247, 0.38);
-          border-radius: 16px;
-          padding: 18px 22px;
-          max-width: 300px;
-          width: calc(100% - 80px);
-          direction: rtl;
-          box-shadow: 0 8px 42px rgba(0,0,0,0.65), 0 0 36px rgba(79,195,247,0.06);
-          animation: starCardIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        @keyframes starCardIn {
-          from { opacity: 0; transform: scale(0.82) translateY(10px); }
-          to   { opacity: 1; transform: scale(1)   translateY(0); }
-        }
-        .q-star-dot {
-          width: 10px; height: 10px;
-          border-radius: 50%;
-          background: #4fc3f7;
-          box-shadow: 0 0 10px #4fc3f7, 0 0 22px rgba(79,195,247,0.35);
-          flex-shrink: 0;
-          animation: qStarPulse 2s ease-in-out infinite;
-        }
-        @keyframes qStarPulse {
-          0%,100% { transform: scale(1);    opacity: 0.85; }
-          50%      { transform: scale(1.55); opacity: 1; }
-        }
-        .q-star-divider {
-          height: 1px;
-          background: linear-gradient(to left, transparent, rgba(79,195,247,0.25), transparent);
-          margin: 10px 0;
-        }
+
       `}</style>
 
       {/* شريط المؤسسة */}
@@ -1356,35 +1333,7 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 1: بث المحاضرات */}
-      <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}
-        onMouseEnter={() => setHoveredQuadrant(1)} onMouseLeave={() => setHoveredQuadrant(null)}>
-        {hoveredQuadrant === 1 && displayLecture && (
-          <div className="q-star-hover">
-            <div className="q-star-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <span className="q-star-dot" style={liveLecture ? { background: '#ff5555', boxShadow: '0 0 10px #ff5555, 0 0 22px rgba(255,85,85,0.4)' } : {}} />
-                <strong style={{ color: liveLecture ? '#ff9999' : '#4fc3f7', fontSize: '0.97rem', lineHeight: 1.45 }}>{displayLecture.title}</strong>
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                {liveLecture
-                  ? <span style={{ background: 'rgba(255,68,68,0.18)', color: '#ff8f8f', padding: '2px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, border: '1px solid rgba(255,68,68,0.3)' }}>● بث حيّ مباشر</span>
-                  : (currentDisplayEmbed || externalEmbed)
-                    ? <span style={{ background: 'rgba(79,195,247,0.12)', color: '#4fc3f7', padding: '2px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, border: '1px solid rgba(79,195,247,0.25)' }}>🎥 فيديو خارجي</span>
-                    : <span style={{ background: 'rgba(79,195,247,0.12)', color: '#4fc3f7', padding: '2px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, border: '1px solid rgba(79,195,247,0.25)' }}>🎬 مسجّل</span>}
-                {displayLecture.category && <span style={{ background: 'rgba(255,215,0,0.1)', color: '#FFD700', padding: '2px 10px', borderRadius: 20, fontSize: '0.78rem', border: '1px solid rgba(255,215,0,0.2)' }}>{displayLecture.category}</span>}
-              </div>
-              {displayLecture.description && (
-                <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.58)', lineHeight: 1.55, marginBottom: 6 }}>{displayLecture.description}</div>
-              )}
-              {liveLecture && displayLecture.started_at && (
-                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.42)' }}>🕐 بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}</div>
-              )}
-              {liveLecture && (displayLecture.viewer_count ?? 0) > 0 && (
-                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.42)', marginTop: 3 }}>👁️ {displayLecture.viewer_count} مشاهد</div>
-              )}
-            </div>
-          </div>
-        )}
+      <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
           {/* ─ شريط علوي: البادج + المشاهدين + زر التكبير ─ */}
@@ -1452,12 +1401,18 @@ export default function ScreenPage() {
                     allowFullScreen
                     style={{ border: 'none' }}
                     onLoad={() => {
-                      // إخبار YouTube بأن الصفحة تستمع لأحداثه — شرط لإرسال onStateChange
                       const iw = lectureIframeRef.current?.contentWindow;
                       if (!iw) return;
-                      const origin = 'https://www.youtube.com';
-                      iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), origin);
-                      iw.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), origin);
+                      const subscribe = () => {
+                        try {
+                          iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
+                          iw.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
+                        } catch {}
+                      };
+                      subscribe();
+                      setTimeout(subscribe, 1500);
+                      setTimeout(subscribe, 4000);
+                      setTimeout(subscribe, 8000);
                     }}
                   />
                   {/* طبقة شفافة تمنع التفاعل مع واجهة يوتيوب */}
@@ -1580,25 +1535,7 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 3: نبض المجرة */}
-      <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}
-        onMouseEnter={() => setHoveredQuadrant(3)} onMouseLeave={() => setHoveredQuadrant(null)}>
-        {hoveredQuadrant === 3 && pulse.length > 0 && (
-          <div className="q-star-hover">
-            <div className="q-star-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <span className="q-star-dot" />
-                <strong style={{ color: '#4fc3f7', fontSize: '0.97rem' }}>💫 نبض المجرة</strong>
-              </div>
-              <div style={{ fontSize: '0.8rem', color: 'rgba(255,215,0,0.65)', marginBottom: 8 }}>{pulse.length} نبضة حضارية</div>
-              <div className="q-star-divider" />
-              {pulse.slice(0, 3).map((p) => (
-                <div key={p.id} style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.72)', padding: '6px 0', borderBottom: '1px solid rgba(79,195,247,0.08)', lineHeight: 1.55, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
-                  {p.is_featured && <span style={{ color: '#FFD700', marginLeft: 4 }}>✦ </span>}{p.content}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}>
         <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
           {expandedQuadrant === 3 ? '⊡' : '⊞'}
         </button>
@@ -1633,30 +1570,7 @@ export default function ScreenPage() {
       </div>
 
       {/* الربع 4: إعلانات — عرض إعلان واحد في كل مرة */}
-      <div className={`quadrant${expandedQuadrant === 4 ? ' expanded' : ''}`}
-        onMouseEnter={() => setHoveredQuadrant(4)} onMouseLeave={() => setHoveredQuadrant(null)}>
-        {hoveredQuadrant === 4 && currentAd && (
-          <div className="q-star-hover">
-            <div className="q-star-card" style={{ borderColor: 'rgba(255,215,0,0.35)', boxShadow: '0 8px 42px rgba(0,0,0,0.65), 0 0 36px rgba(255,215,0,0.06)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <span className="q-star-dot" style={{ background: '#FFD700', boxShadow: '0 0 10px #FFD700, 0 0 22px rgba(255,215,0,0.4)', animationName: 'qStarPulse' }} />
-                <strong style={{ color: '#FFD700', fontSize: '0.97rem' }}>📢 إعلان</strong>
-              </div>
-              <div style={{ fontSize: '0.95rem', color: 'white', fontWeight: 600, lineHeight: 1.45, marginBottom: 7 }}>{currentAd.title}</div>
-              {currentAd.content && (
-                <div style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.55, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const }}>{currentAd.content}</div>
-              )}
-              {(currentAd.institution_name_ar || currentAd.institution_name) && (
-                <>
-                  <div className="q-star-divider" />
-                  <div style={{ fontSize: '0.8rem', color: 'rgba(255,215,0,0.55)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    🏛️ {currentAd.institution_name_ar || currentAd.institution_name}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+      <div className={`quadrant${expandedQuadrant === 4 ? ' expanded' : ''}`}>
         <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
           {expandedQuadrant === 4 ? '⊡' : '⊞'}
         </button>
