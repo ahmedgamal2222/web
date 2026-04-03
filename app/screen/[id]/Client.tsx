@@ -658,7 +658,7 @@ export default function ScreenPage() {
   const currentVideoEntry = allVideoEntries[safePlayIdx] ?? null;
 
   const displayLecture = liveLecture || currentVideoEntry?.lecture || lectures.find((l: any) =>
-    (l.stream_type === 'recorded' || l.stream_type === 'external') &&
+    (l.stream_type === 'recorded' || l.stream_type === 'external' || l.stream_type === 'live') &&
     (l.stream_url || l.video_url || l.cf_video_id || l.cf_live_input_id)
   ) || null;
 
@@ -1562,18 +1562,27 @@ export default function ScreenPage() {
                     style={{ border: 'none' }}
                   />
                 </div>
-              ) : (
-                <video
-                  ref={videoRef}
-                  className="lecture-video"
-                  src={displayLecture.stream_url || displayLecture.video_url}
-                  autoPlay
-                  muted={isVideoMuted}
-                  loop={false}
-                  controls={false}
-                  onEnded={advancePlaylist}
-                />
-              )
+              ) : (() => {
+                const vSrc = displayLecture.stream_url || displayLecture.video_url || '';
+                const isJson = vSrc.startsWith('{') || vSrc.startsWith('[');
+                return isJson ? (
+                  <div className="empty-state" style={{ height: '100%' }}>
+                    <span style={{ fontSize: '2.5rem' }}>📺</span>
+                    <span style={{ fontSize: '1rem', fontWeight: 600 }}>جاري تحميل الفيديو...</span>
+                  </div>
+                ) : (
+                  <video
+                    ref={videoRef}
+                    className="lecture-video"
+                    src={vSrc}
+                    autoPlay
+                    muted={isVideoMuted}
+                    loop={false}
+                    controls={false}
+                    onEnded={advancePlaylist}
+                  />
+                );
+              })()
             ) : (
               <div className="empty-state">
                 <span style={{ fontSize: '2.5rem' }}>📺</span>
