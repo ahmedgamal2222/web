@@ -111,6 +111,7 @@ export default function ScreenPage() {
   const ytPlayerRef = useRef<any>(null);
   const ytContainerRef = useRef<HTMLDivElement>(null);
   const isVideoMutedRef = useRef(true);
+  const ytDestroyedRef = useRef(false);
   const [ytApiReady, setYtApiReady] = useState(false);
 
   // مزامنة ref مع state
@@ -470,6 +471,10 @@ export default function ScreenPage() {
     const container = ytContainerRef.current;
     if (!container) return;
 
+    // إعادة تعيين حالة التدمير
+    ytDestroyedRef.current = false;
+    let advanced = false;
+
     // تدمير المشغل السابق
     if (ytPlayerRef.current) {
       try { ytPlayerRef.current.destroy(); } catch {}
@@ -481,8 +486,12 @@ export default function ScreenPage() {
     container.appendChild(inner);
 
     const advance = () => {
+      // حماية من الاستدعاء المزدوج أو أثناء التدمير
+      if (ytDestroyedRef.current || advanced) return;
+      advanced = true;
       if (entries.length <= 1) {
         // فيديو واحد: إعادة تشغيله
+        advanced = false;
         try { ytPlayerRef.current?.seekTo(0); ytPlayerRef.current?.playVideo(); } catch {}
       } else {
         setPlaylistIdx(prev => (prev + 1) % entries.length);
@@ -498,6 +507,7 @@ export default function ScreenPage() {
         mute: 1,
         controls: 0,
         modestbranding: 1,
+        showinfo: 0,
         rel: 0,
         iv_load_policy: 3,
         disablekb: 1,
@@ -508,6 +518,7 @@ export default function ScreenPage() {
       },
       events: {
         onReady: (e: any) => {
+          if (ytDestroyedRef.current) return;
           e.target.playVideo();
           // استعادة حالة الصوت إذا كان المستخدم فعّل الصوت سابقاً
           if (!isVideoMutedRef.current) {
@@ -517,10 +528,15 @@ export default function ScreenPage() {
         onStateChange: (e: any) => {
           if (e.data === 0) advance(); // 0 = YT.PlayerState.ENDED
         },
+        onError: () => {
+          // تخطي الفيديو المعطوب والانتقال للتالي
+          advance();
+        },
       },
     });
 
     return () => {
+      ytDestroyedRef.current = true;
       if (ytPlayerRef.current) {
         try { ytPlayerRef.current.destroy(); } catch {}
         ytPlayerRef.current = null;

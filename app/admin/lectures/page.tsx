@@ -138,7 +138,7 @@ export default function AdminLecturesPage() {
         scheduled_datetime: editForm.scheduled_datetime,
         visibility: editForm.visibility,
         meeting_url: editForm.meeting_url,
-        stream_url: finalStreamUrl,
+        stream_url: finalStreamUrl ?? '',
         stream_type: editForm.stream_type === 'external' ? 'recorded' : editForm.stream_type,
       });
       setEditingLecture(null);
@@ -230,7 +230,7 @@ export default function AdminLecturesPage() {
         title: form.title,
         description: form.description || undefined,
         stream_type: form.stream_type === 'external' ? 'recorded' : form.stream_type,
-        stream_url: form.stream_type === 'external' ? finalStreamUrl : form.stream_url || undefined,
+        stream_url: form.stream_type === 'external' ? (finalStreamUrl ?? '') : (form.stream_url || ''),
         video_url: form.video_url || undefined,
         category: form.category || undefined,
         scheduled_datetime: form.scheduled_datetime || undefined,
