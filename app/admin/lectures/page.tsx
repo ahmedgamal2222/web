@@ -90,13 +90,17 @@ export default function AdminLecturesPage() {
       try {
         const parsed = JSON.parse(lecture.stream_url);
         if (parsed?.playlist && Array.isArray(parsed.playlist)) {
-          stype = 'external';
+          // إذا كان البث حي ولديه يوتيوب → نبقي على live
+          if (stype !== 'live') stype = 'external';
           externalUrls = parsed.playlist;
         }
       } catch {}
-      if (stype !== 'external') {
+      if (externalUrls.length <= 1 || (externalUrls.length === 1 && !externalUrls[0])) {
         const isEmbed = lecture.stream_url.includes('youtube.com/embed') || lecture.stream_url.includes('player.vimeo') || lecture.stream_url.includes('dailymotion.com/embed');
-        if (isEmbed) { stype = 'external'; externalUrls = [lecture.stream_url]; }
+        if (isEmbed) {
+          if (stype !== 'live') stype = 'external';
+          externalUrls = [lecture.stream_url];
+        }
       }
     }
     setEditForm({
@@ -113,20 +117,30 @@ export default function AdminLecturesPage() {
     setEditingLecture(lecture);
   };
 
+  const buildStreamUrl = (urls: string[]): string | undefined => {
+    const validUrls = urls.map(u => u.trim()).filter(Boolean);
+    if (validUrls.length === 1) {
+      const p = parseExternalVideoUrl(validUrls[0]);
+      return p ? p.embedUrl : validUrls[0];
+    } else if (validUrls.length > 1) {
+      const embedUrls = validUrls.map(u => { const p = parseExternalVideoUrl(u); return p ? p.embedUrl : u; });
+      return JSON.stringify({ playlist: embedUrls });
+    }
+    return undefined;
+  };
+
   const handleEditSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingLecture) return;
     setEditLoading(true);
     try {
       let finalStreamUrl: string | undefined;
-      if (editForm.stream_type === 'external') {
-        const validUrls = editForm.externalUrls.map(u => u.trim()).filter(Boolean);
-        if (validUrls.length === 1) {
-          const p = parseExternalVideoUrl(validUrls[0]);
-          finalStreamUrl = p ? p.embedUrl : validUrls[0];
-        } else if (validUrls.length > 1) {
-          const embedUrls = validUrls.map(u => { const p = parseExternalVideoUrl(u); return p ? p.embedUrl : u; });
-          finalStreamUrl = JSON.stringify({ playlist: embedUrls });
+      if (editForm.stream_type === 'external' || editForm.stream_type === 'live') {
+        const hasYtUrls = editForm.externalUrls.some(u => u.trim());
+        if (hasYtUrls) {
+          finalStreamUrl = buildStreamUrl(editForm.externalUrls);
+        } else if (editForm.stream_type !== 'live') {
+          finalStreamUrl = editForm.stream_url || undefined;
         }
       } else {
         finalStreamUrl = editForm.stream_url || undefined;
@@ -141,6 +155,36 @@ export default function AdminLecturesPage() {
         stream_url: finalStreamUrl ?? '',
         stream_type: editForm.stream_type === 'external' ? 'recorded' : editForm.stream_type,
       });
+      setEditingLecture(null);
+      await loadAll();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleEditStartLive = async () => {
+    if (!editingLecture) return;
+    setEditLoading(true);
+    try {
+      // حفظ التعديلات أولاً (بما في ذلك روابط يوتيوب)
+      const hasYtUrls = editForm.externalUrls.some(u => u.trim());
+      const finalStreamUrl = hasYtUrls ? buildStreamUrl(editForm.externalUrls) : undefined;
+      if (finalStreamUrl) {
+        await controlLectureStream(editingLecture.id, 'update', {
+          stream_url: finalStreamUrl,
+          title: editForm.title,
+          description: editForm.description,
+        });
+      }
+      // بدء البث المباشر
+      const result = await controlLectureStream(editingLecture.id, 'start', {
+        stream_url: finalStreamUrl || editingLecture.stream_url || undefined,
+      });
+      if (result.cf_credentials) {
+        setCfModal({ ...result.cf_credentials, title: editForm.title || editingLecture.title, lecture_id: editingLecture.id });
+      }
       setEditingLecture(null);
       await loadAll();
     } catch (err: any) {
@@ -225,12 +269,20 @@ export default function AdminLecturesPage() {
           finalStreamUrl = JSON.stringify({ playlist: embedUrls });
         }
       }
+      // إذا كان مباشر + لديه يوتيوب
+      let streamUrlToSend = form.stream_type === 'external' ? (finalStreamUrl ?? '') : (form.stream_url || '');
+      if (form.stream_type === 'live') {
+        const liveYtUrls = form.externalUrls.map(u => u.trim()).filter(Boolean);
+        if (liveYtUrls.length > 0) {
+          streamUrlToSend = buildStreamUrl(form.externalUrls) ?? '';
+        }
+      }
       await createLecture({
         institution_id: Number(form.institution_id),
         title: form.title,
         description: form.description || undefined,
         stream_type: form.stream_type === 'external' ? 'recorded' : form.stream_type,
-        stream_url: form.stream_type === 'external' ? (finalStreamUrl ?? '') : (form.stream_url || ''),
+        stream_url: streamUrlToSend,
         video_url: form.video_url || undefined,
         category: form.category || undefined,
         scheduled_datetime: form.scheduled_datetime || undefined,
@@ -409,8 +461,54 @@ export default function AdminLecturesPage() {
               </Field>
               {form.stream_type === 'live' && (
                 <div style={{ background: `${C.teal}10`, border: `1px solid ${C.teal}30`, borderRadius: 10, padding: '12px 14px', fontSize: '0.88rem', color: C.teal, lineHeight: 1.6 }}>
-                  ☁️ <strong>Cloudflare Stream</strong> — سيتم إنشاء رابط البث تلقائياً عند الضغط على <strong>&quot;▶ بدء البث&quot;</strong>، وستظهر بيانات OBS (Server + Stream Key) فور البدء.
+                  ☁️ <strong>Cloudflare Stream</strong> — سيتم إنشاء رابط البث تلقائياً عند الضغط على <strong>&quot;▶ بدء البث&quot;</strong>، وستظهر بيانات OBS فور البدء.
+                  <br/>🎥 يمكنك أيضاً إضافة فيديوهات يوتيوب تُعرض كبث مباشر.
                 </div>
+              )}
+              {form.stream_type === 'live' && (
+                <Field label="فيديوهات يوتيوب (تُعرض كبث مباشر) — اختياري">
+                  {form.externalUrls.map((url, idx) => (
+                    <div key={idx} style={{ marginBottom: 8 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input
+                          value={url}
+                          onChange={e => {
+                            const next = [...form.externalUrls];
+                            next[idx] = e.target.value;
+                            setForm({ ...form, externalUrls: next });
+                          }}
+                          placeholder={`فيديو ${idx + 1} — رابط يوتيوب`}
+                          style={{ ...inputStyle, marginBottom: 0 }}
+                        />
+                        {form.externalUrls.length > 1 && (
+                          <button type="button" onClick={() => setForm({ ...form, externalUrls: form.externalUrls.filter((_, i) => i !== idx) })}
+                            style={{ padding: '6px 10px', borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', fontSize: '0.85rem', flexShrink: 0 }}>
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {url && (() => {
+                        const p = parseExternalVideoUrl(url);
+                        return p ? (
+                          <span style={{ marginTop: 4, display: 'inline-block', background: `${C.teal}15`, color: C.teal, padding: '2px 10px', borderRadius: 20, fontSize: '0.82rem' }}>
+                            ✅ ▶ YouTube
+                          </span>
+                        ) : (
+                          <span style={{ marginTop: 4, display: 'inline-block', fontSize: '0.82rem', color: '#e57373' }}>⚠️ رابط غير معروف</span>
+                        );
+                      })()}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setForm({ ...form, externalUrls: [...form.externalUrls, ''] })}
+                    style={{ marginTop: 4, padding: '6px 14px', borderRadius: 20, background: `${C.live}15`, color: C.live, border: `1px solid ${C.live}40`, cursor: 'pointer', fontSize: '0.85rem' }}>
+                    + إضافة فيديو آخر
+                  </button>
+                  {form.externalUrls.filter(u => u.trim()).length > 0 && (
+                    <div style={{ marginTop: 6, fontSize: '0.8rem', color: C.live }}>
+                      🔴 {form.externalUrls.filter(u => u.trim()).length} فيديو سيظهر كبث مباشر على الشاشة
+                    </div>
+                  )}
+                </Field>
               )}
               {form.stream_type === 'live' && (
                 <Field label="رابط الاجتماع (Zoom / Teams / Google Meet) — اختياري">
@@ -630,8 +728,8 @@ export default function AdminLecturesPage() {
                   ))}
                 </div>
               </Field>
-              {editForm.stream_type === 'external' && (
-                <Field label="روابط الفيديو الخارجية">
+              {(editForm.stream_type === 'external' || editForm.stream_type === 'live') && (
+                <Field label={editForm.stream_type === 'live' ? 'فيديوهات يوتيوب (تُعرض كبث مباشر) — اختياري' : 'روابط الفيديو الخارجية'}>
                   {editForm.externalUrls.map((url, idx) => (
                     <div key={idx} style={{ marginBottom: 8 }}>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -666,17 +764,17 @@ export default function AdminLecturesPage() {
                     </div>
                   ))}
                   <button type="button" onClick={() => setEditForm({ ...editForm, externalUrls: [...editForm.externalUrls, ''] })}
-                    style={{ marginTop: 4, padding: '6px 14px', borderRadius: 20, background: `${C.teal}15`, color: C.teal, border: `1px solid ${C.teal}40`, cursor: 'pointer', fontSize: '0.85rem' }}>
+                    style={{ marginTop: 4, padding: '6px 14px', borderRadius: 20, background: editForm.stream_type === 'live' ? `${C.live}15` : `${C.teal}15`, color: editForm.stream_type === 'live' ? C.live : C.teal, border: `1px solid ${editForm.stream_type === 'live' ? C.live : C.teal}40`, cursor: 'pointer', fontSize: '0.85rem' }}>
                     + إضافة فيديو آخر
                   </button>
-                  {editForm.externalUrls.length > 1 && (
-                    <div style={{ marginTop: 6, fontSize: '0.8rem', color: C.teal }}>
-                      📋 قائمة تشغيل بـ {editForm.externalUrls.filter(u => u.trim()).length} فيديو — ستُعرض بالتسلسل تلقائياً
+                  {editForm.externalUrls.filter(u => u.trim()).length > 0 && (
+                    <div style={{ marginTop: 6, fontSize: '0.8rem', color: editForm.stream_type === 'live' ? C.live : C.teal }}>
+                      {editForm.stream_type === 'live' ? '🔴' : '📋'} {editForm.externalUrls.filter(u => u.trim()).length} فيديو {editForm.stream_type === 'live' ? 'سيظهر كبث مباشر' : '— ستُعرض بالتسلسل تلقائياً'}
                     </div>
                   )}
                 </Field>
               )}
-              {editForm.stream_type !== 'external' && (
+              {editForm.stream_type === 'recorded' && (
                 <Field label="رابط البث / الفيديو">
                   <input value={editForm.stream_url} onChange={e => setEditForm({ ...editForm, stream_url: e.target.value })} placeholder="https://..." style={inputStyle} dir="ltr" />
                 </Field>
@@ -697,10 +795,16 @@ export default function AdminLecturesPage() {
                   ))}
                 </div>
               </Field>
-              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                <button type="submit" disabled={editLoading} style={{ flex: 1, padding: '12px 0', background: C.darkNavy, color: 'white', border: 'none', borderRadius: 30, fontWeight: 700, cursor: editLoading ? 'default' : 'pointer', opacity: editLoading ? 0.7 : 1, fontSize: '1rem' }}>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+                <button type="submit" disabled={editLoading} style={{ flex: 1, padding: '12px 0', background: C.darkNavy, color: 'white', border: 'none', borderRadius: 30, fontWeight: 700, cursor: editLoading ? 'default' : 'pointer', opacity: editLoading ? 0.7 : 1, fontSize: '1rem', minWidth: 140 }}>
                   {editLoading ? 'جاري الحفظ...' : '💾 حفظ التغييرات'}
                 </button>
+                {editForm.stream_type === 'live' && !editingLecture?.is_live && (
+                  <button type="button" disabled={editLoading} onClick={handleEditStartLive}
+                    style={{ flex: 1, padding: '12px 0', background: C.live, color: 'white', border: 'none', borderRadius: 30, fontWeight: 700, cursor: editLoading ? 'default' : 'pointer', opacity: editLoading ? 0.7 : 1, fontSize: '1rem', minWidth: 140 }}>
+                    {editLoading ? 'جارٍ...' : '▶ حفظ وبدء البث المباشر'}
+                  </button>
+                )}
                 <button type="button" onClick={() => setEditingLecture(null)} style={{ padding: '12px 28px', background: '#f0f0f0', color: '#555', border: 'none', borderRadius: 30, cursor: 'pointer', fontSize: '1rem' }}>
                   إلغاء
                 </button>

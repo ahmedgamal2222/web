@@ -895,6 +895,60 @@ export default function ScreenPage() {
           0%   { transform: translateX(100vw); }
           100% { transform: translateX(-100%); }
         }
+
+        /* ─── شريط نبض المجرة (مثل الجزيرة) ─── */
+        .pulse-ticker-bar {
+          position: fixed;
+          bottom: 0; left: 0; right: 0;
+          height: 44px;
+          background: #c0392b;
+          display: flex;
+          align-items: center;
+          z-index: 90;
+          overflow: hidden;
+          box-shadow: 0 -2px 12px rgba(0,0,0,0.5);
+        }
+        .pulse-ticker-label {
+          flex-shrink: 0;
+          background: #922b21;
+          color: #fff;
+          font-weight: 800;
+          font-size: 0.92rem;
+          padding: 0 18px;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          border-left: 2px solid rgba(255,255,255,0.2);
+          white-space: nowrap;
+          letter-spacing: 0.5px;
+        }
+        .pulse-ticker-track {
+          flex: 1;
+          overflow: hidden;
+          position: relative;
+        }
+        .pulse-ticker-scroll {
+          display: flex;
+          white-space: nowrap;
+          animation: pulse-scroll 45s linear infinite;
+        }
+        .pulse-ticker-item {
+          color: #fff;
+          font-size: 1rem;
+          font-weight: 600;
+          padding: 0 24px;
+          direction: rtl;
+        }
+        .pulse-ticker-sep {
+          color: rgba(255,255,255,0.35);
+          margin: 0 8px;
+          font-size: 0.6rem;
+          vertical-align: middle;
+        }
+        @keyframes pulse-scroll {
+          0%   { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
         /* الشريط العلوي */
         .institution-info {
           position: fixed;
@@ -1723,6 +1777,23 @@ export default function ScreenPage() {
           </div>
         )}
       </div>
+
+      {/* شريط نبض المجرة — مثل شريط الأخبار */}
+      {pulse.length > 0 && (
+        <div className="pulse-ticker-bar">
+          <div className="pulse-ticker-label">⚡ نبض المجرة</div>
+          <div className="pulse-ticker-track">
+            <div className="pulse-ticker-scroll">
+              {[...pulse, ...pulse].map((item, i) => (
+                <span key={`${item.id}-${i}`} className="pulse-ticker-item">
+                  {item.content}
+                  <span className="pulse-ticker-sep">◆</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Backdrop — إغلاق الربع المكبَّر بالنقر خارجه */}
       {expandedQuadrant !== null && (
