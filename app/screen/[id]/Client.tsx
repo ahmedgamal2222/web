@@ -71,6 +71,13 @@ function buildMasterPlaylist(allLectures: any[]): { embedUrl: string; lecture: a
   return entries;
 }
 
+// ─── استخراج معرف فيديو YouTube من رابط embed ───────────────────────────
+function extractYtVideoId(url: string): string | null {
+  if (!url) return null;
+  const m = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 export default function ScreenPage() {
   const institutionId = typeof window !== 'undefined'
     ? (window.location.pathname.split('/').filter(Boolean)[1] ?? 'default')
@@ -101,6 +108,25 @@ export default function ScreenPage() {
   const [isVideoMuted, setIsVideoMuted] = useState(true);
   const [playlistIdx, setPlaylistIdx] = useState(0);
   const playlistTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const ytPlayerRef = useRef<any>(null);
+  const ytContainerRef = useRef<HTMLDivElement>(null);
+  const isVideoMutedRef = useRef(true);
+  const [ytApiReady, setYtApiReady] = useState(false);
+
+  // مزامنة ref مع state
+  useEffect(() => { isVideoMutedRef.current = isVideoMuted; }, [isVideoMuted]);
+
+  // تحميل YouTube IFrame Player API مرة واحدة
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ((window as any).YT?.Player) { setYtApiReady(true); return; }
+    (window as any).onYouTubeIframeAPIReady = () => setYtApiReady(true);
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(s);
+    }
+  }, []);
 
   // إطلاق حدث resize بعد تغيير الربع الموسّع حتى يتحدّث Three.js بحجم الحاوية الجديد
   useEffect(() => {
@@ -387,23 +413,18 @@ export default function ScreenPage() {
   const toggleVideoMute = () => {
     const newMuted = !isVideoMuted;
     setIsVideoMuted(newMuted);
+    // YouTube: استخدام YT.Player API الرسمي
+    if (ytPlayerRef.current) {
+      try {
+        if (newMuted) { ytPlayerRef.current.mute(); }
+        else { ytPlayerRef.current.unMute(); ytPlayerRef.current.setVolume(100); }
+      } catch {}
+    }
+    // Cloudflare / Vimeo: postMessage
     const iframe = lectureIframeRef.current;
     if (iframe?.contentWindow) {
       const src = iframe.src || '';
-      if (src.includes('youtube.com')) {
-        // YouTube: استخدام postMessage بدون إعادة تحميل الـ iframe
-        const iw = iframe.contentWindow;
-        const send = () => {
-          try {
-            iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
-            iw.postMessage(JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }), '*');
-            iw.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [newMuted ? 0 : 100] }), '*');
-          } catch {}
-        };
-        send();
-        setTimeout(send, 200);
-        setTimeout(send, 600);
-      } else if (src.includes('cloudflarestream.com')) {
+      if (src.includes('cloudflarestream.com')) {
         iframe.contentWindow.postMessage(
           JSON.stringify({ type: newMuted ? 'mute' : 'unmute' }),
           'https://iframe.cloudflarestream.com'
@@ -418,51 +439,95 @@ export default function ScreenPage() {
     if (videoRef.current) videoRef.current.muted = newMuted;
   };
 
-  // ─── انتقال للفيديو التالي (يُستخدم من <video> onEnded) ─────────────────
+  // ─── انتقال للفيديو التالي ────────────────────────────────────────────
   const advancePlaylist = () => {
     const entries = buildMasterPlaylist(lectures);
     if (entries.length > 1) setPlaylistIdx(prev => (prev + 1) % entries.length);
+    else if (entries.length === 1) {
+      // فيديو واحد: إعادة تشغيله
+      if (ytPlayerRef.current) {
+        try { ytPlayerRef.current.seekTo(0); ytPlayerRef.current.playVideo(); } catch {}
+      }
+    }
   };
 
-  // ─── إعادة ضبط فهرس قائمة التشغيل عند تغيير المحاضرات ──────────────────
+  // ─── إنشاء مشغل YouTube عبر IFrame Player API الرسمي ───────────────
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setPlaylistIdx(0); }, [lectures.map((l: any) => l.id).join(',')]);
+  const lectureIds = lectures.map((l: any) => l.id).join(',');
 
-  // ─── تدوير قائمة التشغيل (من جميع المحاضرات) ──────────────────────────
   useEffect(() => {
-    if (lectures.find((l: any) => l.is_live)) return; // لا تدوير أثناء البث المباشر
+    if (!ytApiReady) return;
+    if (lectures.find((l: any) => l.is_live)) return;
 
     const entries = buildMasterPlaylist(lectures);
-    if (entries.length <= 1) return;
+    if (entries.length === 0) return;
 
-    const advance = () => setPlaylistIdx(prev => (prev + 1) % entries.length);
+    const idx = playlistIdx % entries.length;
+    const entry = entries[idx];
+    const ytId = extractYtVideoId(entry.embedUrl);
+    if (!ytId) return;
 
-    // الاستماع لحدث انتهاء الفيديو من YouTube
-    const handler = (e: MessageEvent) => {
-      try {
-        const raw = e.data;
-        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        if (data?.event === 'onStateChange' && (data?.info === 0 || data?.info === -1)) advance();
-        if (data?.event === 'infoDelivery' && data?.info?.playerState === 0) advance();
-      } catch {}
+    const container = ytContainerRef.current;
+    if (!container) return;
+
+    // تدمير المشغل السابق
+    if (ytPlayerRef.current) {
+      try { ytPlayerRef.current.destroy(); } catch {}
+      ytPlayerRef.current = null;
+    }
+
+    container.innerHTML = '';
+    const inner = document.createElement('div');
+    container.appendChild(inner);
+
+    const advance = () => {
+      if (entries.length <= 1) {
+        // فيديو واحد: إعادة تشغيله
+        try { ytPlayerRef.current?.seekTo(0); ytPlayerRef.current?.playVideo(); } catch {}
+      } else {
+        setPlaylistIdx(prev => (prev + 1) % entries.length);
+      }
     };
-    window.addEventListener('message', handler);
 
-    // إعادة إرسال الاشتراك بشكل دوري لضمان استلام أحداث YouTube
-    const subscribeInterval = setInterval(() => {
-      const iw = lectureIframeRef.current?.contentWindow;
-      if (!iw) return;
-      try {
-        iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
-        iw.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
-      } catch {}
-    }, 3000);
+    ytPlayerRef.current = new (window as any).YT.Player(inner, {
+      videoId: ytId,
+      width: '100%',
+      height: '100%',
+      playerVars: {
+        autoplay: 1,
+        mute: 1,
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        iv_load_policy: 3,
+        disablekb: 1,
+        fs: 0,
+        cc_load_policy: 0,
+        playsinline: 1,
+        origin: window.location.origin,
+      },
+      events: {
+        onReady: (e: any) => {
+          e.target.playVideo();
+          // استعادة حالة الصوت إذا كان المستخدم فعّل الصوت سابقاً
+          if (!isVideoMutedRef.current) {
+            try { e.target.unMute(); e.target.setVolume(100); } catch {}
+          }
+        },
+        onStateChange: (e: any) => {
+          if (e.data === 0) advance(); // 0 = YT.PlayerState.ENDED
+        },
+      },
+    });
 
     return () => {
-      window.removeEventListener('message', handler);
-      clearInterval(subscribeInterval);
+      if (ytPlayerRef.current) {
+        try { ytPlayerRef.current.destroy(); } catch {}
+        ytPlayerRef.current = null;
+      }
     };
-  }, [lectures, playlistIdx]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ytApiReady, playlistIdx, lectureIds]);
 
   // ─── شاشة تسجيل الدخول ───────────────────────────────────────────────────
   if (!authenticated) {
@@ -590,6 +655,9 @@ export default function ScreenPage() {
         .replace(/&loop=1/g, '').replace(/\?loop=1&?/, '?')
         .replace(/&playlist=[a-zA-Z0-9_-]*/g, '')
     : null;
+
+  // YouTube يُشغّل عبر YT.Player API — باقي المنصات عبر iframe
+  const currentYtVideoId = currentDisplayEmbed ? extractYtVideoId(currentDisplayEmbed) : null;
 
   // دمج الأخبار + الفعاليات + الاتفاقيات في تدفق موحّد مرتّب زمنياً
   const combinedFeed = [
@@ -1396,6 +1464,22 @@ export default function ScreenPage() {
                   <div style={{ fontSize: '0.95rem', textAlign: 'center', padding: '0 24px', lineHeight: 1.6 }}>جاري معالجة التسجيل على Cloudflare Stream</div>
                   <div style={{ fontSize: '0.83rem', opacity: 0.45 }}>سيظهر الفيديو تلقائياً خلال دقائق</div>
                 </div>
+              ) : currentYtVideoId ? (
+                <div className="yt-clip-wrap">
+                  <div ref={ytContainerRef} style={{ width: '100%', height: '100%' }} />
+                  {/* طبقة تمنع التفاعل مع واجهة يوتيوب */}
+                  <div className="yt-block-overlay" />
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, height: 64,
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%)',
+                    zIndex: 16, pointerEvents: 'none',
+                  }} />
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0, height: 64,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%)',
+                    zIndex: 16, pointerEvents: 'none',
+                  }} />
+                </div>
               ) : currentDisplayEmbed ? (
                 <div className="yt-clip-wrap">
                   <iframe
@@ -1406,35 +1490,7 @@ export default function ScreenPage() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     style={{ border: 'none' }}
-                    onLoad={() => {
-                      const iw = lectureIframeRef.current?.contentWindow;
-                      if (!iw) return;
-                      const subscribe = () => {
-                        try {
-                          iw.postMessage(JSON.stringify({ event: 'listening', channel: 'widget' }), '*');
-                          iw.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
-                        } catch {}
-                      };
-                      subscribe();
-                      setTimeout(subscribe, 1500);
-                      setTimeout(subscribe, 4000);
-                      setTimeout(subscribe, 8000);
-                    }}
                   />
-                  {/* طبقة شفافة تمنع التفاعل مع واجهة يوتيوب */}
-                  <div className="yt-block-overlay" />
-                  {/* gradient يغطي عنوان الفيديو في الأعلى */}
-                  <div style={{
-                    position: 'absolute', top: 0, left: 0, right: 0, height: 64,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%)',
-                    zIndex: 16, pointerEvents: 'none',
-                  }} />
-                  {/* gradient يغطي شريط التقدم والأزرار في الأسفل */}
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0, height: 64,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%)',
-                    zIndex: 16, pointerEvents: 'none',
-                  }} />
                 </div>
               ) : (
                 <video
