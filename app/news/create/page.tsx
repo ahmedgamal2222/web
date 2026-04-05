@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchInstitutions, createNews, uploadImage } from '@/lib/api';
 import Link from 'next/link';
@@ -42,7 +42,7 @@ function Stars() {
   );
 }
 
-export default function CreateNewsPage() {
+function CreateNewsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prefillInstitution = searchParams?.get('institution_id') || '';
@@ -358,3 +358,11 @@ const selectStyle: React.CSSProperties = {
   outline: 'none', boxSizing: 'border-box',
   cursor: 'pointer', fontFamily: "'Tajawal', sans-serif",
 };
+
+export default function CreateNewsPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#07091e' }} />}>
+      <CreateNewsPageInner />
+    </Suspense>
+  );
+}
