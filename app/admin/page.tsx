@@ -309,6 +309,13 @@ export default function AdminDashboard() {
           color="#0ea5e9"
           link="/admin/saas"
         />
+        <StatCard
+          title="القائمة البريدية"
+          value="📧"
+          icon="📧"
+          color="#10B981"
+          link="/admin/mailing"
+        />
       </div>
 
       {/* أقسام سريعة */}
