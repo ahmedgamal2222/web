@@ -66,6 +66,108 @@ function StatCard({ value, label, color, icon }: { value: number; label: string;
   );
 }
 
+// ── Credit-score-style gauge for institution weight ──
+function WeightGauge({ weight }: { weight: number }) {
+  const w = Math.max(0, Math.min(100, weight || 0));
+
+  // Five tiers like FICO credit score
+  const tiers = [
+    { min: 0,  max: 20, label: 'ضعيف جداً', labelEn: 'Very Poor', color: '#ef4444' },
+    { min: 20, max: 40, label: 'ضعيف',       labelEn: 'Poor',      color: '#f97316' },
+    { min: 40, max: 60, label: 'مقبول',       labelEn: 'Fair',      color: '#eab308' },
+    { min: 60, max: 80, label: 'جيد',         labelEn: 'Good',      color: '#22c55e' },
+    { min: 80, max: 100, label: 'ممتاز',      labelEn: 'Excellent', color: '#10b981' },
+  ];
+
+  const tier = tiers.find(t => w >= t.min && w < t.max) || tiers[tiers.length - 1];
+  const angle = -90 + (w / 100) * 180; // -90 (left) to +90 (right)
+
+  return (
+    <div style={{ margin: '18px 0 6px', padding: '16px 12px 12px', background: `${C.darkNavy}06`, borderRadius: 14, border: `1px solid ${C.teal}15` }}>
+      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: C.darkNavy, marginBottom: 10, textAlign: 'center' }}>⚖️ الوزن المعياري</div>
+
+      {/* SVG gauge */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <svg width="200" height="115" viewBox="0 0 200 115">
+          {/* Background arcs for each tier */}
+          {tiers.map((t, i) => {
+            const startAngle = -90 + (t.min / 100) * 180;
+            const endAngle = -90 + (t.max / 100) * 180;
+            const r = 80;
+            const cx = 100, cy = 100;
+            const x1 = cx + r * Math.cos((startAngle * Math.PI) / 180);
+            const y1 = cy + r * Math.sin((startAngle * Math.PI) / 180);
+            const x2 = cx + r * Math.cos((endAngle * Math.PI) / 180);
+            const y2 = cy + r * Math.sin((endAngle * Math.PI) / 180);
+            return (
+              <path
+                key={i}
+                d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
+                fill="none" stroke={t.color} strokeWidth="14" strokeLinecap="round"
+                opacity={0.2}
+              />
+            );
+          })}
+
+          {/* Active arc up to current weight */}
+          {(() => {
+            const r = 80, cx = 100, cy = 100;
+            const startA = -90;
+            const endA = angle;
+            const x1 = cx + r * Math.cos((startA * Math.PI) / 180);
+            const y1 = cy + r * Math.sin((startA * Math.PI) / 180);
+            const x2 = cx + r * Math.cos((endA * Math.PI) / 180);
+            const y2 = cy + r * Math.sin((endA * Math.PI) / 180);
+            const largeArc = (endA - startA) > 180 ? 1 : 0;
+            if (w <= 0) return null;
+            return (
+              <path
+                d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
+                fill="none" stroke={tier.color} strokeWidth="14" strokeLinecap="round"
+              />
+            );
+          })()}
+
+          {/* Needle */}
+          {(() => {
+            const cx = 100, cy = 100, needleLen = 60;
+            const nx = cx + needleLen * Math.cos((angle * Math.PI) / 180);
+            const ny = cy + needleLen * Math.sin((angle * Math.PI) / 180);
+            return (
+              <>
+                <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={C.darkNavy} strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx={cx} cy={cy} r="5" fill={C.darkNavy} />
+              </>
+            );
+          })()}
+
+          {/* Score text */}
+          <text x="100" y="92" textAnchor="middle" fontSize="22" fontWeight="900" fill={tier.color} fontFamily="Tajawal, sans-serif">
+            {w.toFixed(1)}
+          </text>
+        </svg>
+      </div>
+
+      {/* Tier labels */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0 0', padding: '0 2px' }}>
+        {tiers.map((t, i) => (
+          <div key={i} style={{ textAlign: 'center', flex: 1 }}>
+            <div style={{ width: '100%', height: 4, borderRadius: 2, background: t.color, opacity: (w >= t.min && w < t.max) || (w >= 100 && i === 4) ? 1 : 0.25, marginBottom: 3 }} />
+            <div style={{ fontSize: '0.62rem', color: (w >= t.min && w < t.max) || (w >= 100 && i === 4) ? t.color : '#9ca3af', fontWeight: 700, lineHeight: 1.2 }}>{t.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Current tier label */}
+      <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <span style={{ padding: '3px 14px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 800, background: `${tier.color}18`, color: tier.color }}>
+          {tier.label} — {tier.labelEn}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminInstitutionsPage() {
   const router = useRouter();
 
@@ -78,6 +180,12 @@ export default function AdminInstitutionsPage() {
   const [filterType,   setFilterType]   = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterScreen, setFilterScreen] = useState('all');
+  const [filterCountry, setFilterCountry] = useState('all');
+  const [filterCity,    setFilterCity]    = useState('all');
+  const [filterWeightMin, setFilterWeightMin] = useState('');
+  const [filterWeightMax, setFilterWeightMax] = useState('');
+  const [countryList,   setCountryList]   = useState<string[]>([]);
+  const [cityList,      setCityList]      = useState<string[]>([]);
   const [selected, setSelected]         = useState<Institution | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const PAGE_SIZE = 30;
@@ -89,7 +197,8 @@ export default function AdminInstitutionsPage() {
       return;
     }
     load();
-  }, [page, filterType, filterStatus, filterScreen]);
+    loadCountries();
+  }, [page, filterType, filterStatus, filterScreen, filterCountry, filterCity, filterWeightMin, filterWeightMax]);
 
   async function load() {
     setLoading(true);
@@ -102,6 +211,10 @@ export default function AdminInstitutionsPage() {
       if (filterStatus !== 'all') url.searchParams.set('status', filterStatus);
       if (filterScreen === 'active')   url.searchParams.set('screen_active', 'true');
       if (filterScreen === 'inactive') url.searchParams.set('screen_active', 'false');
+      if (filterCountry !== 'all') url.searchParams.set('country', filterCountry);
+      if (filterCity    !== 'all') url.searchParams.set('city', filterCity);
+      if (filterWeightMin) url.searchParams.set('weight_min', filterWeightMin);
+      if (filterWeightMax) url.searchParams.set('weight_max', filterWeightMax);
       if (search.trim()) url.searchParams.set('q', search.trim());
 
       const res  = await fetch(url.toString(), { headers: getAuthHeaders() });
@@ -114,6 +227,23 @@ export default function AdminInstitutionsPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadCountries() {
+    try {
+      const res = await fetch(`${API_BASE}/api/institutions?limit=9999`, { headers: getAuthHeaders() });
+      const d = await res.json();
+      const all: Institution[] = d.data || [];
+      const cs = [...new Set(all.map(i => i.country).filter(Boolean))].sort();
+      setCountryList(cs);
+      // update cities based on selected country
+      if (filterCountry !== 'all') {
+        const cities = [...new Set(all.filter(i => i.country === filterCountry).map(i => i.city).filter(Boolean))].sort();
+        setCityList(cities);
+      } else {
+        setCityList([]);
+      }
+    } catch {}
   }
 
   function handleSearch(e: React.FormEvent) {
@@ -276,6 +406,30 @@ export default function AdminInstitutionsPage() {
             <option value="active">شاشة نشطة</option>
             <option value="inactive">شاشة غير نشطة</option>
           </select>
+          <select value={filterCountry} onChange={e => { setFilterCountry(e.target.value); setFilterCity('all'); setPage(1); }} style={{ ...inputStyle, cursor: 'pointer' }}>
+            <option value="all">🌍 كل الدول</option>
+            {countryList.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          {filterCountry !== 'all' && cityList.length > 0 && (
+            <select value={filterCity} onChange={e => { setFilterCity(e.target.value); setPage(1); }} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="all">🏙️ كل المدن</option>
+              {cityList.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: '0.82rem', color: '#6b7280', whiteSpace: 'nowrap' }}>⚖️ الوزن:</span>
+            <input
+              type="number" placeholder="من" min="0" max="100" step="0.1"
+              value={filterWeightMin} onChange={e => { setFilterWeightMin(e.target.value); setPage(1); }}
+              style={{ ...inputStyle, width: 70, textAlign: 'center' }}
+            />
+            <span style={{ color: '#9ca3af' }}>—</span>
+            <input
+              type="number" placeholder="إلى" min="0" max="100" step="0.1"
+              value={filterWeightMax} onChange={e => { setFilterWeightMax(e.target.value); setPage(1); }}
+              style={{ ...inputStyle, width: 70, textAlign: 'center' }}
+            />
+          </div>
           <button type="submit" style={{
             padding: '10px 24px', background: C.teal, color: 'white',
             border: 'none', borderRadius: 40, cursor: 'pointer', fontWeight: 600,
@@ -500,6 +654,9 @@ export default function AdminInstitutionsPage() {
                   {selected.screen_active ? '📺 شاشة نشطة' : '📺 شاشة غير نشطة'}
                 </span>
               </div>
+
+              {/* Weight Gauge */}
+              <WeightGauge weight={selected.weight} />
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>

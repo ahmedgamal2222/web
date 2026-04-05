@@ -116,7 +116,7 @@ function PageHeader() {
         </svg>
         <div>
           <div style={{ fontSize: '1.05rem', fontWeight: 800, background: `linear-gradient(90deg, ${C.cyan}, #fff, ${C.purple})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>المجرة الحضارية</div>
-          <div style={{ fontSize: '0.6rem', color: C.textMuted, letterSpacing: '0.25em', fontWeight: 600 }}>Civilization Galaxy</div>
+          <div style={{ fontSize: '0.6rem', color: C.textMuted, letterSpacing: '0.25em', fontWeight: 600 }}> كوكبة المؤسسات المضيئة</div>
         </div>
       </Link>
       <Link href="/institutions" style={{
@@ -297,40 +297,6 @@ function AboutSection({ institution }: { institution: Institution }) {
         </div>
       )}
     </SectionCard>
-  );
-}
-
-// ── Owner Actions ─────────────────────────────────────────────
-function OwnerActions({ institutionId }: { institutionId: string }) {
-  return (
-    <div style={{
-      background: 'linear-gradient(135deg, rgba(40,28,89,0.3), rgba(78,141,156,0.1))',
-      border: `1px dashed ${C.borderAcc}`, borderRadius: 18,
-      padding: '14px 20px', marginBottom: 24,
-      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
-    }}>
-      <span style={{ fontSize: '0.78rem', color: C.teal, fontWeight: 700, whiteSpace: 'nowrap' }}>🛠️ أدوات المؤسسة</span>
-      <div style={{ flex: 1, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <Link href={`/news/create?institution_id=${institutionId}`} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 30,
-          background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`, color: C.mint,
-          textDecoration: 'none', fontSize: '0.83rem', fontWeight: 700,
-          boxShadow: `0 4px 16px rgba(78,141,156,0.3)`, transition: 'opacity 0.2s',
-        }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-        >+ إضافة خبر</Link>
-        <Link href={`/events/create?institution_id=${institutionId}`} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 30,
-          background: `linear-gradient(135deg, ${C.teal}, ${C.green})`, color: C.bg,
-          textDecoration: 'none', fontSize: '0.83rem', fontWeight: 700,
-          boxShadow: `0 4px 16px rgba(133,199,154,0.25)`, transition: 'opacity 0.2s',
-        }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-        >+ إضافة فعالية</Link>
-      </div>
-    </div>
   );
 }
 
@@ -934,6 +900,50 @@ function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string
           ><span>👥</span><span>إدارة الموظفين</span></Link>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Owner Actions Bar ─────────────────────────────────────────
+function OwnerActions({ institutionId }: { institutionId: string }) {
+  return (
+    <div style={{
+      display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24,
+      padding: '14px 20px', borderRadius: 18,
+      background: `linear-gradient(135deg, ${C.navy}55, ${C.tealDim})`,
+      border: `1px solid ${C.borderAcc}`,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', fontSize: '0.78rem', color: C.textMuted, fontWeight: 700 }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
+        أنت مدير هذه المؤسسة
+      </div>
+      <Link href={`/institutions/${institutionId}/edit`} style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '7px 16px', borderRadius: 30,
+        background: `${C.teal}20`, border: `1px solid ${C.teal}40`,
+        color: C.cyan, textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.2s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.background = C.teal; e.currentTarget.style.color = '#fff'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = `${C.teal}20`; e.currentTarget.style.color = C.cyan; }}
+      >✏️ تعديل المؤسسة</Link>
+      <Link href={`/institutions/${institutionId}/employees`} style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '7px 16px', borderRadius: 30,
+        background: `${C.green}15`, border: `1px solid ${C.green}35`,
+        color: C.green, textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.2s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.background = C.green; e.currentTarget.style.color = '#fff'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = `${C.green}15`; e.currentTarget.style.color = C.green; }}
+      >👥 الموظفون</Link>
+      <Link href={`/institutions/${institutionId}/agreements`} style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '7px 16px', borderRadius: 30,
+        background: `${C.purple}15`, border: `1px solid ${C.purple}35`,
+        color: C.purple, textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.2s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.background = C.purple; e.currentTarget.style.color = '#fff'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = `${C.purple}15`; e.currentTarget.style.color = C.purple; }}
+      >🔗 الاتفاقيات</Link>
     </div>
   );
 }
