@@ -113,6 +113,10 @@ export default function GalaxyCanvas({
     container.appendChild(renderer.domElement);
     renderer.domElement.style.cursor      = 'grab';
     renderer.domElement.style.touchAction = 'none';
+    renderer.domElement.style.position    = 'absolute';
+    renderer.domElement.style.inset       = '0';
+    renderer.domElement.style.width       = '100%';
+    renderer.domElement.style.height      = '100%';
 
     const clock = new THREE.Clock();
 
@@ -564,8 +568,8 @@ export default function GalaxyCanvas({
         renderer.domElement.style.cursor = 'pointer';
         if (tooltipRef.current && s) {
           tooltipRef.current.style.display = 'block';
-          tooltipRef.current.style.left = (e.clientX + 16) + 'px';
-          tooltipRef.current.style.top  = (e.clientY - 10) + 'px';
+          tooltipRef.current.style.left = (e.clientX - rect.left + 16) + 'px';
+          tooltipRef.current.style.top  = (e.clientY - rect.top  - 10) + 'px';
           // const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
           // const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
           const location   = [s.city, s.country].filter(Boolean).join('، ');
@@ -742,8 +746,8 @@ export default function GalaxyCanvas({
         ref={tooltipRef}
         style={{
           display: 'none',
-          position: 'fixed',
-          zIndex: 500,
+          position: 'absolute',
+          zIndex: 20,
           background: 'rgba(10,20,50,0.92)',
           border: '1px solid rgba(79,195,247,0.4)',
           borderRadius: 10,
