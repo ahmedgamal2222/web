@@ -63,12 +63,18 @@ export default function AdminServices() {
   };
 
   const selectStyle: React.CSSProperties = {
-    padding: '8px 36px 8px 14px', borderRadius: 40,
-    border: `1px solid ${COLORS.teal}40`, outline: 'none', fontSize: '0.9rem',
+    padding: '10px 40px 10px 16px', borderRadius: 12,
+    border: `1.5px solid ${COLORS.teal}50`, outline: 'none', fontSize: '0.92rem',
     appearance: 'none',
+    background: `linear-gradient(135deg, ${COLORS.darkNavy}08, white)`,
+    color: COLORS.darkNavy,
+    fontWeight: 600,
+    cursor: 'pointer',
     backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%234E8D9C' d='M8 11L2 5h12z'/%3E%3C/svg%3E\")",
-    backgroundRepeat: 'no-repeat', backgroundPosition: 'left 12px center', backgroundSize: '14px',
+    backgroundRepeat: 'no-repeat', backgroundPosition: 'left 14px center', backgroundSize: '12px',
     fontFamily: 'Cairo, sans-serif',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    boxShadow: '0 1px 4px rgba(40,28,89,0.06)',
   };
 
   return (
@@ -85,23 +91,29 @@ export default function AdminServices() {
       </div>
 
       {/* Filters */}
-      <div style={{ background: 'white', borderRadius: 16, padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} style={selectStyle}>
-          <option value="">كل التصنيفات</option>
-          <option value="design">تصميم</option>
-          <option value="translation">ترجمة</option>
-          <option value="writing">كتابة</option>
-          <option value="media">إعلام</option>
-          <option value="marketing">تسويق</option>
-          <option value="tech">تقنية</option>
-        </select>
-        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} style={selectStyle}>
-          <option value="">كل الحالات</option>
-          <option value="active">نشط</option>
-          <option value="inactive">غير نشط</option>
-          <option value="pending">بانتظار المراجعة</option>
-        </select>
-        <span style={{ color: '#888', marginRight: 'auto' }}>{total} خدمة</span>
+      <div style={{ background: 'white', borderRadius: 16, padding: '18px 24px', marginBottom: 20, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', boxShadow: '0 1px 6px rgba(40,28,89,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700 }}>التصنيف:</span>
+          <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} style={selectStyle}>
+            <option value="">الكل</option>
+            <option value="design">🎨 تصميم</option>
+            <option value="translation">🌐 ترجمة</option>
+            <option value="writing">✍️ كتابة</option>
+            <option value="media">📺 إعلام</option>
+            <option value="marketing">📢 تسويق</option>
+            <option value="tech">💻 تقنية</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: '0.82rem', color: COLORS.teal, fontWeight: 700 }}>الحالة:</span>
+          <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} style={selectStyle}>
+            <option value="">الكل</option>
+            <option value="active">✅ نشط</option>
+            <option value="inactive">⛔ غير نشط</option>
+            <option value="pending">⏳ بانتظار المراجعة</option>
+          </select>
+        </div>
+        <span style={{ color: COLORS.darkNavy, marginRight: 'auto', fontWeight: 700, fontSize: '0.9rem', background: `${COLORS.teal}12`, padding: '6px 16px', borderRadius: 20 }}>{total} خدمة</span>
       </div>
 
       {/* Table */}
