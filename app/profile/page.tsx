@@ -44,6 +44,35 @@ const DEPARTMENTS = [
   'الشراكات والاتفاقيات', 'الأمن والسلامة', 'أخرى',
 ];
 
+const COUNTRIES = [
+  { name: 'السعودية', code: '+966' },
+  { name: 'مصر', code: '+20' },
+  { name: 'الإمارات', code: '+971' },
+  { name: 'الكويت', code: '+965' },
+  { name: 'البحرين', code: '+973' },
+  { name: 'قطر', code: '+974' },
+  { name: 'عُمان', code: '+968' },
+  { name: 'الأردن', code: '+962' },
+  { name: 'العراق', code: '+964' },
+  { name: 'لبنان', code: '+961' },
+  { name: 'فلسطين', code: '+970' },
+  { name: 'اليمن', code: '+967' },
+  { name: 'السودان', code: '+249' },
+  { name: 'ليبيا', code: '+218' },
+  { name: 'تونس', code: '+216' },
+  { name: 'الجزائر', code: '+213' },
+  { name: 'المغرب', code: '+212' },
+  { name: 'موريتانيا', code: '+222' },
+  { name: 'الصومال', code: '+252' },
+  { name: 'جيبوتي', code: '+253' },
+  { name: 'جزر القمر', code: '+269' },
+];
+
+function getCountryCode(country: string): string {
+  const found = COUNTRIES.find(c => c.name === country);
+  return found?.code || '';
+}
+
 function fmtDate(iso?: string | null) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('ar-SA', {
@@ -68,6 +97,8 @@ interface UserProfile {
   institution_name_ar?: string;
   position?: string;
   department?: string;
+  country?: string;
+  city?: string;
   status?: string;
   is_verified?: boolean;
   email_verified?: boolean;
@@ -101,6 +132,7 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState({
     name: '', name_ar: '', phone: '', bio: '',
     position: '', department: '', avatar_url: '',
+    country: '', city: '',
     social_twitter: '', social_linkedin: '',
     social_youtube: '', social_website: '',
   });
@@ -146,6 +178,8 @@ export default function ProfilePage() {
         position:        p.position    || '',
         department:      p.department  || '',
         avatar_url:      p.avatar_url  || '',
+        country:         p.country     || '',
+        city:            p.city        || '',
         social_twitter:  sl.twitter   || '',
         social_linkedin: sl.linkedin  || '',
         social_youtube:  sl.youtube   || '',
@@ -171,6 +205,8 @@ export default function ProfilePage() {
           position:   editForm.position   || undefined,
           department: editForm.department || undefined,
           avatar_url: editForm.avatar_url || undefined,
+          country:    editForm.country    || undefined,
+          city:       editForm.city       || undefined,
           social_links: {
             twitter:  editForm.social_twitter  || undefined,
             linkedin: editForm.social_linkedin || undefined,
@@ -409,6 +445,7 @@ export default function ProfilePage() {
             { label: 'آخر دخول',        value: fmtDate(profile.last_login),  icon: '🕐' },
             { label: 'البريد',           value: profile.email,               icon: '✉️' },
             { label: 'الهاتف',           value: profile.phone || '—',        icon: '📞' },
+            { label: 'الدولة',           value: profile.country || '—',      icon: '🌍' },
             { label: 'القسم',            value: profile.department || '—',   icon: '🏷️' },
           ].map(item => (
             <div key={item.label} style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: '0 2px 10px rgba(0,0,0,.05)' }}>
@@ -455,6 +492,8 @@ export default function ProfilePage() {
                 {[
                   { label: 'الاسم (عربي)',      value: profile.name_ar    || '—' },
                   { label: 'الاسم (إنجليزي)',   value: profile.name       || '—' },
+                  { label: 'الدولة',             value: profile.country    || '—' },
+                  { label: 'المدينة',            value: profile.city       || '—' },
                   { label: 'رقم الهاتف',         value: profile.phone      || '—' },
                   { label: 'المنصب الوظيفي',     value: profile.position   || '—' },
                   { label: 'القسم / الإدارة',    value: profile.department || '—' },
@@ -510,7 +549,6 @@ export default function ProfilePage() {
                   {[
                     { key: 'name_ar', label: 'الاسم الكامل (عربي)',    ph: 'الاسم بالعربية' },
                     { key: 'name',    label: 'الاسم الكامل (إنجليزي)', ph: 'Full Name' },
-                    { key: 'phone',   label: 'رقم الهاتف',              ph: '+966 5XX XXX XXXX' },
                   ].map(f => (
                     <div key={f.key}>
                       <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: C.teal, marginBottom: 6 }}>{f.label}</label>
@@ -524,6 +562,54 @@ export default function ProfilePage() {
                       />
                     </div>
                   ))}
+
+                  {/* Country select */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: C.teal, marginBottom: 6 }}>الدولة</label>
+                    <select
+                      className="inp-focus"
+                      value={editForm.country}
+                      onChange={e => {
+                        const country = e.target.value;
+                        const code = getCountryCode(country);
+                        setEditForm(p => ({
+                          ...p,
+                          country,
+                          phone: code ? (p.phone && !p.phone.startsWith('+') ? code + ' ' + p.phone : code + ' ') : p.phone,
+                        }));
+                      }}
+                      style={{ ...INP, border: `2px solid ${C.teal}25`, cursor: 'pointer' }}
+                    >
+                      <option value="">— اختر الدولة —</option>
+                      {COUNTRIES.map(c => <option key={c.name} value={c.name}>{c.name} ({c.code})</option>)}
+                    </select>
+                  </div>
+
+                  {/* City */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: C.teal, marginBottom: 6 }}>المدينة</label>
+                    <input
+                      className="inp-focus"
+                      type="text"
+                      placeholder="أدخل المدينة"
+                      value={editForm.city}
+                      onChange={e => setEditForm(p => ({ ...p, city: e.target.value }))}
+                      style={{ ...INP, border: `2px solid ${C.teal}25` }}
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: C.teal, marginBottom: 6 }}>رقم الهاتف</label>
+                    <input
+                      className="inp-focus"
+                      type="text"
+                      placeholder={editForm.country ? getCountryCode(editForm.country) + ' 5XX XXX XXXX' : '+966 5XX XXX XXXX'}
+                      value={editForm.phone}
+                      onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
+                      style={{ ...INP, border: `2px solid ${C.teal}25`, direction: 'ltr', textAlign: 'right' }}
+                    />
+                  </div>
 
                   {/* Position select */}
                   <div>
