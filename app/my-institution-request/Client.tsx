@@ -16,6 +16,11 @@ const COLORS = {
   gold: '#f5c842',
 };
 
+const TYPE_LABELS: Record<string, string> = {
+  educational: 'تعليمية', research: 'بحثية', cultural: 'ثقافية',
+  charitable: 'خيرية', media: 'إعلامية', developmental: 'تنموية',
+};
+
 const STATUS_CONFIG = {
   pending:  { label: 'قيد المراجعة', color: '#f5c842', bg: 'rgba(245,200,66,0.12)', icon: '⏳' },
   approved: { label: 'مُعتمد',       color: '#85C79A', bg: 'rgba(133,199,154,0.12)', icon: '✅' },
@@ -67,7 +72,7 @@ function RequestCard({ req }: { req: MyInstitutionRequest }) {
 
       {/* التفاصيل */}
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-        <span style={{ color: '#8888aa', fontSize: '0.84rem' }}>🏷 {req.type}</span>
+        <span style={{ color: '#8888aa', fontSize: '0.84rem' }}>🏷 {TYPE_LABELS[req.type] || req.type || 'عامة'}</span>
         <span style={{ color: '#8888aa', fontSize: '0.84rem' }}>🌍 {req.country} — {req.city}</span>
         <span style={{ color: '#8888aa', fontSize: '0.84rem' }}>
           📅 {new Date(req.created_at).toLocaleDateString('ar-SA')}

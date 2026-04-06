@@ -11,6 +11,11 @@ const CATEGORIES: Record<string,{label:string;icon:string;color:string}> = {
   course:{label:'دورة',icon:'🎓',color:'#FFD700'}, tool:{label:'أداة',icon:'🛠️',color:'#FF9B4E'},
 };
 
+const INST_TYPE_LABELS: Record<string, string> = {
+  educational: 'تعليمية', research: 'بحثية', cultural: 'ثقافية',
+  charitable: 'خيرية', media: 'إعلامية', developmental: 'تنموية',
+};
+
 function GalaxyLogo() {
   return (
     <Link href="/" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',userSelect:'none' }}>
@@ -155,7 +160,7 @@ export default function MarketplaceDetailPage() {
                           }
                           <div>
                             <div style={{ color:'#f0f8ff',fontWeight:800,fontSize:'.95rem' }}>{item.institution_name}</div>
-                            {item.institution_type && <div style={{ color:C.teal,fontSize:'.75rem' }}>{item.institution_type}</div>}
+                            {item.institution_type && <div style={{ color:C.teal,fontSize:'.75rem' }}>{INST_TYPE_LABELS[item.institution_type] || item.institution_type || 'عامة'}</div>}
                           </div>
                         </div>
                         {item.institution_desc && (

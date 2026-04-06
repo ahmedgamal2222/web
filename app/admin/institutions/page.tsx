@@ -416,19 +416,90 @@ export default function AdminInstitutionsPage() {
               {cityList.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontSize: '0.82rem', color: '#6b7280', whiteSpace: 'nowrap' }}>⚖️ الوزن:</span>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 0,
+            background: `linear-gradient(135deg, ${C.darkNavy}08, ${C.teal}06)`,
+            border: `1.5px solid ${C.teal}25`,
+            borderRadius: 14, padding: '6px 14px', position: 'relative',
+          }}>
+            {/* Label */}
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: C.teal, whiteSpace: 'nowrap', marginLeft: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚖️ الوزن
+            </span>
+
+            {/* Tier dots */}
+            <div style={{ display: 'flex', gap: 3, marginLeft: 8, marginRight: 4 }}>
+              {[
+                { color: '#ef4444', tip: 'ضعيف جداً (0-20)' },
+                { color: '#f97316', tip: 'ضعيف (20-40)' },
+                { color: '#eab308', tip: 'مقبول (40-60)' },
+                { color: '#22c55e', tip: 'جيد (60-80)' },
+                { color: '#10b981', tip: 'ممتاز (80-100)' },
+              ].map((t, i) => {
+                const tierMin = i * 20;
+                const tierMax = (i + 1) * 20;
+                const minV = filterWeightMin ? parseFloat(filterWeightMin) : 0;
+                const maxV = filterWeightMax ? parseFloat(filterWeightMax) : 100;
+                const inRange = (!filterWeightMin && !filterWeightMax) || (tierMax > minV && tierMin < maxV);
+                return (
+                  <div
+                    key={i}
+                    title={t.tip}
+                    onClick={() => {
+                      setFilterWeightMin(String(tierMin));
+                      setFilterWeightMax(String(tierMax));
+                      setPage(1);
+                    }}
+                    style={{
+                      width: 18, height: 6, borderRadius: 3,
+                      background: t.color,
+                      opacity: inRange ? 1 : 0.2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Min input */}
             <input
-              type="number" placeholder="من" min="0" max="100" step="0.1"
+              type="number" placeholder="٠" min="0" max="100" step="0.1"
               value={filterWeightMin} onChange={e => { setFilterWeightMin(e.target.value); setPage(1); }}
-              style={{ ...inputStyle, width: 70, textAlign: 'center' }}
+              style={{
+                width: 52, padding: '6px 4px', border: `1px solid ${C.teal}20`,
+                borderRadius: 8, fontSize: '0.85rem', outline: 'none', textAlign: 'center',
+                color: C.darkNavy, background: 'white', boxSizing: 'border-box',
+                fontWeight: 700, fontFamily: 'inherit',
+              }}
             />
-            <span style={{ color: '#9ca3af' }}>—</span>
+            <span style={{ color: C.teal, fontSize: '0.75rem', margin: '0 4px', fontWeight: 700 }}>↔</span>
+            {/* Max input */}
             <input
-              type="number" placeholder="إلى" min="0" max="100" step="0.1"
+              type="number" placeholder="١٠٠" min="0" max="100" step="0.1"
               value={filterWeightMax} onChange={e => { setFilterWeightMax(e.target.value); setPage(1); }}
-              style={{ ...inputStyle, width: 70, textAlign: 'center' }}
+              style={{
+                width: 52, padding: '6px 4px', border: `1px solid ${C.teal}20`,
+                borderRadius: 8, fontSize: '0.85rem', outline: 'none', textAlign: 'center',
+                color: C.darkNavy, background: 'white', boxSizing: 'border-box',
+                fontWeight: 700, fontFamily: 'inherit',
+              }}
             />
+
+            {/* Clear button */}
+            {(filterWeightMin || filterWeightMax) && (
+              <button
+                onClick={() => { setFilterWeightMin(''); setFilterWeightMax(''); setPage(1); }}
+                style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  background: '#ef444415', border: '1px solid #ef444425',
+                  color: '#ef4444', cursor: 'pointer', fontSize: '0.7rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginRight: 4, transition: 'all 0.15s', padding: 0,
+                }}
+                title="مسح فلتر الوزن"
+              >✕</button>
+            )}
           </div>
           <button type="submit" style={{
             padding: '10px 24px', background: C.teal, color: 'white',
@@ -522,7 +593,7 @@ export default function AdminInstitutionsPage() {
                         </td>
                         {/* Verified */}
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                          <span style={{ fontSize: '1.1rem' }}>{inst.is_verified ? '🔰' : '—'}</span>
+                          <span style={{ fontSize: '1.1rem' }}>{!!inst.is_verified ? '🔰' : '—'}</span>
                         </td>
                         {/* Actions */}
                         <td style={{ padding: '12px 16px' }} onClick={e => e.stopPropagation()}>
@@ -590,105 +661,152 @@ export default function AdminInstitutionsPage() {
         {/* ── Detail Panel ── */}
         {selected && (
           <div style={{
-            width: 300, flexShrink: 0,
-            background: 'white', borderRadius: 18,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+            width: 320, flexShrink: 0,
+            background: 'white', borderRadius: 22,
+            boxShadow: '0 8px 40px rgba(40,28,89,0.15), 0 2px 8px rgba(0,0,0,0.06)',
             overflow: 'hidden', position: 'sticky', top: 24,
+            border: `1px solid ${C.teal}18`,
           }}>
             {/* Panel Header */}
-            <div style={{ background: `linear-gradient(135deg, ${C.darkNavy}, ${C.teal})`, padding: '20px 20px 16px', color: 'white' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.3 }}>
-                    {selected.name_ar || selected.name}
+            <div style={{ background: `linear-gradient(135deg, ${C.darkNavy} 0%, #1a3a4a 100%)`, padding: '22px 20px 18px', color: 'white', position: 'relative', overflow: 'hidden' }}>
+              {/* decorative circles */}
+              <div style={{ position: 'absolute', width: 130, height: 130, borderRadius: '50%', background: `${C.teal}20`, top: -45, left: -35, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', width: 90, height: 90, borderRadius: '50%', background: `${C.softGreen}15`, bottom: -25, right: 10, pointerEvents: 'none' }} />
+
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 14, background: `linear-gradient(135deg, ${C.teal}, ${C.softGreen})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0, boxShadow: `0 4px 16px ${C.teal}40` }}>
+                      🏛️
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', lineHeight: 1.3, color: C.lightMint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {selected.name_ar || selected.name}
+                      </div>
+                      {selected.name_ar && (
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
+                      )}
+                    </div>
                   </div>
-                  {selected.name_ar && (
-                    <div style={{ fontSize: '0.83rem', color: `${C.lightMint}80`, marginTop: 4 }}>{selected.name}</div>
+                  <button onClick={() => setSelected(null)}
+                    style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', color: 'white', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.3)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                  >✕</button>
+                </div>
+
+                {/* Chips */}
+                <div style={{ display: 'flex', gap: 6, marginTop: 14, flexWrap: 'wrap' }}>
+                  <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, background: `${C.teal}35`, color: C.lightMint, border: '1px solid rgba(255,255,255,0.15)' }}>
+                    {(TYPE_META[selected.type] || TYPE_META.default).label}
+                  </span>
+                  <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700,
+                    background: selected.status === 'active' ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.1)',
+                    color: selected.status === 'active' ? '#86efac' : 'rgba(255,255,255,0.55)',
+                    border: `1px solid ${selected.status === 'active' ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.15)'}`,
+                  }}>
+                    {(STATUS_META[selected.status] || STATUS_META.inactive).label}
+                  </span>
+                  {!!selected.is_verified && (
+                    <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, background: 'rgba(237,247,189,0.2)', color: C.lightMint, border: '1px solid rgba(237,247,189,0.3)' }}>
+                      🔰 موثّقة
+                    </span>
                   )}
                 </div>
-                <button onClick={() => setSelected(null)}
-                  style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  ✕
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, background: 'rgba(255,255,255,0.18)', color: 'white' }}>
-                  {(TYPE_META[selected.type] || TYPE_META.default).label}
-                </span>
-                {selected.is_verified && (
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, background: 'rgba(237,247,189,0.25)', color: C.lightMint }}>
-                    🔰 موثّقة
-                  </span>
+
+                {/* Weight bar */}
+                {selected.weight > 0 && (
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>⚖️ الوزن المعياري</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color:
+                        selected.weight >= 80 ? '#86efac' : selected.weight >= 60 ? '#fde68a' : selected.weight >= 40 ? '#fb923c' : '#fca5a5'
+                      }}>{selected.weight.toFixed(1)}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: 3,
+                        width: `${Math.min(100, selected.weight)}%`,
+                        background: selected.weight >= 80 ? 'linear-gradient(90deg,#10b981,#34d399)'
+                          : selected.weight >= 60 ? 'linear-gradient(90deg,#d97706,#fbbf24)'
+                          : selected.weight >= 40 ? 'linear-gradient(90deg,#ea580c,#fb923c)'
+                          : 'linear-gradient(90deg,#dc2626,#f87171)',
+                        boxShadow: '0 0 8px rgba(255,255,255,0.2)',
+                      }} />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Info */}
-            <div style={{ padding: '18px 20px' }}>
+            {/* Info rows */}
+            <div style={{ padding: '16px 18px 8px' }}>
               {[
                 { icon: '🌍', label: 'الموقع', value: `${selected.city ? selected.city + '، ' : ''}${selected.country}` },
-                { icon: '📅', label: 'تأسست', value: selected.founded_year ? String(selected.founded_year) : '—' },
-                { icon: '👥', label: 'الموظفون', value: selected.employees_count ? String(selected.employees_count) : '—' },
-                { icon: '📧', label: 'البريد', value: selected.email || '—' },
+                { icon: '📅', label: 'سنة التأسيس', value: selected.founded_year ? String(selected.founded_year) : '—' },
+                { icon: '👥', label: 'الموظفون', value: selected.employees_count ? `${selected.employees_count} موظف` : '—' },
+                { icon: '📧', label: 'البريد الإلكتروني', value: selected.email || '—' },
                 { icon: '🌐', label: 'الموقع الإلكتروني', value: selected.website || '—' },
+                { icon: '📺', label: 'الشاشة', value: selected.screen_active ? 'نشطة ✅' : 'غير نشطة ⚪' },
               ].map(row => (
-                <div key={row.label} style={{ display: 'flex', gap: 10, marginBottom: 12, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{row.icon}</span>
-                  <div>
-                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 600 }}>{row.label}</div>
-                    <div style={{ fontSize: '0.85rem', color: C.darkNavy, fontWeight: 500, wordBreak: 'break-all' }}>
+                <div key={row.label} style={{ display: 'flex', gap: 10, marginBottom: 8, alignItems: 'flex-start', padding: '8px 10px', borderRadius: 11, background: '#f8fafc', border: '1px solid #f1f5f9', transition: 'background 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = `${C.teal}08`; e.currentTarget.style.borderColor = `${C.teal}20`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#f1f5f9'; }}
+                >
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.teal}12`, border: `1px solid ${C.teal}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.82rem', flexShrink: 0 }}>{row.icon}</div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.68rem', color: '#9ca3af', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>{row.label}</div>
+                    <div style={{ fontSize: '0.83rem', color: C.darkNavy, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {row.label === 'الموقع الإلكتروني' && selected.website
-                        ? <a href={selected.website} target="_blank" rel="noopener noreferrer" style={{ color: C.teal }}>{selected.website}</a>
+                        ? <a href={selected.website} target="_blank" rel="noopener noreferrer" style={{ color: C.teal, textDecoration: 'none' }}>{selected.website}</a>
                         : row.value}
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
 
-              {/* Status badges */}
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
-                <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 600, ...(STATUS_META[selected.status] || STATUS_META.inactive) }}>
-                  {(STATUS_META[selected.status] || STATUS_META.inactive).label}
-                </span>
-                <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: '0.83rem', fontWeight: 600, background: selected.screen_active ? '#dcfce7' : '#f3f4f6', color: selected.screen_active ? '#16a34a' : '#6b7280' }}>
-                  {selected.screen_active ? '📺 شاشة نشطة' : '📺 شاشة غير نشطة'}
-                </span>
-              </div>
+            {/* Action Buttons */}
+            <div style={{ padding: '8px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ height: 1, background: `${C.teal}18`, margin: '4px 0 8px' }} />
 
-              {/* Weight Gauge */}
-              {/* <WeightGauge weight={selected.weight} /> */}
+              <Link href={`/institutions/${selected.id}`} target="_blank"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px', background: `${C.teal}12`, border: `1.5px solid ${C.teal}30`, borderRadius: 12, color: C.teal, fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = `${C.teal}22`; e.currentTarget.style.borderColor = `${C.teal}55`; }}
+                onMouseLeave={e => { e.currentTarget.style.background = `${C.teal}12`; e.currentTarget.style.borderColor = `${C.teal}30`; }}
+              >
+                🔗 فتح صفحة المؤسسة
+              </Link>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-                <Link href={`/institutions/${selected.id}`} target="_blank"
-                  style={{ display: 'block', textAlign: 'center', padding: '10px', background: `${C.teal}15`, border: `1px solid ${C.teal}30`, borderRadius: 10, color: C.teal, fontWeight: 600, fontSize: '0.88rem', textDecoration: 'none' }}>
-                  🔗 فتح صفحة المؤسسة
-                </Link>
+              <button
+                onClick={() => handleToggleVerify(selected)}
+                disabled={actionLoading === selected.id}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px', background: !!selected.is_verified ? '#fef3c720' : '#ede9fe', border: `1.5px solid ${!!selected.is_verified ? '#d9770640' : '#7c3aed30'}`, borderRadius: 12, color: !!selected.is_verified ? '#b45309' : '#6d28d9', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+              >
+                {actionLoading === selected.id ? '⏳ جاري...' : !!selected.is_verified ? '🔰 إلغاء التوثيق' : '🔰 توثيق المؤسسة'}
+              </button>
 
-                <button
-                  onClick={() => handleToggleVerify(selected)}
-                  disabled={actionLoading === selected.id}
-                  style={{ padding: '10px', background: selected.is_verified ? '#fef3c7' : '#ede9fe', border: `1px solid ${selected.is_verified ? '#d97706' : '#7c3aed'}30`, borderRadius: 10, color: selected.is_verified ? '#d97706' : '#7c3aed', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                >
-                  {selected.is_verified ? '🔰 إلغاء التوثيق' : '🔰 توثيق المؤسسة'}
-                </button>
+              <button
+                onClick={() => handleToggleStatus(selected)}
+                disabled={actionLoading === selected.id}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px', background: selected.status === 'active' ? '#fee2e225' : '#dcfce730', border: `1.5px solid ${selected.status === 'active' ? '#ef444430' : '#16a34a30'}`, borderRadius: 12, color: selected.status === 'active' ? '#dc2626' : '#15803d', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+              >
+                {actionLoading === selected.id ? '⏳ جاري...' : selected.status === 'active' ? '⏸ إيقاف المؤسسة' : '▶ تفعيل المؤسسة'}
+              </button>
 
-                <button
-                  onClick={() => handleToggleStatus(selected)}
-                  disabled={actionLoading === selected.id}
-                  style={{ padding: '10px', background: selected.status === 'active' ? '#fee2e2' : '#dcfce7', border: `1px solid ${selected.status === 'active' ? '#ef4444' : '#16a34a'}30`, borderRadius: 10, color: selected.status === 'active' ? '#ef4444' : '#16a34a', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                >
-                  {actionLoading === selected.id ? '...' : selected.status === 'active' ? '⏸ إيقاف المؤسسة' : '▶ تفعيل المؤسسة'}
-                </button>
-
-                <button
-                  onClick={() => handleDelete(selected)}
-                  disabled={actionLoading === selected.id}
-                  style={{ padding: '10px', background: '#fee2e2', border: '1px solid #ef444430', borderRadius: 10, color: '#ef4444', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
-                >
-                  🗑 حذف نهائي
-                </button>
-              </div>
+              <button
+                onClick={() => handleDelete(selected)}
+                disabled={actionLoading === selected.id}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px', background: '#fee2e225', border: '1.5px solid #ef444430', borderRadius: 12, color: '#dc2626', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fee2e225'; }}
+              >
+                🗑 حذف نهائي
+              </button>
             </div>
           </div>
         )}

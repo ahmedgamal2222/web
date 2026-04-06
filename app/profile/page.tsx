@@ -55,6 +55,7 @@ const COUNTRIES = [
   { name: 'الأردن', code: '+962' },
   { name: 'العراق', code: '+964' },
   { name: 'لبنان', code: '+961' },
+  { name: 'سوريا', code: '+963' },
   { name: 'فلسطين', code: '+970' },
   { name: 'اليمن', code: '+967' },
   { name: 'السودان', code: '+249' },
@@ -66,6 +67,15 @@ const COUNTRIES = [
   { name: 'الصومال', code: '+252' },
   { name: 'جيبوتي', code: '+253' },
   { name: 'جزر القمر', code: '+269' },
+  { name: 'تركيا', code: '+90' },
+  { name: 'باكستان', code: '+92' },
+  { name: 'الهند', code: '+91' },
+  { name: 'المملكة المتحدة', code: '+44' },
+  { name: 'الولايات المتحدة', code: '+1' },
+  { name: 'ألمانيا', code: '+49' },
+  { name: 'فرنسا', code: '+33' },
+  { name: 'كندا', code: '+1' },
+  { name: 'أستراليا', code: '+61' },
 ];
 
 function getCountryCode(country: string): string {
@@ -111,9 +121,9 @@ const INP: React.CSSProperties = {
   width: '100%',
   padding: '11px 14px',
   borderRadius: 10,
-  border: `2px solid #cbd5e120`,
-  background: '#f7fbfd',
-  color: C.darkNavy,
+  border: '1px solid rgba(78,141,156,0.25)',
+  background: 'rgba(255,255,255,0.06)',
+  color: '#fff',
   fontSize: '0.93rem',
   outline: 'none',
   boxSizing: 'border-box',
@@ -314,16 +324,17 @@ export default function ProfilePage() {
 
   // ─────────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f6fb', direction: 'rtl', gap: 10, color: C.teal, fontSize: '1.05rem' }}>
-      ⏳ جاري التحميل...
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', direction: 'rtl', gap: 14, color: C.teal }}>
+      <div style={{ width: 40, height: 40, border: '3px solid rgba(78,141,156,0.2)', borderTopColor: C.teal, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>جاري التحميل...</span>
     </div>
   );
 
   if (error || !profile) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f4f6fb', gap: 14, direction: 'rtl' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', gap: 14, direction: 'rtl' }}>
       <span style={{ fontSize: '3rem' }}>❌</span>
-      <span style={{ color: '#ef4444' }}>{error || 'فشل تحميل الملف الشخصي'}</span>
-      <button onClick={loadProfile} style={{ padding: '10px 24px', background: C.teal, color: 'white', border: 'none', borderRadius: 40, cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', fontSize: '.93rem' }}>
+      <span style={{ color: '#ff6b6b' }}>{error || 'فشل تحميل الملف الشخصي'}</span>
+      <button onClick={loadProfile} style={{ padding: '10px 24px', background: `linear-gradient(135deg, ${C.teal}, ${C.darkNavy})`, color: 'white', border: 'none', borderRadius: 40, cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', fontSize: '.93rem' }}>
         إعادة المحاولة
       </button>
     </div>
@@ -332,10 +343,12 @@ export default function ProfilePage() {
   const sl = profile.social_links || {};
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f6fb', direction: 'rtl', fontFamily: 'Tajawal, Cairo, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', direction: 'rtl', fontFamily: 'Tajawal, Cairo, sans-serif', color: '#fff' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .inp-focus:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}22 !important; }
+        .inp-focus:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}30 !important; }
+        .inp-focus::placeholder { color: rgba(255,255,255,0.25); }
+        select.inp-focus option { background: #1a1040; color: #fff; }
         @media (max-width: 600px) {
           .prof-head { flex-direction: column !important; align-items: center !important; }
           .prof-actions { justify-content: center !important; }
@@ -343,18 +356,24 @@ export default function ProfilePage() {
       `}</style>
 
       {/* Cover */}
-      <div style={{ background: `linear-gradient(135deg, ${C.darkNavy} 0%, ${C.teal} 100%)`, height: 200, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 50%, rgba(133,199,154,.18) 0%, transparent 70%)' }} />
+      <div style={{ background: `linear-gradient(135deg, ${C.darkNavy} 0%, #1a3a5c 50%, ${C.teal} 100%)`, height: 200, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 40%, rgba(133,199,154,.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 60%, rgba(78,141,156,.15) 0%, transparent 50%)' }} />
+        {/* Stars decoration */}
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.3 }}>
+          {[...Array(20)].map((_, i) => (
+            <div key={i} style={{ position: 'absolute', width: i % 3 === 0 ? 2 : 1, height: i % 3 === 0 ? 2 : 1, borderRadius: '50%', background: '#fff', top: `${(i * 37) % 100}%`, left: `${(i * 53 + 20) % 100}%` }} />
+          ))}
+        </div>
         <div style={{ position: 'absolute', top: 18, right: 20, left: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/" style={{ color: 'rgba(255,255,255,.75)', textDecoration: 'none', fontSize: '.88rem', fontFamily: 'inherit' }}>🌌 المجرة الحضارية</Link>
-          <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.28)', color: 'white', padding: '7px 16px', borderRadius: 40, cursor: 'pointer', fontSize: '.85rem', fontFamily: 'inherit' }}>خروج</button>
+          <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', color: 'white', padding: '7px 16px', borderRadius: 40, cursor: 'pointer', fontSize: '.85rem', fontFamily: 'inherit', transition: 'all .2s' }}>خروج</button>
         </div>
       </div>
 
       <div style={{ maxWidth: 920, margin: '0 auto', padding: '0 20px 60px' }}>
 
         {/* Header card */}
-        <div className="prof-head" style={{ background: 'white', borderRadius: 22, padding: '28px 30px', boxShadow: '0 4px 24px rgba(0,0,0,.09)', marginTop: -70, position: 'relative', display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="prof-head" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(78,141,156,0.15)', borderRadius: 22, padding: '28px 30px', backdropFilter: 'blur(12px)', marginTop: -70, position: 'relative', display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
 
           {/* Avatar block */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -363,7 +382,7 @@ export default function ProfilePage() {
               background: `linear-gradient(135deg, ${C.teal}, ${C.darkNavy})`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontWeight: 800, fontSize: '2rem',
-              border: '4px solid white', boxShadow: '0 4px 16px rgba(0,0,0,.15)',
+              border: '3px solid rgba(78,141,156,0.3)', boxShadow: '0 4px 24px rgba(0,0,0,.3)',
               overflow: 'hidden',
             }}>
               {profile.avatar_url
@@ -379,8 +398,8 @@ export default function ProfilePage() {
               style={{
                 position: 'absolute', bottom: 2, left: 2,
                 width: 28, height: 28,
-                background: avatarUploading ? '#aaa' : C.teal,
-                border: '2px solid white',
+                background: avatarUploading ? '#555' : C.teal,
+                border: '2px solid rgba(10,5,32,0.8)',
                 borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: avatarUploading ? 'default' : 'pointer',
@@ -394,14 +413,14 @@ export default function ProfilePage() {
             <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
 
             {(profile.is_verified || profile.email_verified) && (
-              <div style={{ position: 'absolute', bottom: 26, left: -2, background: C.softGreen, borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', fontSize: '.7rem' }}>✓</div>
+              <div style={{ position: 'absolute', bottom: 26, left: -2, background: C.softGreen, borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(10,5,32,0.8)', fontSize: '.7rem' }}>✓</div>
             )}
           </div>
 
           {/* Name + meta */}
           <div style={{ flex: 1, minWidth: 200 }}>
-            <h1 style={{ margin: '0 0 2px', fontSize: '1.65rem', color: C.darkNavy, fontWeight: 900 }}>{profile.name_ar || profile.name}</h1>
-            {profile.name_ar && profile.name && <div style={{ color: '#6b7280', fontSize: '.85rem', marginBottom: 8 }}>{profile.name}</div>}
+            <h1 style={{ margin: '0 0 2px', fontSize: '1.65rem', fontWeight: 900, background: `linear-gradient(90deg, ${C.lightMint}, ${C.softGreen})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{profile.name_ar || profile.name}</h1>
+            {profile.name_ar && profile.name && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '.85rem', marginBottom: 8 }}>{profile.name}</div>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ padding: '4px 13px', borderRadius: 20, fontSize: '.8rem', fontWeight: 700, background: `${ROLE_COLORS[profile.role] || '#888'}18`, color: ROLE_COLORS[profile.role] || '#888', border: `1px solid ${ROLE_COLORS[profile.role] || '#888'}30` }}>
                 {ROLE_LABELS[profile.role] || profile.role}
@@ -411,17 +430,17 @@ export default function ProfilePage() {
                   🏢 {profile.institution_name_ar || profile.institution_name}
                 </Link>
               )}
-              {profile.position && <span style={{ color: '#6b7280', fontSize: '.83rem' }}>📌 {profile.position}</span>}
+              {profile.position && <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '.83rem' }}>📌 {profile.position}</span>}
             </div>
-            {profile.bio && <p style={{ margin: '10px 0 0', color: '#374151', fontSize: '.9rem', lineHeight: 1.65 }}>{profile.bio}</p>}
+            {profile.bio && <p style={{ margin: '10px 0 0', color: 'rgba(255,255,255,0.55)', fontSize: '.9rem', lineHeight: 1.65 }}>{profile.bio}</p>}
 
             {/* Social links view */}
             {(sl.twitter || sl.linkedin || sl.youtube || sl.website) && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {sl.twitter  && <a href={sl.twitter}  target="_blank" rel="noopener noreferrer" style={{ color: '#000', fontSize: '.82rem', padding: '4px 12px', background: '#f0f0f0', border: '1px solid #ddd', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>𝕏 X (تويتر)</a>}
-                {sl.linkedin && <a href={sl.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#0a66c2', fontSize: '.82rem', padding: '4px 12px', background: '#0a66c210', border: '1px solid #0a66c230', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>💼 LinkedIn</a>}
-                {sl.youtube  && <a href={sl.youtube}  target="_blank" rel="noopener noreferrer" style={{ color: '#ff0000', fontSize: '.82rem', padding: '4px 12px', background: '#ff000010', border: '1px solid #ff000030', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>▶ YouTube</a>}
-                {sl.website  && <a href={sl.website}  target="_blank" rel="noopener noreferrer" style={{ color: C.teal, fontSize: '.82rem', padding: '4px 12px', background: `${C.teal}10`, border: `1px solid ${C.teal}30`, borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>🌐 الموقع</a>}
+                {sl.twitter  && <a href={sl.twitter}  target="_blank" rel="noopener noreferrer" style={{ color: '#e5e5e5', fontSize: '.82rem', padding: '4px 12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>𝕏 X (تويتر)</a>}
+                {sl.linkedin && <a href={sl.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#5b9bd5', fontSize: '.82rem', padding: '4px 12px', background: 'rgba(10,102,194,0.12)', border: '1px solid rgba(10,102,194,0.25)', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>💼 LinkedIn</a>}
+                {sl.youtube  && <a href={sl.youtube}  target="_blank" rel="noopener noreferrer" style={{ color: '#ff6b6b', fontSize: '.82rem', padding: '4px 12px', background: 'rgba(255,0,0,0.08)', border: '1px solid rgba(255,0,0,0.2)', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>▶ YouTube</a>}
+                {sl.website  && <a href={sl.website}  target="_blank" rel="noopener noreferrer" style={{ color: C.teal, fontSize: '.82rem', padding: '4px 12px', background: 'rgba(78,141,156,0.1)', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 18, textDecoration: 'none', fontFamily: 'inherit' }}>🌐 الموقع</a>}
               </div>
             )}
           </div>
@@ -429,17 +448,17 @@ export default function ProfilePage() {
           {/* Actions */}
           <div className="prof-actions" style={{ display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap' }}>
             {profile.role === 'admin' && (
-              <Link href="/admin" style={{ padding: '9px 18px', background: `${C.darkNavy}12`, border: `1px solid ${C.darkNavy}22`, borderRadius: 40, color: C.darkNavy, textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>⚙️ لوحة التحكم</Link>
+              <Link href="/admin" style={{ padding: '9px 18px', background: 'rgba(40,28,89,0.3)', border: '1px solid rgba(40,28,89,0.4)', borderRadius: 40, color: C.lightMint, textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>⚙️ لوحة التحكم</Link>
             )}
             {profile.institution_id
-              ? <Link href={`/institutions/${profile.institution_id}`} style={{ padding: '9px 18px', background: `${C.teal}12`, border: `1px solid ${C.teal}22`, borderRadius: 40, color: C.teal, textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🏢 مؤسستي</Link>
-              : <Link href="/my-institution-request" style={{ padding: '9px 18px', background: 'rgba(245,200,66,.12)', border: '1px solid rgba(245,200,66,.3)', borderRadius: 40, color: '#f5c842', textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🏛️ طلبات اعتماد</Link>
+              ? <Link href={`/institutions/${profile.institution_id}`} style={{ padding: '9px 18px', background: 'rgba(78,141,156,0.12)', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 40, color: C.teal, textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🏢 مؤسستي</Link>
+              : <Link href="/my-institution-request" style={{ padding: '9px 18px', background: 'rgba(245,200,66,.1)', border: '1px solid rgba(245,200,66,.25)', borderRadius: 40, color: '#f5c842', textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🏛️ طلبات اعتماد</Link>
             }
           </div>
         </div>
 
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(148px, 1fr))', gap: 12, margin: '18px 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(148px, 1fr))', gap: 10, margin: '18px 0' }}>
           {[
             { label: 'تاريخ الانضمام', value: fmtDate(profile.created_at), icon: '📅' },
             { label: 'آخر دخول',        value: fmtDate(profile.last_login),  icon: '🕐' },
@@ -448,22 +467,23 @@ export default function ProfilePage() {
             { label: 'الدولة',           value: profile.country || '—',      icon: '🌍' },
             { label: 'القسم',            value: profile.department || '—',   icon: '🏷️' },
           ].map(item => (
-            <div key={item.label} style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: '0 2px 10px rgba(0,0,0,.05)' }}>
-              <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>{item.icon} {item.label}</div>
-              <div style={{ fontSize: '.86rem', fontWeight: 600, color: C.darkNavy, wordBreak: 'break-all' }}>{item.value}</div>
+            <div key={item.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.1)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ fontSize: '.78rem', color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>{item.icon} {item.label}</div>
+              <div style={{ fontSize: '.86rem', fontWeight: 600, color: '#fff', wordBreak: 'break-all' }}>{item.value}</div>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div style={{ background: 'white', borderRadius: 14, padding: '8px 14px', boxShadow: '0 2px 10px rgba(0,0,0,.05)', marginBottom: 18, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.1)', borderRadius: 14, padding: '6px 10px', marginBottom: 18, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(['info', 'security', 'activity'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               padding: '10px 22px', borderRadius: 40, fontSize: '.9rem', fontWeight: 600,
               border: 'none', cursor: 'pointer', transition: 'all .2s',
-              background: activeTab === tab ? C.teal : 'transparent',
-              color:      activeTab === tab ? 'white' : C.teal,
+              background: activeTab === tab ? `linear-gradient(135deg, ${C.teal}, ${C.darkNavy})` : 'transparent',
+              color:      activeTab === tab ? 'white' : 'rgba(255,255,255,0.45)',
               fontFamily: 'inherit',
+              boxShadow: activeTab === tab ? '0 4px 16px rgba(78,141,156,0.3)' : 'none',
             }}>
               {tab === 'info' ? '👤 المعلومات' : tab === 'security' ? '🔐 الأمان' : '⚡ النشاط'}
             </button>
@@ -472,19 +492,19 @@ export default function ProfilePage() {
 
         {/* ══════════ Tab: Info ══════════ */}
         {activeTab === 'info' && (
-          <div style={{ background: 'white', borderRadius: 18, padding: '28px 30px', boxShadow: '0 2px 16px rgba(0,0,0,.07)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 18, padding: '28px 30px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <h2 style={{ margin: 0, color: C.darkNavy, fontSize: '1.1rem', fontWeight: 800 }}>المعلومات الشخصية</h2>
+              <h2 style={{ margin: 0, color: C.lightMint, fontSize: '1.1rem', fontWeight: 800 }}>المعلومات الشخصية</h2>
               {!editMode && (
                 <button onClick={() => { setEditMode(true); setSaveMsg(''); setSaveErr(''); }} style={{
-                  padding: '8px 18px', background: `${C.teal}15`, border: `1px solid ${C.teal}30`,
+                  padding: '8px 18px', background: 'rgba(78,141,156,0.12)', border: '1px solid rgba(78,141,156,0.25)',
                   borderRadius: 40, color: C.teal, cursor: 'pointer', fontWeight: 600, fontSize: '.87rem', fontFamily: 'inherit',
                 }}>✏️ تعديل</button>
               )}
             </div>
 
-            {saveMsg && <div style={{ background: '#d1fae5', border: '1px solid #10b981', borderRadius: 10, padding: '12px 16px', marginBottom: 18, color: '#065f46', fontSize: '.9rem' }}>{saveMsg}</div>}
-            {saveErr && <div style={{ background: '#fee2e2', border: '1px solid #ef4444', borderRadius: 10, padding: '12px 16px', marginBottom: 18, color: '#ef4444', fontSize: '.9rem' }}>{saveErr}</div>}
+            {saveMsg && <div style={{ background: 'rgba(133,199,154,0.12)', border: '1px solid rgba(133,199,154,0.3)', borderRadius: 10, padding: '12px 16px', marginBottom: 18, color: C.softGreen, fontSize: '.9rem' }}>{saveMsg}</div>}
+            {saveErr && <div style={{ background: 'rgba(255,50,50,0.12)', border: '1px solid rgba(255,50,50,0.3)', borderRadius: 10, padding: '12px 16px', marginBottom: 18, color: '#ff6b6b', fontSize: '.9rem' }}>{saveErr}</div>}
 
             {/* View mode */}
             {!editMode ? (
@@ -499,8 +519,8 @@ export default function ProfilePage() {
                   { label: 'القسم / الإدارة',    value: profile.department || '—' },
                 ].map(f => (
                   <div key={f.label}>
-                    <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>{f.label}</div>
-                    <div style={{ fontSize: '.93rem', color: C.darkNavy, fontWeight: 500 }}>{f.value}</div>
+                    <div style={{ fontSize: '.78rem', color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>{f.label}</div>
+                    <div style={{ fontSize: '.93rem', color: '#fff', fontWeight: 500 }}>{f.value}</div>
                   </div>
                 ))}
 
@@ -508,17 +528,17 @@ export default function ProfilePage() {
                 <div>
                   <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>البريد الإلكتروني</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '.93rem', color: C.darkNavy, fontWeight: 500 }}>{profile.email}</span>
+                    <span style={{ fontSize: '.93rem', color: '#fff', fontWeight: 500 }}>{profile.email}</span>
                     {(profile.email_verified || profile.is_verified)
-                      ? <span style={{ fontSize: '.75rem', color: '#10b981', fontWeight: 700, background: '#d1fae5', padding: '2px 10px', borderRadius: 20 }}>✅ مؤكّد</span>
+                      ? <span style={{ fontSize: '.75rem', color: C.softGreen, fontWeight: 700, background: 'rgba(133,199,154,0.12)', padding: '2px 10px', borderRadius: 20, border: '1px solid rgba(133,199,154,0.25)' }}>✅ مؤكّد</span>
                       : (
                         <button
                           onClick={handleResendVerification}
                           disabled={verifyLoading}
                           style={{
                             fontSize: '.75rem', fontWeight: 700, padding: '4px 13px',
-                            borderRadius: 20, border: '1px solid #f59e0b',
-                            background: '#fffbeb', color: '#92400e',
+                            borderRadius: 20, border: '1px solid rgba(245,158,11,0.3)',
+                            background: 'rgba(245,158,11,0.1)', color: '#f59e0b',
                             cursor: verifyLoading ? 'default' : 'pointer',
                             opacity: verifyLoading ? .6 : 1,
                             fontFamily: 'inherit',
@@ -535,8 +555,8 @@ export default function ProfilePage() {
                 </div>
                 {profile.bio && (
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>نبذة شخصية</div>
-                    <div style={{ fontSize: '.93rem', color: '#374151', lineHeight: 1.7 }}>{profile.bio}</div>
+                    <div style={{ fontSize: '.78rem', color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>نبذة شخصية</div>
+                    <div style={{ fontSize: '.93rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>{profile.bio}</div>
                   </div>
                 )}
               </div>
@@ -651,36 +671,36 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Social links — section */}
-                  <div style={{ gridColumn: '1 / -1', borderTop: `1px solid ${C.teal}18`, paddingTop: 16 }}>
-                    <div style={{ fontSize: '.85rem', fontWeight: 700, color: C.darkNavy, marginBottom: 14 }}>🔗 روابط التواصل الاجتماعي</div>
+                  <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(78,141,156,0.15)', paddingTop: 16 }}>
+                    <div style={{ fontSize: '.85rem', fontWeight: 700, color: C.lightMint, marginBottom: 14 }}>🔗 روابط التواصل الاجتماعي</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: '#555', marginBottom: 6 }}>𝕏 X (تويتر)</label>
+                        <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: '#aaa', marginBottom: 6 }}>𝕏 X (تويتر)</label>
                         <input className="inp-focus" type="url" placeholder="https://x.com/username" value={editForm.social_twitter}
                           onChange={e => setEditForm(p => ({ ...p, social_twitter: e.target.value }))}
-                          style={{ ...INP, border: `2px solid #33333318` }} />
+                          style={{ ...INP, border: '1px solid rgba(255,255,255,0.1)' }} />
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: '#0a66c2', marginBottom: 6 }}>💼 LinkedIn</label>
+                        <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: '#5b9bd5', marginBottom: 6 }}>💼 LinkedIn</label>
                         <input className="inp-focus" type="url" placeholder="https://linkedin.com/in/..." value={editForm.social_linkedin}
                           onChange={e => setEditForm(p => ({ ...p, social_linkedin: e.target.value }))}
-                          style={{ ...INP, border: `2px solid #0a66c218` }} />
+                          style={{ ...INP, border: '1px solid rgba(10,102,194,0.2)' }} />
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: '#ff0000', marginBottom: 6 }}>▶ YouTube</label>
+                        <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: '#ff6b6b', marginBottom: 6 }}>▶ YouTube</label>
                         <input className="inp-focus" type="url" placeholder="https://youtube.com/@channel" value={editForm.social_youtube}
                           onChange={e => setEditForm(p => ({ ...p, social_youtube: e.target.value }))}
-                          style={{ ...INP, border: `2px solid #ff000018` }} />
+                          style={{ ...INP, border: '1px solid rgba(255,0,0,0.15)' }} />
                       </div>
 
                       <div>
                         <label style={{ display: 'block', fontSize: '.8rem', fontWeight: 700, color: C.teal, marginBottom: 6 }}>🌐 الموقع الشخصي</label>
                         <input className="inp-focus" type="url" placeholder="https://yoursite.com" value={editForm.social_website}
                           onChange={e => setEditForm(p => ({ ...p, social_website: e.target.value }))}
-                          style={{ ...INP, border: `2px solid ${C.teal}22` }} />
+                          style={{ ...INP, border: `1px solid rgba(78,141,156,0.2)` }} />
                       </div>
 
                     </div>
@@ -699,7 +719,7 @@ export default function ProfilePage() {
                     </button>
                     <button type="button" onClick={() => { setEditMode(false); setSaveErr(''); }} style={{
                       flex: 1, padding: '12px 0', background: 'transparent',
-                      color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 12,
+                      color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12,
                       cursor: 'pointer', fontWeight: 600, fontSize: '.95rem', fontFamily: 'inherit',
                     }}>إلغاء</button>
                   </div>
@@ -711,10 +731,10 @@ export default function ProfilePage() {
 
         {/* ══════════ Tab: Security ══════════ */}
         {activeTab === 'security' && (
-          <div style={{ background: 'white', borderRadius: 18, padding: '28px 30px', boxShadow: '0 2px 16px rgba(0,0,0,.07)' }}>
-            <h2 style={{ margin: '0 0 22px', color: C.darkNavy, fontSize: '1.1rem', fontWeight: 800 }}>🔐 إعدادات الأمان</h2>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 18, padding: '28px 30px' }}>
+            <h2 style={{ margin: '0 0 22px', color: C.lightMint, fontSize: '1.1rem', fontWeight: 800 }}>🔐 إعدادات الأمان</h2>
 
-            <div style={{ background: `${C.lightMint}50`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 28, flexWrap: 'wrap' }}>
+            <div style={{ background: 'rgba(78,141,156,0.08)', borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 28, flexWrap: 'wrap', border: '1px solid rgba(78,141,156,0.12)' }}>
               {[
                 { label: 'البريد',        value: profile.email },
                 { label: 'تاريخ الانضمام', value: fmtDate(profile.created_at) },
@@ -723,23 +743,23 @@ export default function ProfilePage() {
                 { label: 'حالة الحساب',   value: profile.status === 'active' ? '✅ نشط' : (profile.status ? '⛔ موقوف' : '—') },
               ].map(it => (
                 <div key={it.label}>
-                  <div style={{ fontSize: '.8rem', color: '#9ca3af' }}>{it.label}</div>
-                  <div style={{ fontWeight: 600, color: C.darkNavy, fontSize: '.92rem' }}>{it.value}</div>
+                  <div style={{ fontSize: '.8rem', color: 'rgba(255,255,255,0.35)' }}>{it.label}</div>
+                  <div style={{ fontWeight: 600, color: '#fff', fontSize: '.92rem' }}>{it.value}</div>
                 </div>
               ))}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showPwd ? 18 : 0 }}>
-              <h3 style={{ margin: 0, fontSize: '.98rem', color: C.darkNavy }}>تغيير كلمة المرور</h3>
-              <button onClick={() => setShowPwd(v => !v)} style={{ background: 'none', border: `1px solid ${C.teal}40`, borderRadius: 40, padding: '6px 14px', color: C.teal, cursor: 'pointer', fontSize: '.85rem', fontFamily: 'inherit' }}>
+              <h3 style={{ margin: 0, fontSize: '.98rem', color: '#fff' }}>تغيير كلمة المرور</h3>
+              <button onClick={() => setShowPwd(v => !v)} style={{ background: 'none', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 40, padding: '6px 14px', color: C.teal, cursor: 'pointer', fontSize: '.85rem', fontFamily: 'inherit' }}>
                 {showPwd ? 'إخفاء' : 'تغيير'}
               </button>
             </div>
 
             {showPwd && (
               <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 440, marginTop: 8 }}>
-                {pwdErr && <div style={{ background: '#fee2e2', border: '1px solid #ef4444', borderRadius: 10, padding: '10px 14px', color: '#ef4444', fontSize: '.9rem' }}>{pwdErr}</div>}
-                {pwdMsg && <div style={{ background: '#d1fae5', border: '1px solid #10b981', borderRadius: 10, padding: '10px 14px', color: '#065f46', fontSize: '.9rem' }}>{pwdMsg}</div>}
+                {pwdErr && <div style={{ background: 'rgba(255,50,50,0.12)', border: '1px solid rgba(255,50,50,0.3)', borderRadius: 10, padding: '10px 14px', color: '#ff6b6b', fontSize: '.9rem' }}>{pwdErr}</div>}
+                {pwdMsg && <div style={{ background: 'rgba(133,199,154,0.12)', border: '1px solid rgba(133,199,154,0.3)', borderRadius: 10, padding: '10px 14px', color: C.softGreen, fontSize: '.9rem' }}>{pwdMsg}</div>}
                 {[
                   { key: 'current', label: 'كلمة المرور الحالية' },
                   { key: 'next',    label: 'كلمة المرور الجديدة (8+ أحرف)' },
@@ -769,9 +789,9 @@ export default function ProfilePage() {
               </form>
             )}
 
-            <div style={{ marginTop: 36, borderTop: '1px solid #fee2e2', paddingTop: 24 }}>
-              <h3 style={{ margin: '0 0 14px', fontSize: '.98rem', color: '#ef4444' }}>⚠️ منطقة الخطر</h3>
-              <button onClick={handleLogout} style={{ padding: '10px 24px', background: '#fee2e2', border: '1px solid #ef444430', borderRadius: 40, color: '#ef4444', cursor: 'pointer', fontWeight: 600, fontSize: '.9rem', fontFamily: 'inherit' }}>
+            <div style={{ marginTop: 36, borderTop: '1px solid rgba(255,80,80,0.15)', paddingTop: 24 }}>
+              <h3 style={{ margin: '0 0 14px', fontSize: '.98rem', color: '#ff6b6b' }}>⚠️ منطقة الخطر</h3>
+              <button onClick={handleLogout} style={{ padding: '10px 24px', background: 'rgba(255,80,80,0.1)', border: '1px solid rgba(255,80,80,0.25)', borderRadius: 40, color: '#ff6b6b', cursor: 'pointer', fontWeight: 600, fontSize: '.9rem', fontFamily: 'inherit' }}>
                 🚪 تسجيل الخروج
               </button>
             </div>
@@ -780,25 +800,28 @@ export default function ProfilePage() {
 
         {/* ══════════ Tab: Activity ══════════ */}
         {activeTab === 'activity' && (
-          <div style={{ background: 'white', borderRadius: 18, padding: '28px 30px', boxShadow: '0 2px 16px rgba(0,0,0,.07)' }}>
-            <h2 style={{ margin: '0 0 22px', color: C.darkNavy, fontSize: '1.1rem', fontWeight: 800 }}>⚡ النشاط الأخير</h2>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 18, padding: '28px 30px' }}>
+            <h2 style={{ margin: '0 0 22px', color: C.lightMint, fontSize: '1.1rem', fontWeight: 800 }}>⚡ النشاط الأخير</h2>
             {actsLoading ? (
-              <div style={{ textAlign: 'center', padding: 40, color: C.teal }}>⏳ جاري التحميل...</div>
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <div style={{ width: 36, height: 36, border: '3px solid rgba(78,141,156,0.2)', borderTopColor: C.teal, borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>جاري التحميل...</div>
+              </div>
             ) : activities.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📭</div>
+              <div style={{ textAlign: 'center', padding: 40, color: 'rgba(255,255,255,0.3)' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 12, opacity: 0.5 }}>📭</div>
                 <div>لا يوجد نشاط مسجّل حتى الآن</div>
               </div>
             ) : activities.map((act, i) => (
-              <div key={act.id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '13px 0', borderBottom: i < activities.length - 1 ? `1px solid ${C.teal}12` : 'none' }}>
-                <div style={{ width: 34, height: 34, borderRadius: '50%', background: `${C.teal}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '.95rem' }}>
+              <div key={act.id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '13px 0', borderBottom: i < activities.length - 1 ? '1px solid rgba(78,141,156,0.08)' : 'none' }}>
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(78,141,156,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '.95rem' }}>
                   {act.type === 'login' ? '🔑' : act.type === 'update' ? '✏️' : act.type === 'create' ? '➕' : act.type === 'delete' ? '🗑️' : '⚡'}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '.9rem', color: C.darkNavy, fontWeight: 500 }}>
+                  <div style={{ fontSize: '.9rem', color: '#fff', fontWeight: 500 }}>
                     {act.link ? <Link href={act.link} style={{ color: C.teal, textDecoration: 'none' }}>{act.description}</Link> : act.description}
                   </div>
-                  <div style={{ fontSize: '.82rem', color: '#9ca3af', marginTop: 2 }}>{fmtDate(act.created_at)}</div>
+                  <div style={{ fontSize: '.82rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{fmtDate(act.created_at)}</div>
                 </div>
               </div>
             ))}

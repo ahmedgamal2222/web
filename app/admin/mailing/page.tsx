@@ -13,6 +13,27 @@ const C = {
   darkNavy: '#281C59',
 };
 
+const COUNTRY_AR: Record<string, string> = {
+  'Egypt': 'مصر', 'Saudi Arabia': 'السعودية', 'UAE': 'الإمارات',
+  'Jordan': 'الأردن', 'Kuwait': 'الكويت', 'Qatar': 'قطر',
+  'Bahrain': 'البحرين', 'Oman': 'عُمان', 'Morocco': 'المغرب',
+  'Tunisia': 'تونس', 'Sudan': 'السودان', 'Libya': 'ليبيا',
+  'Iraq': 'العراق', 'Lebanon': 'لبنان', 'Palestine': 'فلسطين',
+  'Syria': 'سوريا', 'Yemen': 'اليمن', 'Algeria': 'الجزائر',
+  'Somalia': 'الصومال', 'Mauritania': 'موريتانيا', 'Djibouti': 'جيبوتي',
+  'Comoros': 'جزر القمر', 'Turkey': 'تركيا', 'Pakistan': 'باكستان',
+  'India': 'الهند', 'United Kingdom': 'المملكة المتحدة',
+  'United States': 'الولايات المتحدة', 'Germany': 'ألمانيا',
+  'France': 'فرنسا', 'Canada': 'كندا', 'Australia': 'أستراليا',
+};
+
+const TYPE_AR: Record<string, string> = {
+  'educational': 'تعليمية', 'research': 'بحثية', 'cultural': 'ثقافية',
+  'charitable': 'خيرية', 'media': 'إعلامية', 'developmental': 'تنموية',
+  'governmental': 'حكومية', 'ngo': 'منظمة غير ربحية', 'private': 'خاصة',
+  'startup': 'ناشئة', 'healthcare': 'صحية',
+};
+
 interface Recipient {
   id: number;
   email: string;
@@ -253,13 +274,13 @@ export default function AdminMailingPage() {
                   <label style={labelStyle}>الدولة</label>
                   <select value={filterCountry} onChange={e => setFilterCountry(e.target.value)} style={selectStyle}>
                     <option value="">الكل</option>
-                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                    {countries.map(c => <option key={c} value={c}>{COUNTRY_AR[c] || c}</option>)}
                   </select>
 
                   <label style={labelStyle}>نوع المؤسسة</label>
                   <select value={filterType} onChange={e => setFilterType(e.target.value)} style={selectStyle}>
                     <option value="">الكل</option>
-                    {types.map(t => <option key={t} value={t}>{t}</option>)}
+                    {types.map(t => <option key={t} value={t}>{TYPE_AR[t] || t}</option>)}
                   </select>
 
                   <label style={labelStyle}>التصنيف الفرعي</label>

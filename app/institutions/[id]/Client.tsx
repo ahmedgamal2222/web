@@ -174,7 +174,7 @@ function HeroSection({ institution }: { institution: Institution }) {
             </h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
               <Chip label={getTypeLabel(institution.type)} color={C.cyan} />
-              {institution.is_verified && <Chip label="✓ موثقة" color={C.green} />}
+              {!!institution.is_verified && <Chip label="✓ موثقة" color={C.green} />}
               <Chip
                 label={institution.screen_active ? '✨ الشاشة نشطة' : '⚪ الشاشة غير نشطة'}
                 color={institution.screen_active ? C.green : C.textMuted}
@@ -502,16 +502,18 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
 
             {/* Active tier badge */}
             <div style={{
-              padding: '8px 24px', borderRadius: 30,
-              background: `linear-gradient(135deg, ${realTier.color}15, ${realTier.color}08)`,
-              border: `1px solid ${realTier.color}35`,
-              fontSize: '0.9rem', fontWeight: 800, color: realTier.color,
-              display: 'flex', alignItems: 'center', gap: 10,
-              animation: 'kpiFadeIn 0.8s ease-out',
+              marginTop: 18, marginBottom: 20,
+              padding: '10px 28px', borderRadius: 40,
+              background: `linear-gradient(135deg, ${realTier.color}18, ${realTier.color}06)`,
+              border: `1.5px solid ${realTier.color}45`,
+              fontSize: '0.92rem', fontWeight: 800, color: realTier.color,
+              display: 'flex', alignItems: 'center', gap: 12,
+              boxShadow: `0 4px 20px ${realTier.color}20`,
+              animation: 'kpiFadeIn 0.9s ease-out',
             }}>
               <span style={{
-                width: 10, height: 10, borderRadius: '50%', background: realTier.color,
-                display: 'inline-block', boxShadow: `0 0 8px ${realTier.color}`,
+                width: 11, height: 11, borderRadius: '50%', background: realTier.color,
+                display: 'inline-block', boxShadow: `0 0 10px ${realTier.color}, 0 0 20px ${realTier.color}60`,
                 animation: 'kpiGlow 2s infinite',
               }} />
               {realTier.label} — {realTier.labelEn}
