@@ -218,7 +218,7 @@ export default function AdminDashboard() {
           link="/admin/institutions"
         />
         <StatCard
-          title="الطلبات المعلّقة"
+          title="الطلبات قيد المراجعة"
           value={stats.pending_requests}
           icon="⏳"
           color="#FFC107"

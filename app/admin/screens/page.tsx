@@ -150,11 +150,18 @@ export default function ScreensManagementPage() {
   return (
     <div className="page-wrap page-inner" style={{ direction: 'rtl' }}>
       {/* الهيدر */}
-      <div className="page-hero">
-        <h1 style={{ fontSize: '2rem', marginBottom: 10 }}>
-          ✦ إدارة الشاشات
-        </h1>
-        <p>مراقبة وإدارة شاشات العرض للمؤسسات</p>
+      <div className="page-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', marginBottom: 10 }}>
+            ✦ إدارة الشاشات
+          </h1>
+          <p>مراقبة وإدارة شاشات العرض للمؤسسات</p>
+        </div>
+        <Link href="/admin" style={{
+          background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+          color: 'white', padding: '10px 20px', borderRadius: 40, textDecoration: 'none',
+          fontSize: '0.9rem',
+        }}>← لوحة التحكم</Link>
       </div>
 
       {/* بطاقات الإحصائيات */}
