@@ -79,28 +79,26 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      const [institutionsRes, requestsRes, usersRes, screensRes, agreementsRes, servicesRes,
+      const [institutionsRes, requestsRes, usersRes, agreementsRes, servicesRes,
              campaignsRes, marketplaceRes, saasRes,
              recentReqRes, recentUsersRes, recentSvcRes] = await Promise.all([
         fetch(`${API_BASE}/api/institutions?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/institution-requests?status=pending&limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/users?limit=1`, { headers: authHeaders }),
-        fetch(`${API_BASE}/api/screens/stats`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/agreements?limit=1`, { headers: authHeaders }),
-        fetch(`${API_BASE}/api/services?limit=1`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/services?limit=1&status=all`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/campaigns?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/marketplace?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/saas?limit=1`, { headers: authHeaders }),
         // بيانات حقيقية للبطاقات
         fetch(`${API_BASE}/api/institution-requests?status=pending&limit=3`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/users?limit=3`, { headers: authHeaders }),
-        fetch(`${API_BASE}/api/services?limit=3`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/services?limit=3&status=all`, { headers: authHeaders }),
       ]);
 
       const institutions = await institutionsRes.json();
       const requests     = await requestsRes.json();
       const users        = await usersRes.json();
-      const screens      = await screensRes.json();
       const agreements   = await agreementsRes.json();
       const services     = await servicesRes.json();
       const campaigns    = await campaignsRes.json();
@@ -110,11 +108,19 @@ export default function AdminDashboard() {
       const recentUsr    = await recentUsersRes.json();
       const recentSvc    = await recentSvcRes.json();
 
+      // حساب الشاشات النشطة من جدول المؤسسات
+      let activeScreens = 0;
+      try {
+        const screensRes = await fetch(`${API_BASE}/api/institutions?limit=200`, { headers: authHeaders });
+        const screensData = await screensRes.json();
+        activeScreens = (screensData.data || []).filter((inst: any) => inst.screen_active === 1).length;
+      } catch {}
+
       setStats({
         total_institutions: institutions.total || 0,
         pending_requests:   requests.total    || 0,
         total_users:        users.total       || 0,
-        active_screens:     screens.active    || 0,
+        active_screens:     activeScreens,
         total_agreements:   agreements.total  || 0,
         total_services:     services.total    || 0,
         total_campaigns:    campaigns.total   || 0,
@@ -212,7 +218,7 @@ export default function AdminDashboard() {
           link="/admin/institutions"
         />
         <StatCard
-          title="طلبات pending"
+          title="الطلبات المعلّقة"
           value={stats.pending_requests}
           icon="⏳"
           color="#FFC107"
