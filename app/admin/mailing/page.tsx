@@ -231,6 +231,12 @@ export default function AdminMailingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', color: '#fff', fontFamily: "'Tajawal', sans-serif", direction: 'rtl' }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg) } }
+        .ml-inp:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}30 !important; }
+        .ml-inp::placeholder { color: rgba(255,255,255,0.25); }
+        select.ml-inp option { background: #1a1040; color: #fff; }
+      `}</style>
 
       {/* Header */}
       <div style={{ background: 'rgba(78,141,156,0.08)', borderBottom: '1px solid rgba(78,141,156,0.15)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -272,25 +278,25 @@ export default function AdminMailingPage() {
               {target === 'institutions' && (
                 <>
                   <label style={labelStyle}>الدولة</label>
-                  <select value={filterCountry} onChange={e => setFilterCountry(e.target.value)} style={selectStyle}>
+                  <select value={filterCountry} onChange={e => setFilterCountry(e.target.value)} style={selectStyle} className="ml-inp">
                     <option value="">الكل</option>
                     {countries.map(c => <option key={c} value={c}>{COUNTRY_AR[c] || c}</option>)}
                   </select>
 
                   <label style={labelStyle}>نوع المؤسسة</label>
-                  <select value={filterType} onChange={e => setFilterType(e.target.value)} style={selectStyle}>
+                  <select value={filterType} onChange={e => setFilterType(e.target.value)} style={selectStyle} className="ml-inp">
                     <option value="">الكل</option>
                     {types.map(t => <option key={t} value={t}>{TYPE_AR[t] || t}</option>)}
                   </select>
 
                   <label style={labelStyle}>التصنيف الفرعي</label>
-                  <select value={filterSubType} onChange={e => setFilterSubType(e.target.value)} style={selectStyle}>
+                  <select value={filterSubType} onChange={e => setFilterSubType(e.target.value)} style={selectStyle} className="ml-inp">
                     <option value="">الكل</option>
                     {subTypes.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
 
                   <label style={labelStyle}>الحالة</label>
-                  <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={selectStyle}>
+                  <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={selectStyle} className="ml-inp">
                     <option value="">الكل</option>
                     <option value="active">فعّال</option>
                     <option value="pending">قيد الانتظار</option>
@@ -302,7 +308,7 @@ export default function AdminMailingPage() {
               {target === 'users' && (
                 <>
                   <label style={labelStyle}>الحالة</label>
-                  <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={selectStyle}>
+                  <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={selectStyle} className="ml-inp">
                     <option value="">الكل</option>
                     <option value="active">فعّال</option>
                     <option value="inactive">غير فعّال</option>
@@ -366,10 +372,10 @@ export default function AdminMailingPage() {
                 <h3 style={{ fontSize: 16, fontWeight: 800, color: C.lightMint, margin: '0 0 20px' }}>✍️ كتابة الرسالة</h3>
 
                 <label style={labelStyle}>الموضوع</label>
-                <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="موضوع الرسالة..." style={inputStyle} />
+                <input className="ml-inp" value={subject} onChange={e => setSubject(e.target.value)} placeholder="موضوع الرسالة..." style={inputStyle} />
 
                 <label style={labelStyle}>محتوى الرسالة (HTML)</label>
-                <textarea value={bodyHtml} onChange={e => setBodyHtml(e.target.value)} placeholder="اكتب محتوى الرسالة هنا... يدعم HTML" rows={10} style={{ ...inputStyle, resize: 'vertical', minHeight: 180 }} />
+                <textarea className="ml-inp" value={bodyHtml} onChange={e => setBodyHtml(e.target.value)} placeholder="اكتب محتوى الرسالة هنا... يدعم HTML" rows={10} style={{ ...inputStyle, resize: 'vertical', minHeight: 180 }} />
 
                 {/* Preview */}
                 {bodyHtml.trim() && (
@@ -491,7 +497,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(78,141,156,0.15)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontFamily: "'Tajawal', sans-serif", fontSize: 14, outline: 'none', boxSizing: 'border-box',
+  width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(78,141,156,0.15)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontFamily: "'Tajawal', sans-serif", fontSize: 14, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s',
 };
 
 const selectStyle: React.CSSProperties = {

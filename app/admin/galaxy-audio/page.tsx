@@ -142,6 +142,11 @@ export default function GalaxyAudioPage() {
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', color: '#fff' }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg) } }
+        .ga-inp:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}30 !important; }
+        .ga-inp::placeholder { color: rgba(255,255,255,0.25); }
+      `}</style>
 
       {/* Header */}
       <div style={{ background: 'rgba(78,141,156,0.08)', borderBottom: '1px solid rgba(78,141,156,0.15)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -198,9 +203,10 @@ export default function GalaxyAudioPage() {
             <div style={{ flex: 1, minWidth: 200 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.teal, marginBottom: 6 }}>عنوان الصوت</label>
               <input
+                className="ga-inp"
                 value={newTitle} onChange={e => setNewTitle(e.target.value)}
                 placeholder="مثال: صوت الفضاء الهادئ..."
-                style={{ width: '100%', padding: '11px 16px', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 12, fontSize: 14, outline: 'none', color: '#fff', background: 'rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                style={{ width: '100%', padding: '11px 16px', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 12, fontSize: 14, outline: 'none', color: '#fff', background: 'rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s, box-shadow 0.2s' }}
               />
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
@@ -253,7 +259,6 @@ export default function GalaxyAudioPage() {
             <div style={{ textAlign: 'center', padding: 50 }}>
               <div style={{ width: 40, height: 40, border: `3px solid rgba(78,141,156,0.2)`, borderTopColor: C.teal, borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
               <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>جاري التحميل...</div>
-              <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
             </div>
           ) : tracks.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 60 }}>

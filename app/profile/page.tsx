@@ -526,7 +526,7 @@ export default function ProfilePage() {
 
                 {/* Email field with verify button */}
                 <div>
-                  <div style={{ fontSize: '.78rem', color: '#9ca3af', marginBottom: 4 }}>البريد الإلكتروني</div>
+                  <div style={{ fontSize: '.78rem', color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>البريد الإلكتروني</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '.93rem', color: '#fff', fontWeight: 500 }}>{profile.email}</span>
                     {(profile.email_verified || profile.is_verified)
@@ -550,7 +550,7 @@ export default function ProfilePage() {
                     }
                   </div>
                   {verifyMsg && (
-                    <div style={{ fontSize: '.8rem', marginTop: 6, color: verifyMsg.startsWith('✅') ? '#065f46' : '#92400e' }}>{verifyMsg}</div>
+                    <div style={{ fontSize: '.8rem', marginTop: 6, color: verifyMsg.startsWith('✅') ? '#85C79A' : '#f59e0b' }}>{verifyMsg}</div>
                   )}
                 </div>
                 {profile.bio && (
