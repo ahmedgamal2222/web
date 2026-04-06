@@ -230,16 +230,16 @@ export default function AdminMailingPage() {
   const selectedCount = recipients.filter(r => selectedIds.has(r.id)).length;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', color: '#fff', fontFamily: "'Tajawal', sans-serif", direction: 'rtl' }}>
+    <div style={{ minHeight: '100vh', background: '#07091e', color: '#e2eaf2', fontFamily: "'Tajawal', sans-serif", direction: 'rtl' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         .ml-inp:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}30 !important; }
         .ml-inp::placeholder { color: rgba(255,255,255,0.25); }
-        select.ml-inp option { background: #1a1040; color: #fff; }
+        select.ml-inp option { background: #0a102a; color: #e2eaf2; }
       `}</style>
 
       {/* Header */}
-      <div style={{ background: 'rgba(78,141,156,0.08)', borderBottom: '1px solid rgba(78,141,156,0.15)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'rgba(7,9,30,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(78,141,156,0.18)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 32px rgba(0,0,0,0.5)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link href="/admin" style={{ color: C.teal, textDecoration: 'none', fontSize: 14 }}>← لوحة التحكم</Link>
           <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, background: `linear-gradient(90deg, ${C.lightMint}, ${C.softGreen})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📧 القائمة البريدية</h1>
@@ -262,7 +262,7 @@ export default function AdminMailingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24 }}>
 
             {/* Filters Panel */}
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 16, padding: 24 }}>
+            <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 16, padding: 24 }}>
               <h3 style={{ fontSize: 16, fontWeight: 800, color: C.lightMint, marginBottom: 20, margin: '0 0 20px' }}>🎯 تصفية المستلمين</h3>
 
               {/* Target */}
@@ -333,7 +333,7 @@ export default function AdminMailingPage() {
 
               {/* Recipients Table */}
               {recipients.length > 0 && (
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 16, padding: 20, maxHeight: 320, overflow: 'auto' }}>
+                <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 16, padding: 20, maxHeight: 320, overflow: 'auto' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                     <h4 style={{ margin: 0, fontSize: 14, color: C.lightMint }}>📋 المستلمون ({recipients.length})</h4>
                     <button onClick={toggleAll} style={{ background: 'none', border: `1px solid ${C.teal}`, borderRadius: 8, padding: '4px 14px', color: C.teal, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
@@ -368,7 +368,7 @@ export default function AdminMailingPage() {
               )}
 
               {/* Compose */}
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 16, padding: 24 }}>
+              <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 16, padding: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 800, color: C.lightMint, margin: '0 0 20px' }}>✍️ كتابة الرسالة</h3>
 
                 <label style={labelStyle}>الموضوع</label>
@@ -405,7 +405,7 @@ export default function AdminMailingPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {campaigns.map(c => (
-                  <div key={c.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 14, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div key={c.id} style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 14, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 800, fontSize: 15, color: C.lightMint, marginBottom: 4 }}>{c.subject}</div>
                       <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
@@ -449,7 +449,7 @@ export default function AdminMailingPage() {
             {/* Logs Modal */}
             {viewLogs && (
               <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setViewLogs(null); setViewCampaignId(null); }}>
-                <div onClick={e => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, #0c0928, #1a1040)', border: '1px solid rgba(78,141,156,0.2)', borderRadius: 20, padding: 28, width: '90%', maxWidth: 700, maxHeight: '80vh', overflow: 'auto' }}>
+                <div onClick={e => e.stopPropagation()} style={{ background: '#0a102a', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 20, padding: 28, width: '90%', maxWidth: 700, maxHeight: '80vh', overflow: 'auto' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <h3 style={{ margin: 0, fontSize: 18, color: C.lightMint }}>📋 تفاصيل الحملة #{viewCampaignId}</h3>
                     <button onClick={() => { setViewLogs(null); setViewCampaignId(null); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 20 }}>✕</button>
@@ -497,7 +497,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(78,141,156,0.15)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontFamily: "'Tajawal', sans-serif", fontSize: 14, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s',
+  width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(78,141,156,0.18)', background: 'rgba(10,16,42,0.60)', color: '#e2eaf2', fontFamily: "'Tajawal', sans-serif", fontSize: 14, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s',
 };
 
 const selectStyle: React.CSSProperties = {

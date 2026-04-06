@@ -141,15 +141,16 @@ export default function GalaxyAudioPage() {
   const activeCount = tracks.filter(t => t.is_active).length;
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', background: '#07091e', color: '#e2eaf2' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         .ga-inp:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}30 !important; }
         .ga-inp::placeholder { color: rgba(255,255,255,0.25); }
+        select.ga-inp option { background: #0a102a; color: #e2eaf2; }
       `}</style>
 
       {/* Header */}
-      <div style={{ background: 'rgba(78,141,156,0.08)', borderBottom: '1px solid rgba(78,141,156,0.15)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'rgba(7,9,30,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(78,141,156,0.18)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 32px rgba(0,0,0,0.5)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link href="/admin" style={{ color: C.teal, textDecoration: 'none', fontSize: 14 }}>← لوحة التحكم</Link>
           <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, background: `linear-gradient(90deg, ${C.lightMint}, ${C.softGreen})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -190,8 +191,8 @@ export default function GalaxyAudioPage() {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           style={{
-            background: dragOver ? 'rgba(78,141,156,0.12)' : 'rgba(255,255,255,0.03)',
-            border: `2px dashed ${dragOver ? C.teal : 'rgba(78,141,156,0.2)'}`,
+            background: dragOver ? 'rgba(78,141,156,0.12)' : 'rgba(10,16,42,0.90)',
+            border: `2px dashed ${dragOver ? C.teal : 'rgba(78,141,156,0.18)'}`,
             borderRadius: 20, padding: 28, marginBottom: 28,
             transition: 'all 0.3s',
           }}
@@ -206,14 +207,14 @@ export default function GalaxyAudioPage() {
                 className="ga-inp"
                 value={newTitle} onChange={e => setNewTitle(e.target.value)}
                 placeholder="مثال: صوت الفضاء الهادئ..."
-                style={{ width: '100%', padding: '11px 16px', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 12, fontSize: 14, outline: 'none', color: '#fff', background: 'rgba(255,255,255,0.06)', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+                style={{ width: '100%', padding: '11px 16px', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 12, fontSize: 14, outline: 'none', color: '#e2eaf2', background: 'rgba(10,16,42,0.60)', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s, box-shadow 0.2s' }}
               />
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.teal, marginBottom: 6 }}>ملف الصوت (mp3, wav, ogg, webm, flac)</label>
               <div
                 onClick={() => fileInputRef.current?.click()}
-                style={{ width: '100%', padding: '11px 16px', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 12, fontSize: 14, color: audioFile ? '#fff' : 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.06)', boxSizing: 'border-box', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, minHeight: 44 }}
+                style={{ width: '100%', padding: '11px 16px', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 12, fontSize: 14, color: audioFile ? '#e2eaf2' : 'rgba(255,255,255,0.35)', background: 'rgba(10,16,42,0.60)', boxSizing: 'border-box', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, minHeight: 44 }}
               >
                 {audioFile ? (
                   <>📁 {audioFile.name} <span style={{ fontSize: 12, color: C.teal, marginRight: 'auto' }}>({formatSize(audioFile.size)})</span></>
@@ -250,7 +251,7 @@ export default function GalaxyAudioPage() {
         </div>
 
         {/* Tracks Card */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 20, padding: 28 }}>
+        <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 20, padding: 28 }}>
           <h3 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 800, color: C.lightMint, display: 'flex', alignItems: 'center', gap: 8 }}>
             🎶 الأصوات المرفوعة
           </h3>

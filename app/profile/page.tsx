@@ -122,8 +122,8 @@ const INP: React.CSSProperties = {
   padding: '11px 14px',
   borderRadius: 10,
   border: '1px solid rgba(78,141,156,0.25)',
-  background: 'rgba(255,255,255,0.06)',
-  color: '#fff',
+  background: 'rgba(10,16,42,0.60)',
+  color: '#e2eaf2',
   fontSize: '0.93rem',
   outline: 'none',
   boxSizing: 'border-box',
@@ -324,14 +324,14 @@ export default function ProfilePage() {
 
   // ─────────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', direction: 'rtl', gap: 14, color: C.teal }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#07091e', direction: 'rtl', gap: 14, color: C.teal }}>
       <div style={{ width: 40, height: 40, border: '3px solid rgba(78,141,156,0.2)', borderTopColor: C.teal, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
       <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>جاري التحميل...</span>
     </div>
   );
 
   if (error || !profile) return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', gap: 14, direction: 'rtl' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#07091e', gap: 14, direction: 'rtl' }}>
       <span style={{ fontSize: '3rem' }}>❌</span>
       <span style={{ color: '#ff6b6b' }}>{error || 'فشل تحميل الملف الشخصي'}</span>
       <button onClick={loadProfile} style={{ padding: '10px 24px', background: `linear-gradient(135deg, ${C.teal}, ${C.darkNavy})`, color: 'white', border: 'none', borderRadius: 40, cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', fontSize: '.93rem' }}>
@@ -343,12 +343,12 @@ export default function ProfilePage() {
   const sl = profile.social_links || {};
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0520 0%, #1a1040 50%, #0d0825 100%)', direction: 'rtl', fontFamily: 'Tajawal, Cairo, sans-serif', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#07091e', direction: 'rtl', fontFamily: 'Tajawal, Cairo, sans-serif', color: '#e2eaf2' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .inp-focus:focus { border-color: ${C.teal} !important; box-shadow: 0 0 0 3px ${C.teal}30 !important; }
         .inp-focus::placeholder { color: rgba(255,255,255,0.25); }
-        select.inp-focus option { background: #1a1040; color: #fff; }
+        select.inp-focus option { background: #0a102a; color: #e2eaf2; }
         @media (max-width: 600px) {
           .prof-head { flex-direction: column !important; align-items: center !important; }
           .prof-actions { justify-content: center !important; }
@@ -373,7 +373,7 @@ export default function ProfilePage() {
       <div style={{ maxWidth: 920, margin: '0 auto', padding: '0 20px 60px' }}>
 
         {/* Header card */}
-        <div className="prof-head" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(78,141,156,0.15)', borderRadius: 22, padding: '28px 30px', backdropFilter: 'blur(12px)', marginTop: -70, position: 'relative', display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="prof-head" style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 22, padding: '28px 30px', backdropFilter: 'blur(12px)', marginTop: -70, position: 'relative', display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
 
           {/* Avatar block */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -467,7 +467,7 @@ export default function ProfilePage() {
             { label: 'الدولة',           value: profile.country || '—',      icon: '🌍' },
             { label: 'القسم',            value: profile.department || '—',   icon: '🏷️' },
           ].map(item => (
-            <div key={item.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.1)', borderRadius: 14, padding: '14px 16px' }}>
+            <div key={item.label} style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 14, padding: '14px 16px' }}>
               <div style={{ fontSize: '.78rem', color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>{item.icon} {item.label}</div>
               <div style={{ fontSize: '.86rem', fontWeight: 600, color: '#fff', wordBreak: 'break-all' }}>{item.value}</div>
             </div>
@@ -475,7 +475,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.1)', borderRadius: 14, padding: '6px 10px', marginBottom: 18, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 14, padding: '6px 10px', marginBottom: 18, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(['info', 'security', 'activity'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               padding: '10px 22px', borderRadius: 40, fontSize: '.9rem', fontWeight: 600,
@@ -492,7 +492,7 @@ export default function ProfilePage() {
 
         {/* ══════════ Tab: Info ══════════ */}
         {activeTab === 'info' && (
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 18, padding: '28px 30px' }}>
+          <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 18, padding: '28px 30px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
               <h2 style={{ margin: 0, color: C.lightMint, fontSize: '1.1rem', fontWeight: 800 }}>المعلومات الشخصية</h2>
               {!editMode && (
@@ -731,10 +731,10 @@ export default function ProfilePage() {
 
         {/* ══════════ Tab: Security ══════════ */}
         {activeTab === 'security' && (
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 18, padding: '28px 30px' }}>
+          <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 18, padding: '28px 30px' }}>
             <h2 style={{ margin: '0 0 22px', color: C.lightMint, fontSize: '1.1rem', fontWeight: 800 }}>🔐 إعدادات الأمان</h2>
 
-            <div style={{ background: 'rgba(78,141,156,0.08)', borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 28, flexWrap: 'wrap', border: '1px solid rgba(78,141,156,0.12)' }}>
+            <div style={{ background: 'rgba(78,141,156,0.08)', borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 28, flexWrap: 'wrap', border: '1px solid rgba(78,141,156,0.18)' }}>
               {[
                 { label: 'البريد',        value: profile.email },
                 { label: 'تاريخ الانضمام', value: fmtDate(profile.created_at) },
@@ -800,7 +800,7 @@ export default function ProfilePage() {
 
         {/* ══════════ Tab: Activity ══════════ */}
         {activeTab === 'activity' && (
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 18, padding: '28px 30px' }}>
+          <div style={{ background: 'rgba(10,16,42,0.90)', border: '1px solid rgba(78,141,156,0.18)', borderRadius: 18, padding: '28px 30px' }}>
             <h2 style={{ margin: '0 0 22px', color: C.lightMint, fontSize: '1.1rem', fontWeight: 800 }}>⚡ النشاط الأخير</h2>
             {actsLoading ? (
               <div style={{ textAlign: 'center', padding: 40 }}>
