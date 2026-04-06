@@ -359,20 +359,38 @@ export default function ScreenPage() {
 
   // ─── صوت المجرة — يُهيَّأ عند أول تفاعل (متطلب المتصفح) ─────────────────
   useEffect(() => {
-    const unlock = () => {
-      if (audioRef.current) return;
-      try {
-        const audio = new Audio('/sound/DSGNDron_Trailer_Drones_Universe_Atmospheric_Abstract_Misterious_Deep_Ambiance_ESM_TFOR.wav');
-        audio.loop = true;
-        audio.volume = 0;
-        audioRef.current = audio;
-      } catch (_) {}
-    };
-    document.addEventListener('click', unlock, { once: true });
-    document.addEventListener('touchstart', unlock, { once: true });
+    let audioUrl = '/sound/DSGNDron_Trailer_Drones_Universe_Atmospheric_Abstract_Misterious_Deep_Ambiance_ESM_TFOR.wav';
+    let cancelled = false;
+
+    // محاولة جلب الصوت النشط من الـ API
+    fetch(`${API_BASE}/api/galaxy-audio/active`)
+      .then(r => r.json())
+      .then(d => {
+        if (!cancelled && d.success && d.data?.length > 0) {
+          audioUrl = d.data[0].file_url;
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (cancelled) return;
+
+        const unlock = () => {
+          if (audioRef.current) return;
+          try {
+            const audio = new Audio(audioUrl);
+            audio.loop = true;
+            audio.volume = 0;
+            audioRef.current = audio;
+          } catch (_) {}
+        };
+        document.addEventListener('click', unlock, { once: true });
+        document.addEventListener('touchstart', unlock, { once: true });
+      });
+
     return () => {
-      document.removeEventListener('click', unlock);
-      document.removeEventListener('touchstart', unlock);
+      cancelled = true;
+      document.removeEventListener('click', () => {});
+      document.removeEventListener('touchstart', () => {});
       if (fadeFnRef.current) clearInterval(fadeFnRef.current);
       audioRef.current?.pause();
     };
