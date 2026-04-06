@@ -113,7 +113,10 @@ export interface Institution {
   screen_active: boolean;
   screen_password?: string;
   screen_last_active?: string;
+  created_by?: number;
   created_at: string;
   updated_at: string;
   description?: string;
+  owner?: { id: number; name?: string; name_ar?: string; email?: string; role?: string; avatar_url?: string; position?: string; department?: string } | null;
+  employees?: { id: number; name?: string; name_ar?: string; email?: string; role?: string; avatar_url?: string; position?: string; department?: string; is_active?: number; status?: string }[];
 }

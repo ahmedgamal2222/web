@@ -240,6 +240,283 @@ function StatsGrid({ institution, agreementsCount }: { institution: Institution;
   );
 }
 
+// ── KPI Dashboard ─────────────────────────────────────────────
+function KPIDashboard({ institution, agreementsCount }: { institution: Institution; agreementsCount: number }) {
+  const effectiveWeight = institution.weight > 0 ? institution.weight : computeEffectiveWeight(institution, agreementsCount);
+  const score = Math.round(Math.min(100, effectiveWeight * 100));
+
+  // 5 tiers
+  const tiers = [
+    { label: 'ضعيف جداً', labelEn: 'Very Poor', min: 0, max: 20, color: '#ef4444', bg: '#ef444418' },
+    { label: 'ضعيف',     labelEn: 'Poor',      min: 20, max: 40, color: '#f97316', bg: '#f9731618' },
+    { label: 'مقبول',     labelEn: 'Fair',      min: 40, max: 60, color: '#eab308', bg: '#eab30818' },
+    { label: 'جيد',      labelEn: 'Good',      min: 60, max: 80, color: '#22c55e', bg: '#22c55e18' },
+    { label: 'ممتاز',    labelEn: 'Excellent', min: 80, max: 100, color: '#10b981', bg: '#10b98118' },
+  ];
+  const activeTier = tiers.find(t => score >= t.min && score < t.max) || tiers[tiers.length - 1];
+
+  // SVG gauge params
+  const cx = 150, cy = 130, r = 100, strokeW = 18;
+  const startAngle = Math.PI; // 180°
+  const endAngle = 0;        // 0°
+  const totalAngle = Math.PI;
+  const circumference = Math.PI * r;
+
+  const needleAngle = startAngle - (score / 100) * totalAngle;
+  const needleLen = r - 10;
+  const nx = cx + needleLen * Math.cos(needleAngle);
+  const ny = cy - needleLen * Math.sin(needleAngle);
+
+  const owner = institution.owner;
+  const employees = institution.employees || [];
+
+  const getRoleBadge = (role?: string) => {
+    if (role === 'institution_admin') return { text: 'مدير', color: C.cyan, bg: `${C.cyan}18` };
+    if (role === 'admin') return { text: 'مشرف', color: C.purple, bg: `${C.purple}18` };
+    return { text: 'موظف', color: C.green, bg: `${C.green}18` };
+  };
+
+  return (
+    <div id="kpi" style={{
+      maxWidth: 1200, margin: '0 auto 0', padding: '0 24px 32px',
+      position: 'relative', zIndex: 10,
+    }}>
+      <div style={{
+        background: C.bgCard, borderRadius: 24,
+        border: `1px solid ${C.border}`, backdropFilter: 'blur(16px)',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '20px 28px 16px',
+          borderBottom: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: `${activeTier.color}16`, border: `1px solid ${activeTier.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>📊</div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: C.text }}>لوحة الأداء المؤسسي</h3>
+              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: C.textMuted }}>مؤشر الجدارة والتأثير الحضاري</p>
+            </div>
+          </div>
+          <div style={{
+            padding: '5px 14px', borderRadius: 30,
+            background: institution.status === 'active' ? `${C.success}16` : institution.status === 'pending' ? `${C.warning}16` : `${C.danger}16`,
+            border: `1px solid ${institution.status === 'active' ? C.success : institution.status === 'pending' ? C.warning : C.danger}30`,
+            fontSize: '0.78rem', fontWeight: 700,
+            color: institution.status === 'active' ? C.success : institution.status === 'pending' ? C.warning : C.danger,
+          }}>
+            {institution.status === 'active' ? '🟢 نشطة' : institution.status === 'pending' ? '🟡 قيد المراجعة' : '🔴 غير نشطة'}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+          {/* Left: Gauge */}
+          <div style={{ padding: '28px 24px 20px', borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <svg width={300} height={175} viewBox="0 0 300 175" style={{ overflow: 'visible' }}>
+              {/* Background arc segments */}
+              {tiers.map((tier, i) => {
+                const segStart = startAngle - (tier.min / 100) * totalAngle;
+                const segEnd = startAngle - (tier.max / 100) * totalAngle;
+                const x1 = cx + r * Math.cos(segStart);
+                const y1 = cy - r * Math.sin(segStart);
+                const x2 = cx + r * Math.cos(segEnd);
+                const y2 = cy - r * Math.sin(segEnd);
+                return (
+                  <path
+                    key={i}
+                    d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
+                    fill="none"
+                    stroke={score >= tier.min ? tier.color : `${tier.color}25`}
+                    strokeWidth={strokeW}
+                    strokeLinecap="round"
+                    opacity={score >= tier.min && score < tier.max ? 1 : score >= tier.max ? 0.7 : 0.2}
+                  />
+                );
+              })}
+
+              {/* Needle */}
+              <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={activeTier.color} strokeWidth={3} strokeLinecap="round" />
+              <circle cx={cx} cy={cy} r={8} fill={C.bgCard} stroke={activeTier.color} strokeWidth={3} />
+              <circle cx={cx} cy={cy} r={3} fill={activeTier.color} />
+
+              {/* Score text */}
+              <text x={cx} y={cy + 38} textAnchor="middle" fill={activeTier.color} fontSize="32" fontWeight="900" fontFamily="'Tajawal', sans-serif">{score}</text>
+              <text x={cx} y={cy + 55} textAnchor="middle" fill={C.textMuted} fontSize="11" fontFamily="'Tajawal', sans-serif">من 100</text>
+
+              {/* Tier labels */}
+              {tiers.map((tier, i) => {
+                const midAngle = startAngle - ((tier.min + tier.max) / 2 / 100) * totalAngle;
+                const labelR = r + 28;
+                const lx = cx + labelR * Math.cos(midAngle);
+                const ly = cy - labelR * Math.sin(midAngle);
+                return (
+                  <text key={i} x={lx} y={ly} textAnchor="middle" fill={score >= tier.min && score < tier.max ? tier.color : `${C.textMuted}60`} fontSize="8" fontWeight={score >= tier.min && score < tier.max ? 800 : 500} fontFamily="'Tajawal', sans-serif">
+                    {tier.label}
+                  </text>
+                );
+              })}
+            </svg>
+
+            {/* Active tier badge */}
+            <div style={{
+              marginTop: 8, padding: '6px 20px', borderRadius: 30,
+              background: activeTier.bg, border: `1px solid ${activeTier.color}35`,
+              fontSize: '0.88rem', fontWeight: 800, color: activeTier.color,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: activeTier.color, display: 'inline-block' }} />
+              {activeTier.label} — {activeTier.labelEn}
+            </div>
+
+            {/* Score breakdown */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 16, width: '100%' }}>
+              {[
+                { label: 'موظفون', val: institution.employees_count || 0, icon: '👥' },
+                { label: 'مشاريع', val: institution.projects_count || 0, icon: '📊' },
+                { label: 'مستفيدون', val: institution.beneficiaries_count || 0, icon: '🎯' },
+                { label: 'اتفاقيات', val: agreementsCount, icon: '🔗' },
+              ].map(s => (
+                <div key={s.label} style={{ textAlign: 'center', padding: '10px 4px', borderRadius: 12, background: `rgba(255,255,255,0.03)`, border: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: '1rem' }}>{s.icon}</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 900, color: C.text, marginTop: 2 }}>{s.val}</div>
+                  <div style={{ fontSize: '0.65rem', color: C.textMuted }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Owner + Employees + Status */}
+          <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* Owner */}
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.textMuted, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 18, height: 18, borderRadius: 6, background: `${C.cyan}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>👤</span>
+                المالك / المنشئ
+              </div>
+              {owner ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                  borderRadius: 14, background: `${C.cyan}08`, border: `1px solid ${C.cyan}20`,
+                }}>
+                  <div style={{
+                    width: 42, height: 42, borderRadius: 12, overflow: 'hidden', flexShrink: 0,
+                    background: `linear-gradient(135deg, ${C.teal}, ${C.purple})`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontWeight: 900, fontSize: '1rem',
+                  }}>
+                    {owner.avatar_url ? <img src={owner.avatar_url} alt="" width={42} height={42} style={{ objectFit: 'cover' }} /> : (owner.name_ar?.[0] || owner.name?.[0] || '؟')}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: C.text }}>{owner.name_ar || owner.name || 'غير معروف'}</div>
+                    <div style={{ fontSize: '0.72rem', color: C.textMuted, marginTop: 1 }}>{owner.email || ''}</div>
+                    {owner.position && <div style={{ fontSize: '0.68rem', color: C.cyan, marginTop: 2 }}>{owner.position}</div>}
+                  </div>
+                  <div style={{ padding: '3px 10px', borderRadius: 20, background: `${C.cyan}15`, fontSize: '0.7rem', fontWeight: 700, color: C.cyan }}>مالك</div>
+                </div>
+              ) : (
+                <div style={{ padding: '14px 16px', borderRadius: 14, background: `rgba(255,255,255,0.02)`, border: `1px dashed ${C.border}`, textAlign: 'center', color: C.textMuted, fontSize: '0.8rem' }}>
+                  لم يتم تحديد المالك
+                </div>
+              )}
+            </div>
+
+            {/* Employees */}
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.textMuted, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 18, height: 18, borderRadius: 6, background: `${C.green}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>👥</span>
+                  فريق العمل
+                </div>
+                <span style={{ padding: '2px 8px', borderRadius: 10, background: `${C.green}12`, color: C.green, fontSize: '0.7rem', fontWeight: 800 }}>{employees.length}</span>
+              </div>
+              {employees.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflow: 'auto' }}>
+                  {employees.map(emp => {
+                    const badge = getRoleBadge(emp.role);
+                    return (
+                      <div key={emp.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+                        borderRadius: 12, background: `rgba(255,255,255,0.02)`, border: `1px solid ${C.border}`,
+                        transition: 'all 0.2s',
+                      }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = `${badge.color}40`; e.currentTarget.style.background = `${badge.bg}`; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                      >
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+                          background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#fff', fontWeight: 800, fontSize: '0.75rem',
+                        }}>
+                          {emp.avatar_url ? <img src={emp.avatar_url} alt="" width={32} height={32} style={{ objectFit: 'cover' }} /> : (emp.name_ar?.[0] || emp.name?.[0] || '؟')}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.8rem', color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name_ar || emp.name || '—'}</div>
+                          {emp.position && <div style={{ fontSize: '0.65rem', color: C.textMuted }}>{emp.position}</div>}
+                        </div>
+                        <span style={{ padding: '2px 8px', borderRadius: 8, background: badge.bg, border: `1px solid ${badge.color}25`, fontSize: '0.65rem', fontWeight: 700, color: badge.color, flexShrink: 0 }}>{badge.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ padding: '14px 16px', borderRadius: 14, background: `rgba(255,255,255,0.02)`, border: `1px dashed ${C.border}`, textAlign: 'center', color: C.textMuted, fontSize: '0.8rem' }}>
+                  لا يوجد موظفون مسجلون حالياً
+                </div>
+              )}
+            </div>
+
+            {/* Status Indicators */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{
+                padding: '12px 14px', borderRadius: 14,
+                background: institution.is_verified ? `${C.success}08` : `rgba(255,255,255,0.02)`,
+                border: `1px solid ${institution.is_verified ? C.success + '25' : C.border}`,
+              }}>
+                <div style={{ fontSize: '1.1rem', marginBottom: 4 }}>{institution.is_verified ? '✅' : '⚪'}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: institution.is_verified ? C.success : C.textMuted }}>
+                  {institution.is_verified ? 'موثّقة' : 'غير موثّقة'}
+                </div>
+              </div>
+              <div style={{
+                padding: '12px 14px', borderRadius: 14,
+                background: institution.screen_active ? `${C.cyan}08` : `rgba(255,255,255,0.02)`,
+                border: `1px solid ${institution.screen_active ? C.cyan + '25' : C.border}`,
+              }}>
+                <div style={{ fontSize: '1.1rem', marginBottom: 4 }}>{institution.screen_active ? '📺' : '⚪'}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: institution.screen_active ? C.cyan : C.textMuted }}>
+                  {institution.screen_active ? 'شاشة نشطة' : 'شاشة غير نشطة'}
+                </div>
+              </div>
+              <div style={{
+                padding: '12px 14px', borderRadius: 14,
+                background: `${C.warning}08`,
+                border: `1px solid ${C.warning}20`,
+              }}>
+                <div style={{ fontSize: '1.1rem', marginBottom: 4 }}>⭐</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: C.warning }}>
+                  الوزن: {effectiveWeight.toFixed(2)}
+                </div>
+              </div>
+              <div style={{
+                padding: '12px 14px', borderRadius: 14,
+                background: `${C.purple}08`,
+                border: `1px solid ${C.purple}20`,
+              }}>
+                <div style={{ fontSize: '1.1rem', marginBottom: 4 }}>📅</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: C.purple }}>
+                  {institution.founded_year || '—'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Quick Links ───────────────────────────────────────────────
 function QuickLinks({ institution }: { institution: Institution }) {
   const links = [
@@ -857,6 +1134,7 @@ function ScreenPasswordSection({ institution, currentUser }: { institution: Inst
 // ── Sidebar Nav ───────────────────────────────────────────────
 function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string; isOwner: boolean; isAdmin: boolean }) {
   const navItems = [
+    { href: '#kpi',           icon: '📊', label: 'لوحة الأداء' },
     { href: '#about',         icon: '🏛️', label: 'عن المؤسسة' },
     { href: '#announcements', icon: '📢', label: 'الإعلانات' },
     { href: '#agreements',    icon: '🔗', label: 'الاتفاقيات' },
@@ -1036,6 +1314,7 @@ export default function InstitutionClient() {
         <PageHeader />
         <HeroSection institution={institution} />
         <StatsGrid institution={institution} agreementsCount={agreements.length} />
+        <KPIDashboard institution={institution} agreementsCount={agreements.length} />
         <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 20px 60px', display: 'grid', gridTemplateColumns: '210px 1fr', gap: 22, alignItems: 'flex-start' }}>
           <div style={{ position: 'sticky', top: 80, height: 'fit-content' }}>
             <SidebarNav institutionId={id} isOwner={isOwner} isAdmin={isAdmin} />

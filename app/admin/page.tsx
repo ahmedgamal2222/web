@@ -316,6 +316,13 @@ export default function AdminDashboard() {
           color="#10B981"
           link="/admin/mailing"
         />
+        <StatCard
+          title="صوت المجرة"
+          value="🎵"
+          icon="🎵"
+          color="#8B5CF6"
+          link="/admin/galaxy-audio"
+        />
       </div>
 
       {/* أقسام سريعة */}
