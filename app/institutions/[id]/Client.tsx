@@ -652,7 +652,6 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
               {[
                 { check: institution.is_verified, on: '✅', off: '⚪', onLabel: 'موثّقة', offLabel: 'غير موثّقة', color: C.success },
                 { check: institution.screen_active, on: '📺', off: '⚪', onLabel: 'شاشة نشطة', offLabel: 'شاشة غير نشطة', color: C.cyan },
-                { check: true, on: '⭐', off: '⭐', onLabel: `الوزن: ${(institution.weight || 0).toFixed(2)}`, offLabel: `الوزن: ${(institution.weight || 0).toFixed(2)}`, color: C.warning },
                 { check: true, on: '📅', off: '📅', onLabel: `تأسست: ${institution.founded_year || '—'}`, offLabel: `تأسست: ${institution.founded_year || '—'}`, color: C.purple },
               ].map((s, i) => (
                 <div key={i} className="kpi-card-hover" style={{
@@ -1353,15 +1352,7 @@ function OwnerActions({ institutionId }: { institutionId: string }) {
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
         أنت مدير هذه المؤسسة
       </div>
-      <Link href={`/institutions/${institutionId}/edit`} style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '7px 16px', borderRadius: 30,
-        background: `${C.teal}20`, border: `1px solid ${C.teal}40`,
-        color: C.cyan, textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700, transition: 'all 0.2s',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.background = C.teal; e.currentTarget.style.color = '#fff'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = `${C.teal}20`; e.currentTarget.style.color = C.cyan; }}
-      >✏️ تعديل المؤسسة</Link>
+     
       <Link href={`/institutions/${institutionId}/employees`} style={{
         display: 'flex', alignItems: 'center', gap: 6,
         padding: '7px 16px', borderRadius: 30,
