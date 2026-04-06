@@ -172,6 +172,7 @@ export default function AdminInstitutionsPage() {
   const router = useRouter();
 
   const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [allInstitutions, setAllInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState('');
   const [total, setTotal]               = useState(0);
@@ -234,6 +235,7 @@ export default function AdminInstitutionsPage() {
       const res = await fetch(`${API_BASE}/api/institutions?limit=9999`, { headers: getAuthHeaders() });
       const d = await res.json();
       const all: Institution[] = d.data || [];
+      setAllInstitutions(all);
       const cs = [...new Set(all.map(i => i.country).filter(Boolean))].sort();
       setCountryList(cs);
       // update cities based on selected country
@@ -265,6 +267,7 @@ export default function AdminInstitutionsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل التحديث');
       setInstitutions(prev => prev.map(i => i.id === inst.id ? { ...i, status: newStatus } : i));
+      setAllInstitutions(prev => prev.map(i => i.id === inst.id ? { ...i, status: newStatus } : i));
       if (selected?.id === inst.id) setSelected(prev => prev ? { ...prev, status: newStatus } : null);
     } catch (e: any) {
       alert(e.message);
@@ -285,6 +288,7 @@ export default function AdminInstitutionsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل التحديث');
       setInstitutions(prev => prev.map(i => i.id === inst.id ? { ...i, is_verified: newVerified } : i));
+      setAllInstitutions(prev => prev.map(i => i.id === inst.id ? { ...i, is_verified: newVerified } : i));
       if (selected?.id === inst.id) setSelected(prev => prev ? { ...prev, is_verified: newVerified } : null);
     } catch (e: any) {
       alert(e.message);
@@ -304,6 +308,7 @@ export default function AdminInstitutionsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل الحذف');
       setSelected(null);
+      setAllInstitutions(prev => prev.filter(i => i.id !== inst.id));
       await load();
     } catch (e: any) {
       alert(e.message);
@@ -313,11 +318,11 @@ export default function AdminInstitutionsPage() {
   }
 
   const stats = useMemo(() => ({
-    total:    institutions.length,
-    active:   institutions.filter(i => i.status === 'active').length,
-    verified: institutions.filter(i => i.is_verified).length,
-    screens:  institutions.filter(i => i.screen_active).length,
-  }), [institutions]);
+    total:    allInstitutions.length,
+    active:   allInstitutions.filter(i => i.status === 'active').length,
+    verified: allInstitutions.filter(i => i.is_verified).length,
+    screens:  allInstitutions.filter(i => i.screen_active).length,
+  }), [allInstitutions]);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
