@@ -375,7 +375,7 @@ export default function ScreenPage() {
 
   // ─── صوت المجرة — يُهيَّأ عند أول تفاعل (متطلب المتصفح) ─────────────────
   useEffect(() => {
-    let audioUrl = '/sound/DSGNDron_Trailer_Drones_Universe_Atmospheric_Abstract_Misterious_Deep_Ambiance_ESM_TFOR.wav';
+    let audioUrl = '/sound/galaxy-ambient.mp3';
     let cancelled = false;
 
     // محاولة جلب الصوت النشط من الـ API

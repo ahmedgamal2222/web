@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+// @ts-ignore
+import lamejs from 'lamejs';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
@@ -35,6 +37,8 @@ export default function GalaxyAudioPage() {
   const [err, setErr] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+  const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const previewRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -61,13 +65,74 @@ export default function GalaxyAudioPage() {
     setLoadingTracks(false);
   };
 
+  /**
+   * ضغط الملف الصوتي إلى ~10 كيلوبايت MP3
+   * mono, 8kHz, 8kbps, أقصى 10 ثوانٍ (loop)
+   */
+  const compressAudio = async (file: File): Promise<File> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const audioCtx = new AudioContext();
+    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    audioCtx.close();
+
+    // أقصى 10 ثوانٍ
+    const maxDuration = Math.min(decoded.duration, 10);
+    const targetSampleRate = 8000;
+    const frameCount = Math.floor(maxDuration * targetSampleRate);
+
+    // Resample إلى mono 8kHz
+    const offlineCtx = new OfflineAudioContext(1, frameCount, targetSampleRate);
+    const source = offlineCtx.createBufferSource();
+    source.buffer = decoded;
+    source.connect(offlineCtx.destination);
+    source.start(0, 0, maxDuration);
+    const rendered = await offlineCtx.startRendering();
+
+    // تحويل إلى MP3 باستخدام lamejs
+    const samples = rendered.getChannelData(0);
+    const sampleCount = samples.length;
+    const int16 = new Int16Array(sampleCount);
+    for (let i = 0; i < sampleCount; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+
+    const mp3enc = new lamejs.Mp3Encoder(1, targetSampleRate, 8); // mono, 8kHz, 8kbps
+    const blockSize = 1152;
+    const mp3Data: Uint8Array[] = [];
+    for (let i = 0; i < int16.length; i += blockSize) {
+      const chunk = int16.subarray(i, i + blockSize);
+      const buf = mp3enc.encodeBuffer(chunk);
+      if (buf.length > 0) mp3Data.push(new Uint8Array(buf));
+    }
+    const flush = mp3enc.flush();
+    if (flush.length > 0) mp3Data.push(new Uint8Array(flush));
+
+    const blob = new Blob(mp3Data, { type: 'audio/mpeg' });
+    return new File([blob], file.name.replace(/\.[^.]+$/, '.mp3'), { type: 'audio/mpeg' });
+  };
+
   const handleUpload = async () => {
     if (!audioFile) { setErr('يرجى اختيار ملف صوتي'); return; }
     if (!newTitle.trim()) { setErr('يرجى كتابة عنوان للصوت'); return; }
     setUploading(true); setErr(''); setSuccessMsg('');
     try {
+      // ضغط الملف الصوتي أولاً
+      setCompressing(true);
+      let fileToUpload: File;
+      try {
+        fileToUpload = await compressAudio(audioFile);
+        setCompressedSize(fileToUpload.size);
+      } catch (compErr) {
+        console.error('Compression error:', compErr);
+        setErr('فشل ضغط الملف الصوتي');
+        setUploading(false); setCompressing(false);
+        return;
+      }
+      setCompressing(false);
+
       const formData = new FormData();
-      formData.append('audio', audioFile);
+      formData.append('audio', fileToUpload);
       formData.append('title', newTitle.trim());
       const res = await fetch(`${API_BASE}/api/admin/galaxy-audio/upload`, {
         method: 'POST',
@@ -76,17 +141,17 @@ export default function GalaxyAudioPage() {
       });
       const d = await res.json();
       if (d.success) {
-        setSuccessMsg('تم رفع الصوت بنجاح!');
-        setNewTitle(''); setAudioFile(null);
+        setSuccessMsg(`تم رفع الصوت بنجاح! (${formatSize(fileToUpload.size)} بعد الضغط)`);
+        setNewTitle(''); setAudioFile(null); setCompressedSize(null);
         loadTracks();
-        setTimeout(() => setSuccessMsg(''), 4000);
+        setTimeout(() => setSuccessMsg(''), 5000);
       } else {
         setErr(d.error || 'فشل رفع الملف');
       }
     } catch {
       setErr('حدث خطأ أثناء الرفع');
     } finally {
-      setUploading(false);
+      setUploading(false); setCompressing(false);
     }
   };
 
@@ -134,7 +199,7 @@ export default function GalaxyAudioPage() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault(); setDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('audio/')) { setAudioFile(file); setErr(''); }
+    if (file && file.type.startsWith('audio/')) { setAudioFile(file); setErr(''); setCompressedSize(null); }
     else setErr('يرجى اختيار ملف صوتي فقط');
   };
 
@@ -225,7 +290,7 @@ export default function GalaxyAudioPage() {
               <input
                 ref={fileInputRef}
                 type="file" accept="audio/*"
-                onChange={e => { setAudioFile(e.target.files?.[0] || null); setErr(''); }}
+                onChange={e => { setAudioFile(e.target.files?.[0] || null); setErr(''); setCompressedSize(null); }}
                 style={{ display: 'none' }}
               />
             </div>
@@ -242,11 +307,11 @@ export default function GalaxyAudioPage() {
                 transition: 'all 0.2s',
               }}
             >
-              {uploading ? '⏳ جاري الرفع...' : '⬆️ رفع'}
+              {uploading ? (compressing ? '🔄 جاري الضغط...' : '⏳ جاري الرفع...') : '⬆️ رفع'}
             </button>
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', marginTop: 14 }}>
-            الحد الأقصى: 50 ميجابايت · الصيغ المدعومة: mp3, wav, ogg, webm, flac
+            الصيغ المدعومة: mp3, wav, ogg, webm, flac · يتم ضغط الصوت تلقائياً إلى ~10 كيلوبايت (mono, 8kHz, 10 ثوانٍ loop)
           </div>
         </div>
 

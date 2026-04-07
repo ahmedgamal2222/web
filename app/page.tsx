@@ -1864,7 +1864,7 @@ export default function HomePage() {
       )}
 
       {/* Floating Support Button */}
-      <Link href="/support" style={{ textDecoration: 'none' }}>
+      <Link href={user?.role === 'admin' ? '/admin/support' : '/support'} style={{ textDecoration: 'none' }}>
         <div
           className="support-fab"
           style={{
