@@ -18,6 +18,9 @@
 /events/:id/                   /events/default/                   200
 /events/:id                    /events/default/                   200
 
+/support/:id/                  /support/default/                  200
+/support/:id                   /support/default/                  200
+
 /news/:id/                     /news/default/                     200
 /news/:id                      /news/default/                     200
 
