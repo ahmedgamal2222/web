@@ -738,8 +738,8 @@ function AboutSection({ institution }: { institution: Institution }) {
 const PRICE_PER_DAY = 10; // $10 per day
 const GLOBAL_SURCHARGE = 5; // +$5/day for global targeting
 
-function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
-  institutionId: string; coins: number; onClose: () => void; onSuccess: () => void;
+function AdCreateModal({ institutionId, onClose, onSuccess }: {
+  institutionId: string; onClose: () => void; onSuccess: () => void;
 }) {
   const [form, setForm] = useState({
     title: '', content: '', image_url: '',
@@ -834,168 +834,227 @@ function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
       zIndex: 2000, padding: 20, direction: 'rtl',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        background: 'rgba(8,12,32,0.98)', border: `1px solid ${C.borderAcc}`,
-        borderRadius: 28, padding: '30px', width: '100%', maxWidth: 520,
-        boxShadow: '0 30px 80px rgba(0,0,0,0.75), 0 0 60px rgba(78,141,156,0.1)',
+        background: 'linear-gradient(160deg, rgba(13,17,41,0.99) 0%, rgba(8,12,32,0.99) 100%)',
+        border: `1px solid ${C.borderAcc}`,
+        borderRadius: 24, padding: 0, width: '100%', maxWidth: 540,
+        boxShadow: '0 30px 80px rgba(0,0,0,0.75), 0 0 60px rgba(78,141,156,0.08)',
         maxHeight: '92vh', overflowY: 'auto', fontFamily: "'Tajawal', sans-serif",
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: `${C.teal}20`, border: `1px solid ${C.teal}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>📢</div>
-            <div>
-              <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: C.text }}>إنشاء إعلان جديد</h2>
-              <p style={{ margin: 0, fontSize: '0.72rem', color: C.textMuted }}>سيظهر للمستخدمين المستهدفين</p>
-            </div>
-          </div>
-          <button onClick={onClose} style={{
-            width: 34, height: 34, borderRadius: 10,
-            background: 'rgba(255,255,255,0.05)', border: `1px solid ${C.border}`,
-            color: C.textMuted, cursor: 'pointer', fontSize: '0.88rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,107,107,0.15)'; e.currentTarget.style.color = C.danger; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = C.textMuted; }}
-          >✕</button>
-        </div>
-
+        {/* Header */}
         <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: canAfford ? `${C.teal}0e` : (durationDays > 0 ? 'rgba(255,107,107,0.08)' : `${C.teal}06`),
-          border: `1px solid ${canAfford ? C.teal + '30' : (durationDays > 0 ? 'rgba(255,107,107,0.28)' : C.teal + '15')}`,
-          borderRadius: 14, padding: '12px 16px', marginBottom: 22,
+          padding: '24px 28px 20px',
+          borderBottom: `1px solid rgba(78,141,156,0.15)`,
+          background: 'rgba(78,141,156,0.04)',
         }}>
-          <div>
-            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>رصيدك الإعلاني</span>
-            <span style={{ fontWeight: 900, fontSize: '1.05rem', color: canAfford || !durationDays ? C.green : C.danger }}>
-              {loadingCredits ? '...' : `$${balance?.toFixed(0) || 0}`}
-            </span>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>سعر اليوم</span>
-            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: C.teal }}>${PRICE_PER_DAY}</span>
-          </div>
-          <div style={{ textAlign: 'left' }}>
-            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>التكلفة</span>
-            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: C.warning }}>
-              {durationDays > 0 ? `$${cost} (${durationDays} يوم)` : 'اختر التاريخ'}
-            </span>
-          </div>
-        </div>
-
-        {/* رسالة الرصيد المجاني */}
-        <div style={{
-          background: 'rgba(133,199,154,0.08)', border: '1px solid rgba(133,199,154,0.22)',
-          borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: '0.82rem', color: C.green,
-        }}>
-          💡 كل مؤسسة تحصل على <b>$50 رصيد مجاني</b> للإعلانات. الاستهداف العالمي يضيف <b>+$5/يوم</b>. بعد انتهاء الرصيد يمكنك شحن رصيد إضافي.
-        </div>
-
-        {/* رسالة الموافقة */}
-        <div style={{
-          background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.22)',
-          borderRadius: 12, padding: '10px 14px', marginBottom: 18, fontSize: '0.82rem', color: '#f59e0b',
-        }}>
-          ⏳ الإعلان يتطلب <b>موافقة الإدارة</b> قبل نشره. سيتم خصم الرصيد فوراً واسترداده في حال الرفض.
-        </div>
-
-        {durationDays > 0 && !canAfford && !loadingCredits ? (
-          <div style={{ textAlign: 'center', padding: '28px 0' }}>
-            <div style={{ fontSize: '2.8rem', marginBottom: 14 }}>⚠️</div>
-            <p style={{ color: C.danger, marginBottom: 20, fontWeight: 600 }}>رصيدك غير كافٍ (${balance?.toFixed(0)} / ${cost} مطلوب)</p>
-            <a href="https://paypal.me/hadmaj?amount=30" target="_blank" rel="noopener noreferrer" style={{
-              display: 'inline-block', background: '#0070ba', color: 'white',
-              padding: '12px 28px', borderRadius: 30, textDecoration: 'none',
-              fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 6px 20px rgba(0,112,186,0.4)',
-            }}>💳 تجديد الاشتراك – 30$ عبر PayPal</a>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {err && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{
-                background: 'rgba(255,107,107,0.1)', border: '1px solid rgba(255,107,107,0.32)',
-                borderRadius: 12, padding: '11px 14px', color: C.danger, fontSize: '0.86rem',
-                display: 'flex', gap: 8, alignItems: 'center',
-              }}><span>⚠️</span>{err}</div>
-            )}
-            <div>
-              <label style={lStyle}>عنوان الإعلان <span style={{ color: C.danger }}>*</span></label>
-              <input type="text" value={form.title} onChange={setField('title')} required placeholder="اكتب عنوان الإعلان" style={iStyle} />
+                width: 42, height: 42, borderRadius: 12,
+                background: 'linear-gradient(135deg, rgba(249,168,37,0.2), rgba(230,81,0,0.15))',
+                border: '1px solid rgba(249,168,37,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+              }}>📢</div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: C.text }}>إنشاء إعلان جديد</h2>
+                <p style={{ margin: 0, fontSize: '0.72rem', color: C.textMuted }}>سيظهر للمستخدمين المستهدفين</p>
+              </div>
             </div>
-            <div>
-              <label style={lStyle}>نص الإعلان</label>
-              <textarea value={form.content} onChange={setField('content')} placeholder="تفاصيل الإعلان..." rows={3} style={{ ...iStyle, resize: 'vertical' }} />
-            </div>
-            <div>
-              <label style={lStyle}>صورة الإعلان</label>
-              {imagePreview && (
-                <div style={{ height: 140, borderRadius: 12, marginBottom: 10, overflow: 'hidden', border: `1px solid ${C.border}` }}>
-                  <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              )}
-              <div style={{
-                border: `2px dashed ${C.borderAcc}`, borderRadius: 12, padding: '14px',
-                textAlign: 'center', cursor: 'pointer', position: 'relative',
-                background: 'rgba(78,141,156,0.04)', transition: 'background 0.2s',
+            <button onClick={onClose} style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: 'rgba(255,255,255,0.05)', border: `1px solid ${C.border}`,
+              color: C.textMuted, cursor: 'pointer', fontSize: '0.85rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,107,107,0.15)'; e.currentTarget.style.color = C.danger; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = C.textMuted; }}
+            >✕</button>
+          </div>
+        </div>
+
+        <div style={{ padding: '22px 28px 28px' }}>
+          {/* Balance & Cost Bar */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20,
+          }}>
+            {[
+              { label: 'رصيدك', value: loadingCredits ? '...' : `$${balance?.toFixed(0) || 0}`, color: canAfford || !durationDays ? C.green : C.danger, icon: '💰' },
+              { label: 'سعر اليوم', value: `$${dailyRate}`, color: C.teal, icon: '📊' },
+              { label: 'التكلفة', value: durationDays > 0 ? `$${cost}` : '—', color: C.warning, icon: '🧾' },
+            ].map((item, i) => (
+              <div key={i} style={{
+                background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(78,141,156,0.12)`,
+                borderRadius: 14, padding: '12px 14px', textAlign: 'center',
               }}>
-                <input type="file" accept="image/*" onChange={handleFile} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-                <span style={{ color: C.textMuted, fontSize: '0.83rem' }}>📁 اختر صورة أو اسحبها هنا</span>
+                <span style={{ fontSize: '1rem', display: 'block', marginBottom: 4 }}>{item.icon}</span>
+                <span style={{ fontSize: '0.68rem', color: C.textMuted, display: 'block', marginBottom: 3 }}>{item.label}</span>
+                <span style={{ fontWeight: 900, fontSize: '1rem', color: item.color }}>{item.value}</span>
               </div>
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 10, height: 5, overflow: 'hidden', marginTop: 8 }}>
-                  <div style={{ background: `linear-gradient(90deg, ${C.teal}, ${C.cyan})`, height: '100%', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
+            ))}
+          </div>
+
+          {/* Info boxes */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            <div style={{
+              background: 'rgba(133,199,154,0.06)', border: '1px solid rgba(133,199,154,0.18)',
+              borderRadius: 12, padding: '10px 14px', fontSize: '0.8rem', color: C.green,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: '1rem', flexShrink: 0 }}>💡</span>
+              <span>كل مؤسسة تحصل على <b>$50 رصيد مجاني</b>. الاستهداف العالمي <b>+$5/يوم</b>.</span>
+            </div>
+            <div style={{
+              background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.18)',
+              borderRadius: 12, padding: '10px 14px', fontSize: '0.8rem', color: '#f59e0b',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: '1rem', flexShrink: 0 }}>⏳</span>
+              <span>يتطلب <b>موافقة الإدارة</b> قبل النشر. يُسترد الرصيد عند الرفض.</span>
+            </div>
+          </div>
+
+          {durationDays > 0 && !canAfford && !loadingCredits ? (
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ fontSize: '2.4rem', marginBottom: 12 }}>⚠️</div>
+              <p style={{ color: C.danger, marginBottom: 18, fontWeight: 600, fontSize: '0.9rem' }}>
+                رصيدك غير كافٍ (${balance?.toFixed(0)} / ${cost} مطلوب)
+              </p>
+              <a href="https://paypal.me/hadmaj?amount=30" target="_blank" rel="noopener noreferrer" style={{
+                display: 'inline-block', background: '#0070ba', color: 'white',
+                padding: '11px 26px', borderRadius: 30, textDecoration: 'none',
+                fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 4px 16px rgba(0,112,186,0.35)',
+              }}>💳 شحن رصيد – 30$ عبر PayPal</a>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {err && (
+                <div style={{
+                  background: 'rgba(255,107,107,0.1)', border: '1px solid rgba(255,107,107,0.3)',
+                  borderRadius: 12, padding: '10px 14px', color: C.danger, fontSize: '0.84rem',
+                  display: 'flex', gap: 8, alignItems: 'center',
+                }}><span>⚠️</span>{err}</div>
+              )}
+              <div>
+                <label style={lStyle}>عنوان الإعلان <span style={{ color: C.danger }}>*</span></label>
+                <input type="text" value={form.title} onChange={setField('title')} required placeholder="اكتب عنوان الإعلان" style={iStyle}
+                  onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(78,141,156,0.28)'}
+                />
+              </div>
+              <div>
+                <label style={lStyle}>نص الإعلان</label>
+                <textarea value={form.content} onChange={setField('content')} placeholder="تفاصيل الإعلان..." rows={3}
+                  style={{ ...iStyle, resize: 'vertical' }}
+                  onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(78,141,156,0.28)'}
+                />
+              </div>
+              <div>
+                <label style={lStyle}>صورة الإعلان</label>
+                {imagePreview && (
+                  <div style={{ height: 140, borderRadius: 12, marginBottom: 10, overflow: 'hidden', border: `1px solid ${C.border}` }}>
+                    <img src={imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
+                <div style={{
+                  border: `2px dashed rgba(78,141,156,0.25)`, borderRadius: 12, padding: '16px',
+                  textAlign: 'center', cursor: 'pointer', position: 'relative',
+                  background: 'rgba(78,141,156,0.03)', transition: 'all 0.2s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = C.teal; e.currentTarget.style.background = 'rgba(78,141,156,0.06)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(78,141,156,0.25)'; e.currentTarget.style.background = 'rgba(78,141,156,0.03)'; }}
+                >
+                  <input type="file" accept="image/*" onChange={handleFile} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                  <span style={{ color: C.textMuted, fontSize: '0.82rem' }}>📁 اختر صورة أو اسحبها هنا</span>
+                </div>
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 10, height: 4, overflow: 'hidden', marginTop: 8 }}>
+                    <div style={{ background: `linear-gradient(90deg, ${C.teal}, ${C.cyan})`, height: '100%', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
+                  </div>
+                )}
+                {!imageFile && (
+                  <input type="url" value={form.image_url} onChange={setField('image_url')} placeholder="أو رابط الصورة https://..." style={{ ...iStyle, marginTop: 8 }}
+                    onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(78,141,156,0.28)'}
+                  />
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={lStyle}>تاريخ البداية <span style={{ color: C.danger }}>*</span></label>
+                  <input type="date" value={form.start_date} onChange={setField('start_date')} required style={iStyle}
+                    onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(78,141,156,0.28)'}
+                  />
+                </div>
+                <div>
+                  <label style={lStyle}>تاريخ النهاية <span style={{ color: C.danger }}>*</span></label>
+                  <input type="date" value={form.end_date} onChange={setField('end_date')} required style={iStyle}
+                    onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(78,141,156,0.28)'}
+                  />
+                </div>
+              </div>
+              {durationDays > 0 && (
+                <div style={{
+                  background: 'rgba(78,141,156,0.06)', border: `1px solid rgba(78,141,156,0.15)`,
+                  borderRadius: 10, padding: '8px 12px', textAlign: 'center',
+                  fontSize: '0.78rem', color: C.teal,
+                }}>
+                  📅 مدة الإعلان: <b>{durationDays} يوم</b>
                 </div>
               )}
-              {!imageFile && (
-                <input type="url" value={form.image_url} onChange={setField('image_url')} placeholder="أو رابط الصورة مباشرة https://..." style={{ ...iStyle, marginTop: 8 }} />
+              <div>
+                <label style={lStyle}>نطاق الاستهداف</label>
+                <select value={form.target_type} onChange={e => setForm(p => ({ ...p, target_type: e.target.value as any, target_value: '' }))} style={iStyle}>
+                  <option value="all">🌍 الجميع (+$5/يوم)</option>
+                  <option value="country">🏳️ دولة محددة</option>
+                  <option value="city">🏙️ مدينة محددة</option>
+                </select>
+              </div>
+              {form.target_type !== 'all' && (
+                <div>
+                  <label style={lStyle}>{form.target_type === 'country' ? 'كود الدولة (ISO)' : 'اسم المدينة'}</label>
+                  <input type="text" value={form.target_value} onChange={setField('target_value')}
+                    placeholder={form.target_type === 'country' ? 'مثال: SA أو EG' : 'مثال: Riyadh أو Cairo'}
+                    style={iStyle}
+                    onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(78,141,156,0.28)'}
+                  />
+                </div>
               )}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label style={lStyle}>تاريخ البداية <span style={{ color: C.danger }}>*</span></label>
-                <input type="date" value={form.start_date} onChange={setField('start_date')} required style={iStyle} />
-              </div>
-              <div>
-                <label style={lStyle}>تاريخ النهاية <span style={{ color: C.danger }}>*</span></label>
-                <input type="date" value={form.end_date} onChange={setField('end_date')} required style={iStyle} />
-              </div>
-            </div>
-            <div>
-              <label style={lStyle}>نطاق الاستهداف</label>
-              <select value={form.target_type} onChange={e => setForm(p => ({ ...p, target_type: e.target.value as any, target_value: '' }))} style={iStyle}>
-                <option value="all">🌍 الجميع</option>
-                <option value="country">🏳️ دولة محددة</option>
-                <option value="city">🏙️ مدينة محددة</option>
-              </select>
-            </div>
-            {form.target_type !== 'all' && (
-              <div>
-                <label style={lStyle}>{form.target_type === 'country' ? 'كود الدولة (ISO)' : 'اسم المدينة'}</label>
-                <input type="text" value={form.target_value} onChange={setField('target_value')}
-                  placeholder={form.target_type === 'country' ? 'مثال: SA أو EG' : 'مثال: Riyadh أو Cairo'}
-                  style={iStyle} />
-              </div>
-            )}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              background: 'rgba(255,215,0,0.07)', border: '1px solid rgba(255,215,0,0.22)',
-              borderRadius: 12, padding: '11px 16px',
-            }}>
-              <span style={{ fontSize: '0.83rem', color: C.textMuted }}>الملخص المالي</span>
-              <span style={{ color: C.warning, fontWeight: 800, fontSize: '0.88rem' }}>
-                ${cost} ({durationDays} يوم × ${dailyRate}{form.target_type === 'all' ? ' شامل رسوم عالمي' : ''}) → يتبقى ${((balance || 0) - cost).toFixed(0)}
-              </span>
-            </div>
-            <button type="submit" disabled={submitting || !canAfford} style={{
-              padding: '14px', borderRadius: 40, border: 'none', cursor: submitting ? 'default' : 'pointer',
-              background: submitting ? 'rgba(78,141,156,0.35)' : `linear-gradient(135deg, ${C.teal}, ${C.purple})`,
-              color: 'white', fontSize: '0.98rem', fontWeight: 800,
-              boxShadow: submitting ? 'none' : '0 6px 24px rgba(78,141,156,0.38)',
-              transition: 'all 0.2s', fontFamily: "'Tajawal', sans-serif",
-            }}>
-              {submitting ? '⏳ جاري النشر...' : `✦ نشر الإعلان ($${cost})`}
-            </button>
-          </form>
-        )}
+
+              {/* Financial summary */}
+              {durationDays > 0 && (
+                <div style={{
+                  background: 'rgba(255,215,0,0.05)', border: '1px solid rgba(255,215,0,0.18)',
+                  borderRadius: 14, padding: '14px 16px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div style={{ fontSize: '0.8rem', color: C.textMuted }}>
+                    <div style={{ marginBottom: 2 }}>{durationDays} يوم × ${dailyRate}/يوم{form.target_type === 'all' ? ' (شامل عالمي)' : ''}</div>
+                    <div style={{ fontSize: '0.72rem', opacity: 0.7 }}>المتبقي بعد الخصم: ${((balance || 0) - cost).toFixed(0)}</div>
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <span style={{ fontSize: '0.68rem', color: C.textMuted, display: 'block' }}>الإجمالي</span>
+                    <span style={{ color: C.warning, fontWeight: 900, fontSize: '1.15rem' }}>${cost}</span>
+                  </div>
+                </div>
+              )}
+
+              <button type="submit" disabled={submitting || !canAfford} style={{
+                padding: '13px', borderRadius: 14, border: 'none',
+                cursor: (submitting || !canAfford) ? 'default' : 'pointer',
+                background: (submitting || !canAfford) ? 'rgba(78,141,156,0.2)' : 'linear-gradient(135deg, #f9a825, #e65100)',
+                color: 'white', fontSize: '0.95rem', fontWeight: 800,
+                boxShadow: submitting ? 'none' : '0 4px 18px rgba(249,168,37,0.3)',
+                transition: 'all 0.2s', fontFamily: "'Tajawal', sans-serif",
+                opacity: (submitting || !canAfford) ? 0.5 : 1,
+              }}>
+                {submitting ? '⏳ جاري النشر...' : durationDays > 0 ? `📢 نشر الإعلان — $${cost}` : '📢 نشر الإعلان'}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1008,15 +1067,9 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
   events: any[]; news: any[]; institutionId?: string; isOwner?: boolean; isAdmin?: boolean;
 }) {
   const [tab, setTab] = useState<AnnouncementTab>('all');
-  const [coins, setCoins] = useState(0);
   const [showAdModal, setShowAdModal] = useState(false);
   const [adDone, setAdDone] = useState(false);
   const canCreate = isOwner || isAdmin;
-
-  useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-    if (stored) setCoins(JSON.parse(stored).coins ?? 500);
-  }, []);
 
   const allItems = [
     ...events.map(e => ({ ...e, _type: 'event' as const })),
@@ -1043,18 +1096,6 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
             <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: C.text }}>إعلانات المؤسسة</h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {canCreate && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '5px 12px', borderRadius: 30,
-                background: coins > 0 ? `${C.green}12` : 'rgba(255,107,107,0.1)',
-                border: `1px solid ${coins > 0 ? C.green + '30' : 'rgba(255,107,107,0.25)'}`,
-              }}>
-                <span>🪙</span>
-                <span style={{ fontWeight: 800, fontSize: '0.85rem', color: coins > 0 ? C.green : C.danger }}>{coins}</span>
-                <span style={{ fontSize: '0.72rem', color: C.textMuted }}>كوين</span>
-              </div>
-            )}
             {canCreate && (tab === 'all' || tab === 'news') && (
               <Link href={`/news/create${institutionId ? `?institution_id=${institutionId}` : ''}`} style={{
                 display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 30,
@@ -1076,7 +1117,7 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
                 border: 'none', cursor: 'pointer',
                 background: 'linear-gradient(135deg, #f9a825, #e65100)', color: 'white',
                 fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 3px 10px rgba(249,168,37,0.28)',
-              }}>📢 إعلان <span style={{ opacity: 0.8, fontSize: '0.68rem' }}>($10/يوم)</span></button>
+              }}>📢 إعلان جديد</button>
             )}
           </div>
         </div>
@@ -1135,7 +1176,7 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
 
       {showAdModal && institutionId && (
         <AdCreateModal
-          institutionId={institutionId} coins={coins}
+          institutionId={institutionId}
           onClose={() => setShowAdModal(false)}
           onSuccess={() => { setShowAdModal(false); setAdDone(true); setTimeout(() => setAdDone(false), 6000); }}
         />

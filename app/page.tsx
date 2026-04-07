@@ -454,9 +454,9 @@ function QuickActions({ user }: { user: any }) {
   }
 
   // Support link for all users
-  actions.push(
-    { icon: '🎫', label: 'الدعم الفني', href: '/support', color: '#6366f1' },
-  );
+  // actions.push(
+  //   { icon: '🎫', label: 'الدعم الفني', href: '/support', color: '#6366f1' },
+  // );
 
   // Static nav items moved from topbar
   // actions.push(
