@@ -95,8 +95,9 @@ export default function AppNavBar({ activePage }: AppNavBarProps) {
         <nav className="appnav-desktop" style={{ display: 'flex', gap: 6 }}>
           {NAV_LINKS.map(l => {
             const isActive = l.href === activePage;
+            const finalHref = (l.href === '/support' && session?.role === 'admin') ? '/admin/support' : l.href;
             return (
-              <Link key={l.href} href={l.href} className="appnav-link" style={{
+              <Link key={l.href} href={finalHref} className="appnav-link" style={{
                 padding: '8px 16px', borderRadius: 24, textDecoration: 'none',
                 fontSize: '0.85rem', fontWeight: 600,
                 color: isActive ? '#fff' : '#9ca3af',
@@ -151,17 +152,20 @@ export default function AppNavBar({ activePage }: AppNavBarProps) {
           background: 'rgba(8,5,32,.97)', borderBottom: '1px solid rgba(78,141,156,.2)',
           padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8,
         }}>
-          {NAV_LINKS.map(l => (
-            <Link key={l.href} href={l.href}
-              onClick={() => setMenuOpen(false)}
-              style={{
-                padding: '10px 16px', borderRadius: 12, textDecoration: 'none',
-                color: l.href === activePage ? C.mint : '#ccc',
-                background: l.href === activePage ? `rgba(78,141,156,.15)` : 'transparent',
-                fontWeight: l.href === activePage ? 700 : 400, fontSize: '0.95rem',
-              }}
-            >{l.label}</Link>
-          ))}
+          {NAV_LINKS.map(l => {
+            const finalHref = (l.href === '/support' && session?.role === 'admin') ? '/admin/support' : l.href;
+            return (
+              <Link key={l.href} href={finalHref}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  padding: '10px 16px', borderRadius: 12, textDecoration: 'none',
+                  color: l.href === activePage ? C.mint : '#ccc',
+                  background: l.href === activePage ? `rgba(78,141,156,.15)` : 'transparent',
+                  fontWeight: l.href === activePage ? 700 : 400, fontSize: '0.95rem',
+                }}
+              >{l.label}</Link>
+            );
+          })}
         </div>
       )}
     </>
