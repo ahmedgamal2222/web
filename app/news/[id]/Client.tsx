@@ -145,6 +145,7 @@ export default function NewsDetailPage() {
 
         {/* Article */}
         {news && !loading && (
+          <>
           <article style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.2)', borderRadius: 24, overflow: 'hidden' }}>
             {/* Image */}
             {news.image_url && (
@@ -285,6 +286,7 @@ export default function NewsDetailPage() {
               </div>
             )}
           </section>
+          </>
         )}
       </main>
     </div>
