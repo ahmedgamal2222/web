@@ -537,34 +537,89 @@ export default function PulseClient() {
         ) : (
           <>
             {/* ── أخبار AI ── */}
-            {filter === 'smart' && aiNews.length > 0 && (
-              <div style={{ marginBottom: 28 }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
-                }}>
-                  <span style={{
-                    background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-                    color: '#fff',
-                    fontSize: '0.78rem', fontWeight: 700,
-                    padding: '4px 14px', borderRadius: 20,
+            {filter === 'smart' && aiNews.length > 0 && (() => {
+              // تجميع الأخبار حسب نوع الاهتمام
+              const grouped: Record<string, AINewsItem[]> = {};
+              aiNews.forEach(item => {
+                const t = item.institution_type || 'other';
+                if (!grouped[t]) grouped[t] = [];
+                grouped[t].push(item);
+              });
+              const typeKeys = Object.keys(grouped);
+
+              return (
+                <div style={{ marginBottom: 32 }}>
+                  {/* عنوان القسم */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20,
                   }}>
-                    🤖 أخبار ذكية
-                  </span>
-                  <span style={{ color: '#6e6a99', fontSize: '0.75rem' }}>
-                    أخبار مرتبطة باهتماماتك بتحليل الذكاء الاصطناعي
-                  </span>
+                    <span style={{
+                      background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                      color: '#fff',
+                      fontSize: '0.82rem', fontWeight: 700,
+                      padding: '5px 16px', borderRadius: 20,
+                    }}>
+                      🤖 أخبار ذكية
+                    </span>
+                    <span style={{ color: '#6e6a99', fontSize: '0.78rem' }}>
+                      {aiNews.length} خبر من {typeKeys.length} {typeKeys.length > 1 ? 'اهتمامات' : 'اهتمام'}
+                    </span>
+                  </div>
+
+                  {/* أقسام حسب النوع */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    {typeKeys.map(typeKey => {
+                      const typeInfo = INST_TYPES.find(t => t.key === typeKey);
+                      const items = grouped[typeKey];
+                      return (
+                        <div key={typeKey}>
+                          {/* رأس القسم */}
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10,
+                            padding: '6px 14px',
+                            background: `${typeInfo?.color || '#8b5cf6'}10`,
+                            border: `1px solid ${typeInfo?.color || '#8b5cf6'}25`,
+                            borderRadius: 12,
+                            width: 'fit-content',
+                          }}>
+                            <span style={{
+                              fontSize: '0.82rem', fontWeight: 800,
+                              color: typeInfo?.color || '#8b5cf6',
+                            }}>
+                              {typeInfo?.label || typeKey}
+                            </span>
+                            <span style={{
+                              background: `${typeInfo?.color || '#8b5cf6'}20`,
+                              color: typeInfo?.color || '#8b5cf6',
+                              fontSize: '0.68rem', fontWeight: 700,
+                              padding: '1px 8px', borderRadius: 10,
+                            }}>
+                              {items.length}
+                            </span>
+                          </div>
+                          {/* بطاقات بالتمرير الأفقي */}
+                          <div style={{
+                            display: 'flex', gap: 12, overflowX: 'auto',
+                            paddingBottom: 6,
+                            scrollSnapType: 'x mandatory',
+                            WebkitOverflowScrolling: 'touch',
+                          }} className="ai-scroll-row">
+                            {items.map((item, i) => (
+                              <div key={`ai-${typeKey}-${i}`} style={{
+                                minWidth: 280, maxWidth: 320, flex: '0 0 auto',
+                                scrollSnapAlign: 'start',
+                              }}>
+                                <AINewsCard item={item} index={i} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: 14,
-                }}>
-                  {aiNews.map((item, i) => (
-                    <AINewsCard key={`ai-${item.news_id}-${i}`} item={item} index={i} />
-                  ))}
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* بطاقة مميزة كبيرة إن وجدت */}
             {items[0]?.is_featured ? (
@@ -682,6 +737,10 @@ export default function PulseClient() {
         .pulse-card {
           animation: fadeSlideIn 0.35s ease both;
         }
+        .ai-scroll-row::-webkit-scrollbar { height: 4px; }
+        .ai-scroll-row::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 4px; }
+        .ai-scroll-row::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.25); border-radius: 4px; }
+        .ai-scroll-row::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.4); }
       `}</style>
 
       {/* ── بوب-أب التفاصيل ── */}

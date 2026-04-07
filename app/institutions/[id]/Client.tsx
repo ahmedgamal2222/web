@@ -1069,7 +1069,17 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
   const [tab, setTab] = useState<AnnouncementTab>('all');
   const [showAdModal, setShowAdModal] = useState(false);
   const [adDone, setAdDone] = useState(false);
+  const [adBalance, setAdBalance] = useState<number | null>(null);
   const canCreate = isOwner || isAdmin;
+
+  useEffect(() => {
+    if (!canCreate || !institutionId) return;
+    const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+    fetch(`${API_BASE}/api/ads/credits/${institutionId}`, { headers: { 'X-Session-ID': sid } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setAdBalance(d.balance); else setAdBalance(0); })
+      .catch(() => setAdBalance(0));
+  }, [institutionId, canCreate]);
 
   const allItems = [
     ...events.map(e => ({ ...e, _type: 'event' as const })),
@@ -1088,12 +1098,23 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
   ];
 
   return (
+    <>
     <div id="announcements" style={{ background: C.bgCard, borderRadius: 24, border: `1px solid ${C.border}`, overflow: 'hidden', marginBottom: 24, backdropFilter: 'blur(12px)' }}>
       <div style={{ padding: '22px 26px 0', borderBottom: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.015)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, background: `${C.teal}20`, border: `1px solid ${C.teal}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.05rem' }}>📢</div>
-            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: C.text }}>إعلانات المؤسسة</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: C.text }}>إعلانات المؤسسة</h2>
+              {canCreate && adBalance !== null && (
+                <span style={{
+                  fontSize: '0.72rem', padding: '3px 10px', borderRadius: 20,
+                  background: adBalance > 0 ? 'rgba(133,199,154,0.12)' : 'rgba(255,107,107,0.1)',
+                  border: `1px solid ${adBalance > 0 ? 'rgba(133,199,154,0.28)' : 'rgba(255,107,107,0.25)'}`,
+                  color: adBalance > 0 ? C.green : C.danger, fontWeight: 700,
+                }}>💰 ${adBalance.toFixed(0)} رصيد</span>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {canCreate && (tab === 'all' || tab === 'news') && (
@@ -1173,15 +1194,16 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
           </div>
         )}
       </div>
-
-      {showAdModal && institutionId && (
-        <AdCreateModal
-          institutionId={institutionId}
-          onClose={() => setShowAdModal(false)}
-          onSuccess={() => { setShowAdModal(false); setAdDone(true); setTimeout(() => setAdDone(false), 6000); }}
-        />
-      )}
     </div>
+    {/* Modal rendered outside overflow:hidden card to avoid clipping */}
+    {showAdModal && institutionId && (
+      <AdCreateModal
+        institutionId={institutionId}
+        onClose={() => setShowAdModal(false)}
+        onSuccess={() => { setShowAdModal(false); setAdDone(true); setTimeout(() => setAdDone(false), 6000); }}
+      />
+    )}
+    </>
   );
 }
 
