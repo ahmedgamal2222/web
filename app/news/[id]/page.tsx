@@ -1,10 +1,6 @@
 import ClientPage from './Client';
 
-export const dynamicParams = false;
-
-export async function generateStaticParams() {
-  return [{ id: 'default' }];
-}
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return <ClientPage />;
