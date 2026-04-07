@@ -160,10 +160,9 @@ function PulseCard({ item, index, onOpen }: { item: PulseItem; index: number; on
   );
 }
 
-// ── بطاقة خبر AI ─────────────────────────────────────────────────────────────
+// ── بطاقة خبر ─────────────────────────────────────────────────────────────
 function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
   const instTypeInfo = item.institution_type ? INST_TYPES.find(t => t.key === item.institution_type) : null;
-  const scoreColor = item.relevance_score >= 70 ? '#22c55e' : item.relevance_score >= 40 ? '#f5c842' : '#6b7280';
 
   return (
     <a
@@ -171,8 +170,8 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
       target="_blank"
       rel="noopener noreferrer"
       style={{
-        background: 'linear-gradient(135deg, #0d1129, #1a1060)',
-        border: `1px solid rgba(139,92,246,0.3)`,
+        background: COLORS.card,
+        border: `1px solid ${COLORS.border}`,
         borderRadius: 16,
         padding: '16px 18px',
         display: 'flex',
@@ -187,17 +186,6 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
       }}
       className="pulse-card"
     >
-      {/* شارة AI */}
-      <div style={{
-        position: 'absolute', top: 10, left: 12,
-        background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-        color: '#fff',
-        fontSize: '0.62rem', fontWeight: 700,
-        padding: '2px 10px', borderRadius: 20,
-      }}>
-        🤖 AI
-      </div>
-
       {/* عنوان الخبر */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
         <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0, marginTop: 2 }}>📰</span>
@@ -220,7 +208,7 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
               margin: 0,
               fontFamily: 'Tajawal, sans-serif',
             }}>
-              💡 {item.summary}
+              {item.summary}
             </p>
           )}
         </div>
@@ -233,15 +221,6 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
         marginTop: 'auto',
         display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
       }}>
-        <span style={{
-          color: scoreColor,
-          fontWeight: 700,
-          fontSize: '0.68rem',
-          background: `${scoreColor}15`,
-          padding: '2px 8px', borderRadius: 12,
-        }}>
-          {Math.round(item.relevance_score)}% صلة
-        </span>
         {instTypeInfo && (
           <span style={{
             color: instTypeInfo.color,
@@ -298,7 +277,7 @@ function FilterBar({
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {btn('all', 'الكل')}
         {btn('featured', '✦ المميزة')}
-        {btn('smart', '🤖 لك')}
+        {btn('smart', '✦ لك')}
         {savingInterests && <span style={{ fontSize: '0.75rem', color: COLORS.teal }}>جاري الحفظ...</span>}
       </div>
       {filter === 'smart' && (
@@ -452,8 +431,25 @@ export default function PulseClient() {
     }, 600);
   }, []);
 
-  // أول تحميل + تغيير الفلتر
+  // عند الضغط على "لك" بدون اهتمامات → تحديد الكل تلقائياً
   useEffect(() => {
+    if (filter === 'smart' && interestsRef.current.length === 0) {
+      const allKeys = INST_TYPES.map(t => t.key);
+      interestsRef.current = allKeys;
+      setInterests([...allKeys]);
+      setSavingInterests(true);
+      (async () => {
+        await updateUserInterests(allKeys);
+        const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
+        setItems(res.data);
+        setTotal(res.total);
+        if (res.ai_news) setAiNews(res.ai_news);
+        if (res.interests) interestsRef.current = res.interests;
+        setPage(0);
+        setSavingInterests(false);
+      })();
+      return;
+    }
     load(true);
   }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -627,12 +623,12 @@ export default function PulseClient() {
                     display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20,
                   }}>
                     <span style={{
-                      background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                      background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.navy})`,
                       color: '#fff',
                       fontSize: '0.82rem', fontWeight: 700,
                       padding: '5px 16px', borderRadius: 20,
                     }}>
-                      🤖 أخبار ذكية
+                      📰 أخبار تهمك
                     </span>
                     <span style={{ color: '#6e6a99', fontSize: '0.78rem' }}>
                       {aiNews.length} خبر من {typeKeys.length} {typeKeys.length > 1 ? 'اهتمامات' : 'اهتمام'}
