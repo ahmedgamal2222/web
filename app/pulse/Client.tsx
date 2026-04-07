@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { fetchPulse, PulseItem, AINewsItem, updateUserInterests } from '@/lib/api';
+import { fetchPulse, PulseItem, AINewsItem } from '@/lib/api';
 import PulseDetailPopup, { parsePulseUrl } from '@/components/PulseDetailPopup';
 
 // ── نبضة المجرة – Wall Page ──────────────────────────────────────────────────
@@ -292,16 +292,8 @@ export default function PulseClient() {
     setLoading(false);
   }, [filter, page]);
 
-  // عند الضغط على "لك" → حفظ كل الاهتمامات تلقائياً وجلب الأخبار
+  // أول تحميل + تغيير الفلتر
   useEffect(() => {
-    if (filter === 'smart') {
-      const allKeys = INST_TYPES.map(t => t.key);
-      (async () => {
-        await updateUserInterests(allKeys);
-        load(true);
-      })();
-      return;
-    }
     load(true);
   }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -476,18 +468,12 @@ export default function PulseClient() {
                   </span>
                 </div>
                 <div style={{
-                  display: 'flex', gap: 12, overflowX: 'auto',
-                  paddingBottom: 6,
-                  scrollSnapType: 'x mandatory',
-                  WebkitOverflowScrolling: 'touch',
-                }} className="ai-scroll-row">
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 18,
+                }}>
                   {aiNews.map((item, i) => (
-                    <div key={`ai-${i}`} style={{
-                      minWidth: 280, maxWidth: 320, flex: '0 0 auto',
-                      scrollSnapAlign: 'start',
-                    }}>
-                      <AINewsCard item={item} index={i} />
-                    </div>
+                    <AINewsCard key={`ai-${i}`} item={item} index={i} />
                   ))}
                 </div>
               </div>
