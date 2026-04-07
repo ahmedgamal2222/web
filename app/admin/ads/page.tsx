@@ -49,7 +49,6 @@ const emptyForm = {
 export default function AdminAdsPage() {
   const router = useRouter();
   const [ads, setAds] = useState<Ad[]>([]);
-  const [serverStats, setServerStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -109,7 +108,6 @@ export default function AdminAdsPage() {
       const adsData = await adsRes.json();
       const instData = await instRes.json();
       setAds(adsData.data || []);
-      if (adsData.stats) setServerStats(adsData.stats);
       setInstitutions(instData.data || []);
     } finally {
       setLoading(false);
@@ -233,16 +231,13 @@ export default function AdminAdsPage() {
     return true;
   });
 
-  const stats = serverStats || {
+  const stats = {
     total: ads.length,
     pending: ads.filter(a => adStatus(a) === 'pending').length,
     active: ads.filter(a => adStatus(a) === 'active').length,
     approved: ads.filter(a => adStatus(a) === 'approved').length,
     rejected: ads.filter(a => adStatus(a) === 'rejected').length,
     expired: ads.filter(a => adStatus(a) === 'expired').length,
-    total_revenue: 0,
-    total_views: 0,
-    total_clicks: 0,
   };
 
   const fStyle: React.CSSProperties = { color: C.darkNavy };
@@ -280,9 +275,6 @@ export default function AdminAdsPage() {
           { label: 'معتمدة (قادمة)', val: stats.approved, color: '#3b82f6', icon: '📋' },
           { label: 'مرفوضة', val: stats.rejected, color: '#ef4444', icon: '🚫' },
           { label: 'منتهية', val: stats.expired, color: '#9E9E9E', icon: '❌' },
-          { label: 'إجمالي الإيرادات', val: `$${(stats.total_revenue || 0).toFixed(0)}`, color: '#10b981', icon: '💰' },
-          { label: 'إجمالي المشاهدات', val: stats.total_views || 0, color: '#8b5cf6', icon: '👁️' },
-          { label: 'إجمالي النقرات', val: stats.total_clicks || 0, color: '#f97316', icon: '🖱️' },
         ].map(s => (
           <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '18px 20px', boxShadow: `0 4px 14px ${C.darkNavy}15`, border: `1px solid ${s.color}30` }}>
             <div style={{ fontSize: '1.6rem', marginBottom: 4 }}>{s.icon}</div>
