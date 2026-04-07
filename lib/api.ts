@@ -616,6 +616,55 @@ export async function uploadImage(
   });
 }
 
+/**
+ * رفع ملف (صورة / مستند / أي نوع) إلى R2 وإرجاع الرابط العام
+ */
+export async function uploadFile(
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<{ url: string }> {
+  const sid = getSessionId();
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_BASE}/api/upload/image`);
+    xhr.setRequestHeader('X-Session-ID', sid);
+
+    if (onProgress) {
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      });
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (data.url) resolve(data);
+          else reject(new Error(data.error || 'لم يُرجع الخادم رابطاً للملف'));
+        } catch {
+          reject(new Error('استجابة غير صالحة من الخادم'));
+        }
+      } else {
+        try {
+          const err = JSON.parse(xhr.responseText);
+          reject(new Error(err.error || `فشل الرفع: HTTP ${xhr.status}`));
+        } catch {
+          reject(new Error(`فشل الرفع: HTTP ${xhr.status}`));
+        }
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('فشل الاتصال بالخادم أثناء رفع الملف'));
+    xhr.ontimeout = () => reject(new Error('انتهت مهلة رفع الملف'));
+    xhr.timeout = 120000;
+
+    xhr.send(formData);
+  });
+}
+
 // ============================================================
 // 💫 Pulse — نبض المجرة
 // ============================================================

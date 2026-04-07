@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { uploadFile } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 const C = { lightMint: '#EDF7BD', softGreen: '#85C79A', teal: '#4E8D9C', darkNavy: '#281C59', bg: '#07091e', card: '#0d1129', border: '#1a1f3d', textMain: '#e2e8f0', textMuted: '#94a3b8', green: '#85C79A', danger: '#ff6b6b', warning: '#f59e0b' };
@@ -40,7 +41,10 @@ export default function TicketDetailPage() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [attachFile, setAttachFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const sid = getSessionId();
@@ -63,26 +67,40 @@ export default function TicketDetailPage() {
   };
 
   useEffect(() => { if (user) loadTicket(); }, [user, id]);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  const prevMsgCount = useRef(0);
+  useEffect(() => {
+    if (messages.length > prevMsgCount.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevMsgCount.current = messages.length;
+  }, [messages]);
 
-  // Auto-refresh every 15 seconds
+  // Auto-refresh every 30 seconds
   useEffect(() => {
     if (!user) return;
-    const iv = setInterval(loadTicket, 15000);
+    const iv = setInterval(loadTicket, 30000);
     return () => clearInterval(iv);
   }, [user, id]);
 
   const handleReply = async () => {
-    if (!reply.trim() || sending) return;
+    if ((!reply.trim() && !attachFile) || sending) return;
     setSending(true);
     try {
+      let attachment_url: string | undefined;
+      let attachment_name: string | undefined;
+      if (attachFile) {
+        setUploadProgress(0);
+        const up = await uploadFile(attachFile, setUploadProgress);
+        attachment_url = up.url;
+        attachment_name = attachFile.name;
+      }
       const res = await fetch(`${API_BASE}/api/support/tickets/${id}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSessionId() },
-        body: JSON.stringify({ message: reply }),
+        body: JSON.stringify({ message: reply || (attachment_name ? `📎 ${attachment_name}` : ''), attachment_url, attachment_name }),
       });
       const d = await res.json();
-      if (d.success) { setReply(''); loadTicket(); }
+      if (d.success) { setReply(''); setAttachFile(null); setUploadProgress(0); loadTicket(); }
     } catch {}
     finally { setSending(false); }
   };
@@ -212,6 +230,22 @@ export default function TicketDetailPage() {
                     fontSize: '0.88rem', color: C.textMain, lineHeight: 1.8,
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                   }}>{m.message}</div>
+                  {m.attachment_url && (
+                    <div style={{ marginTop: 6 }}>
+                      {/\.(jpg|jpeg|png|gif|webp)$/i.test(m.attachment_name || '') ? (
+                        <a href={m.attachment_url} target="_blank" rel="noopener noreferrer">
+                          <img src={m.attachment_url} alt={m.attachment_name} style={{ maxWidth: 240, maxHeight: 200, borderRadius: 8, cursor: 'pointer' }} />
+                        </a>
+                      ) : (
+                        <a href={m.attachment_url} target="_blank" rel="noopener noreferrer" style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: 'rgba(78,141,156,0.1)', border: `1px solid ${C.border}`,
+                          borderRadius: 8, padding: '6px 12px', color: C.teal,
+                          fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none',
+                        }}>📎 {m.attachment_name || 'ملف مرفق'}</a>
+                      )}
+                    </div>
+                  )}
                   <div style={{ fontSize: '0.62rem', color: C.textMuted, marginTop: 6, textAlign: isAdmin ? 'left' : 'right' }}>
                     {formatDate(m.created_at)}
                   </div>
@@ -230,32 +264,53 @@ export default function TicketDetailPage() {
           background: 'linear-gradient(to top, #0d1129 60%, transparent)',
           padding: '16px 20px 20px', zIndex: 100,
         }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-            <textarea
-              value={reply} onChange={e => setReply(e.target.value)}
-              placeholder={isResolved ? 'التذكرة محلولة. يمكنك إعادة فتحها بالرد...' : 'اكتب ردك هنا...'}
-              rows={2}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
-              style={{
-                flex: 1, padding: '12px 16px', background: C.card,
-                border: `1px solid ${C.border}`, borderRadius: 14, color: C.textMain,
-                fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none',
-                resize: 'none', minHeight: 48, maxHeight: 120,
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = C.teal}
-              onBlur={e => e.currentTarget.style.borderColor = C.border}
-            />
-            <button onClick={handleReply} disabled={sending || !reply.trim()} style={{
-              background: (!reply.trim() || sending) ? C.border : `linear-gradient(135deg, ${C.teal}, ${C.softGreen})`,
-              border: 'none', borderRadius: 14, width: 50, height: 50,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: (!reply.trim() || sending) ? 'default' : 'pointer',
-              fontSize: '1.2rem', color: '#fff', flexShrink: 0,
-              transition: 'all 0.2s',
-            }}>
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+            {/* Attachment preview */}
+            {attachFile && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, background: C.card, borderRadius: 10, padding: '6px 12px', border: `1px solid ${C.border}` }}>
+                <span style={{ fontSize: '0.75rem', color: C.teal, fontWeight: 600 }}>📎 {attachFile.name}</span>
+                <span style={{ fontSize: '0.65rem', color: C.textMuted }}>({(attachFile.size / 1024).toFixed(0)} KB)</span>
+                <button onClick={() => setAttachFile(null)} style={{ background: 'none', border: 'none', color: C.danger, cursor: 'pointer', fontSize: '0.8rem', padding: 2 }}>✕</button>
+                {sending && uploadProgress > 0 && uploadProgress < 100 && (
+                  <div style={{ flex: 1, height: 3, background: C.border, borderRadius: 2 }}>
+                    <div style={{ width: `${uploadProgress}%`, height: '100%', background: C.teal, borderRadius: 2, transition: 'width 0.2s' }} />
+                  </div>
+                )}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+              <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={e => { if (e.target.files?.[0]) setAttachFile(e.target.files[0]); e.target.value = ''; }} />
+              <button onClick={() => fileInputRef.current?.click()} title="إرفاق ملف" style={{
+                background: C.card, border: `1px solid ${C.border}`, borderRadius: 14,
+                width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', fontSize: '1.1rem', color: C.textMuted, flexShrink: 0,
+              }}>📎</button>
+              <textarea
+                value={reply} onChange={e => setReply(e.target.value)}
+                placeholder={isResolved ? 'التذكرة محلولة. يمكنك إعادة فتحها بالرد...' : 'اكتب ردك هنا...'}
+                rows={2}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
+                style={{
+                  flex: 1, padding: '12px 16px', background: C.card,
+                  border: `1px solid ${C.border}`, borderRadius: 14, color: C.textMain,
+                  fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none',
+                  resize: 'none', minHeight: 48, maxHeight: 120,
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = C.teal}
+                onBlur={e => e.currentTarget.style.borderColor = C.border}
+              />
+              <button onClick={handleReply} disabled={sending || (!reply.trim() && !attachFile)} style={{
+                background: ((!reply.trim() && !attachFile) || sending) ? C.border : `linear-gradient(135deg, ${C.teal}, ${C.softGreen})`,
+                border: 'none', borderRadius: 14, width: 50, height: 50,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: ((!reply.trim() && !attachFile) || sending) ? 'default' : 'pointer',
+                fontSize: '1.2rem', color: '#fff', flexShrink: 0,
+                transition: 'all 0.2s',
+              }}>
               {sending ? '⏳' : '📤'}
             </button>
+            </div>
           </div>
         </div>
       ) : (
