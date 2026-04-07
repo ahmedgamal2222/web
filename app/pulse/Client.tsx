@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchPulse, PulseItem, AINewsItem, updateUserInterests } from '@/lib/api';
 import PulseDetailPopup, { parsePulseUrl } from '@/components/PulseDetailPopup';
@@ -162,8 +162,6 @@ function PulseCard({ item, index, onOpen }: { item: PulseItem; index: number; on
 
 // ── بطاقة خبر ─────────────────────────────────────────────────────────────
 function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
-  const instTypeInfo = item.institution_type ? INST_TYPES.find(t => t.key === item.institution_type) : null;
-
   return (
     <a
       href={item.url}
@@ -221,15 +219,6 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
         marginTop: 'auto',
         display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
       }}>
-        {instTypeInfo && (
-          <span style={{
-            color: instTypeInfo.color,
-            fontSize: '0.66rem',
-            background: `${instTypeInfo.color}15`,
-            padding: '2px 8px', borderRadius: 12,
-            fontWeight: 600,
-          }}>{instTypeInfo.label}</span>
-        )}
         <span style={{ color: '#555', marginRight: 'auto', fontSize: '0.65rem' }}>
           {item.source}
         </span>
@@ -241,16 +230,11 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
 
 // ── شريط الفلاتر ─────────────────────────────────────────────────────────────
 function FilterBar({
-  filter, setFilter, interests, toggleInterest, selectAllInterests, savingInterests,
+  filter, setFilter,
 }: {
   filter: 'all' | 'featured' | 'smart';
   setFilter: (f: 'all' | 'featured' | 'smart') => void;
-  interests: string[];
-  toggleInterest: (key: string) => void;
-  selectAllInterests: () => void;
-  savingInterests: boolean;
 }) {
-  const allSelected = INST_TYPES.every(t => interests.includes(t.key));
   const btn = (value: 'all' | 'featured' | 'smart', label: string) => (
     <button
       onClick={() => setFilter(value)}
@@ -273,82 +257,10 @@ function FilterBar({
     </button>
   );
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        {btn('all', 'الكل')}
-        {btn('featured', '✦ المميزة')}
-        {btn('smart', '✦ لك')}
-        {savingInterests && <span style={{ fontSize: '0.75rem', color: COLORS.teal }}>جاري الحفظ...</span>}
-      </div>
-      {filter === 'smart' && (
-        <div style={{
-          background: 'rgba(139,92,246,0.06)',
-          border: '1px solid rgba(139,92,246,0.15)',
-          borderRadius: 16,
-          padding: '14px 18px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.82rem', color: '#a5a0cc', fontWeight: 700 }}>🎯 اهتماماتك:</span>
-            <button
-              onClick={selectAllInterests}
-              style={{
-                padding: '4px 14px',
-                borderRadius: 20,
-                border: `1.5px solid ${allSelected ? 'rgba(255,100,100,0.4)' : 'rgba(139,92,246,0.4)'}`,
-                background: allSelected ? 'rgba(255,100,100,0.12)' : 'rgba(139,92,246,0.12)',
-                color: allSelected ? '#ff6b6b' : '#a78bfa',
-                fontSize: '0.76rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                fontFamily: 'Tajawal, sans-serif',
-                transition: 'all 0.2s',
-              }}
-            >
-              {allSelected ? '✕ إلغاء الكل' : '✦ تحديد الكل'}
-            </button>
-            {savingInterests && (
-              <span style={{ fontSize: '0.72rem', color: COLORS.teal, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid rgba(78,141,156,0.3)', borderTopColor: COLORS.teal, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                جاري الحفظ...
-              </span>
-            )}
-            {interests.length > 0 && !savingInterests && (
-              <span style={{ fontSize: '0.7rem', color: '#6e6a99', marginRight: 'auto' }}>
-                {interests.length} من {INST_TYPES.length}
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {INST_TYPES.map(t => {
-              const active = interests.includes(t.key);
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => toggleInterest(t.key)}
-                  style={{
-                    padding: '6px 16px',
-                    borderRadius: 22,
-                    border: `1.5px solid ${active ? t.color : 'rgba(255,255,255,0.08)'}`,
-                    background: active
-                      ? `linear-gradient(135deg, ${t.color}25, ${t.color}10)`
-                      : 'rgba(255,255,255,0.03)',
-                    color: active ? t.color : '#555',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontFamily: 'Tajawal, sans-serif',
-                    transition: 'all 0.2s',
-                    boxShadow: active ? `0 2px 12px ${t.color}20` : 'none',
-                  }}
-                >
-                  {active && <span style={{ marginLeft: 4 }}>✓</span>}
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+      {btn('all', 'الكل')}
+      {btn('featured', '✦ المميزة')}
+      {btn('smart', '✦ لك')}
     </div>
   );
 }
@@ -362,10 +274,6 @@ export default function PulseClient() {
   const [filter, setFilter]   = useState<'all' | 'featured' | 'smart'>('all');
   const [page, setPage]   = useState(0);
   const [selected, setSelected] = useState<PulseItem | null>(null);
-  const [interests, setInterests] = useState<string[]>([]);
-  const [savingInterests, setSavingInterests] = useState(false);
-  const interestsRef = useRef<string[]>([]);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const LIMIT = 30;
 
   const load = useCallback(async (reset = false) => {
@@ -380,73 +288,17 @@ export default function PulseClient() {
     setItems(prev => reset ? res.data : [...prev, ...res.data]);
     setTotal(res.total);
     if (res.ai_news) setAiNews(res.ai_news);
-    if (res.interests && res.interests.length > 0 && interests.length === 0) {
-      setInterests(res.interests);
-      interestsRef.current = res.interests;
-    }
     if (reset) setPage(0);
     setLoading(false);
   }, [filter, page]);
 
-  const toggleInterest = useCallback((key: string) => {
-    const current = interestsRef.current;
-    const newInterests = current.includes(key)
-      ? current.filter(i => i !== key)
-      : [...current, key];
-    interestsRef.current = newInterests;
-    setInterests([...newInterests]);
-
-    // Debounce: انتظار 600ms بعد آخر نقرة قبل الحفظ والتحميل
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    setSavingInterests(true);
-    saveTimerRef.current = setTimeout(async () => {
-      const toSave = interestsRef.current;
-      await updateUserInterests(toSave);
-      const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
-      setItems(res.data);
-      setTotal(res.total);
-      if (res.ai_news) setAiNews(res.ai_news);
-      setPage(0);
-      setSavingInterests(false);
-    }, 600);
-  }, []);
-
-  const selectAllInterests = useCallback(() => {
-    const allKeys = INST_TYPES.map(t => t.key);
-    const allSelected = allKeys.every(k => interestsRef.current.includes(k));
-    const newInterests = allSelected ? [] : [...allKeys];
-    interestsRef.current = newInterests;
-    setInterests([...newInterests]);
-
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    setSavingInterests(true);
-    saveTimerRef.current = setTimeout(async () => {
-      await updateUserInterests(interestsRef.current);
-      const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
-      setItems(res.data);
-      setTotal(res.total);
-      if (res.ai_news) setAiNews(res.ai_news);
-      setPage(0);
-      setSavingInterests(false);
-    }, 600);
-  }, []);
-
-  // عند الضغط على "لك" بدون اهتمامات → تحديد الكل تلقائياً
+  // عند الضغط على "لك" → حفظ كل الاهتمامات تلقائياً وجلب الأخبار
   useEffect(() => {
-    if (filter === 'smart' && interestsRef.current.length === 0) {
+    if (filter === 'smart') {
       const allKeys = INST_TYPES.map(t => t.key);
-      interestsRef.current = allKeys;
-      setInterests([...allKeys]);
-      setSavingInterests(true);
       (async () => {
         await updateUserInterests(allKeys);
-        const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
-        setItems(res.data);
-        setTotal(res.total);
-        if (res.ai_news) setAiNews(res.ai_news);
-        if (res.interests) interestsRef.current = res.interests;
-        setPage(0);
-        setSavingInterests(false);
+        load(true);
       })();
       return;
     }
@@ -583,7 +435,7 @@ export default function PulseClient() {
             أحداث المجرة الحضارية لحظةً بلحظة — اتفاقيات، فعاليات، أخبار
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <FilterBar filter={filter} setFilter={f => { setFilter(f); }} interests={interests} toggleInterest={toggleInterest} selectAllInterests={selectAllInterests} savingInterests={savingInterests} />
+            <FilterBar filter={filter} setFilter={f => { setFilter(f); }} />
             <span style={{ color: '#556', fontSize: '0.8rem', marginRight: 'auto' }}>
               {total} نبضة · يتحدث كل 30 ث
             </span>
@@ -605,90 +457,41 @@ export default function PulseClient() {
           </div>
         ) : (
           <>
-            {/* ── أخبار AI ── */}
-            {filter === 'smart' && aiNews.length > 0 && (() => {
-              // تجميع الأخبار حسب نوع الاهتمام
-              const grouped: Record<string, AINewsItem[]> = {};
-              aiNews.forEach(item => {
-                const t = item.institution_type || 'other';
-                if (!grouped[t]) grouped[t] = [];
-                grouped[t].push(item);
-              });
-              const typeKeys = Object.keys(grouped);
-
-              return (
-                <div style={{ marginBottom: 32 }}>
-                  {/* عنوان القسم */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20,
+            {/* ── أخبار لك ── */}
+            {filter === 'smart' && aiNews.length > 0 && (
+              <div style={{ marginBottom: 32 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16,
+                }}>
+                  <span style={{
+                    background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.navy})`,
+                    color: '#fff',
+                    fontSize: '0.82rem', fontWeight: 700,
+                    padding: '5px 16px', borderRadius: 20,
                   }}>
-                    <span style={{
-                      background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.navy})`,
-                      color: '#fff',
-                      fontSize: '0.82rem', fontWeight: 700,
-                      padding: '5px 16px', borderRadius: 20,
-                    }}>
-                      📰 أخبار تهمك
-                    </span>
-                    <span style={{ color: '#6e6a99', fontSize: '0.78rem' }}>
-                      {aiNews.length} خبر من {typeKeys.length} {typeKeys.length > 1 ? 'اهتمامات' : 'اهتمام'}
-                    </span>
-                  </div>
-
-                  {/* أقسام حسب النوع */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {typeKeys.map(typeKey => {
-                      const typeInfo = INST_TYPES.find(t => t.key === typeKey);
-                      const items = grouped[typeKey];
-                      return (
-                        <div key={typeKey}>
-                          {/* رأس القسم */}
-                          <div style={{
-                            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10,
-                            padding: '6px 14px',
-                            background: `${typeInfo?.color || '#8b5cf6'}10`,
-                            border: `1px solid ${typeInfo?.color || '#8b5cf6'}25`,
-                            borderRadius: 12,
-                            width: 'fit-content',
-                          }}>
-                            <span style={{
-                              fontSize: '0.82rem', fontWeight: 800,
-                              color: typeInfo?.color || '#8b5cf6',
-                            }}>
-                              {typeInfo?.label || typeKey}
-                            </span>
-                            <span style={{
-                              background: `${typeInfo?.color || '#8b5cf6'}20`,
-                              color: typeInfo?.color || '#8b5cf6',
-                              fontSize: '0.68rem', fontWeight: 700,
-                              padding: '1px 8px', borderRadius: 10,
-                            }}>
-                              {items.length}
-                            </span>
-                          </div>
-                          {/* بطاقات بالتمرير الأفقي */}
-                          <div style={{
-                            display: 'flex', gap: 12, overflowX: 'auto',
-                            paddingBottom: 6,
-                            scrollSnapType: 'x mandatory',
-                            WebkitOverflowScrolling: 'touch',
-                          }} className="ai-scroll-row">
-                            {items.map((item, i) => (
-                              <div key={`ai-${typeKey}-${i}`} style={{
-                                minWidth: 280, maxWidth: 320, flex: '0 0 auto',
-                                scrollSnapAlign: 'start',
-                              }}>
-                                <AINewsCard item={item} index={i} />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    📰 أخبار تهمك
+                  </span>
+                  <span style={{ color: '#6e6a99', fontSize: '0.78rem' }}>
+                    {aiNews.length} خبر
+                  </span>
                 </div>
-              );
-            })()}
+                <div style={{
+                  display: 'flex', gap: 12, overflowX: 'auto',
+                  paddingBottom: 6,
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch',
+                }} className="ai-scroll-row">
+                  {aiNews.map((item, i) => (
+                    <div key={`ai-${i}`} style={{
+                      minWidth: 280, maxWidth: 320, flex: '0 0 auto',
+                      scrollSnapAlign: 'start',
+                    }}>
+                      <AINewsCard item={item} index={i} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* بطاقة مميزة كبيرة إن وجدت */}
             {items[0]?.is_featured ? (
