@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { fetchPulse, PulseItem, AINewsItem, updateUserInterests } from '@/lib/api';
 import PulseDetailPopup, { parsePulseUrl } from '@/components/PulseDetailPopup';
@@ -262,14 +262,16 @@ function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
 
 // ── شريط الفلاتر ─────────────────────────────────────────────────────────────
 function FilterBar({
-  filter, setFilter, interests, toggleInterest, savingInterests,
+  filter, setFilter, interests, toggleInterest, selectAllInterests, savingInterests,
 }: {
   filter: 'all' | 'featured' | 'smart';
   setFilter: (f: 'all' | 'featured' | 'smart') => void;
   interests: string[];
   toggleInterest: (key: string) => void;
+  selectAllInterests: () => void;
   savingInterests: boolean;
 }) {
+  const allSelected = INST_TYPES.every(t => interests.includes(t.key));
   const btn = (value: 'all' | 'featured' | 'smart', label: string) => (
     <button
       onClick={() => setFilter(value)}
@@ -300,31 +302,72 @@ function FilterBar({
         {savingInterests && <span style={{ fontSize: '0.75rem', color: COLORS.teal }}>جاري الحفظ...</span>}
       </div>
       {filter === 'smart' && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.78rem', color: '#8888aa', marginLeft: 4 }}>اهتماماتك:</span>
-          {INST_TYPES.map(t => {
-            const active = interests.includes(t.key);
-            return (
-              <button
-                key={t.key}
-                onClick={() => toggleInterest(t.key)}
-                style={{
-                  padding: '5px 14px',
-                  borderRadius: 20,
-                  border: `1.5px solid ${active ? t.color : 'rgba(255,255,255,0.1)'}`,
-                  background: active ? `${t.color}20` : 'transparent',
-                  color: active ? t.color : '#777',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: 'Tajawal, sans-serif',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
+        <div style={{
+          background: 'rgba(139,92,246,0.06)',
+          border: '1px solid rgba(139,92,246,0.15)',
+          borderRadius: 16,
+          padding: '14px 18px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.82rem', color: '#a5a0cc', fontWeight: 700 }}>🎯 اهتماماتك:</span>
+            <button
+              onClick={selectAllInterests}
+              style={{
+                padding: '4px 14px',
+                borderRadius: 20,
+                border: `1.5px solid ${allSelected ? 'rgba(255,100,100,0.4)' : 'rgba(139,92,246,0.4)'}`,
+                background: allSelected ? 'rgba(255,100,100,0.12)' : 'rgba(139,92,246,0.12)',
+                color: allSelected ? '#ff6b6b' : '#a78bfa',
+                fontSize: '0.76rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                fontFamily: 'Tajawal, sans-serif',
+                transition: 'all 0.2s',
+              }}
+            >
+              {allSelected ? '✕ إلغاء الكل' : '✦ تحديد الكل'}
+            </button>
+            {savingInterests && (
+              <span style={{ fontSize: '0.72rem', color: COLORS.teal, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid rgba(78,141,156,0.3)', borderTopColor: COLORS.teal, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                جاري الحفظ...
+              </span>
+            )}
+            {interests.length > 0 && !savingInterests && (
+              <span style={{ fontSize: '0.7rem', color: '#6e6a99', marginRight: 'auto' }}>
+                {interests.length} من {INST_TYPES.length}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {INST_TYPES.map(t => {
+              const active = interests.includes(t.key);
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => toggleInterest(t.key)}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: 22,
+                    border: `1.5px solid ${active ? t.color : 'rgba(255,255,255,0.08)'}`,
+                    background: active
+                      ? `linear-gradient(135deg, ${t.color}25, ${t.color}10)`
+                      : 'rgba(255,255,255,0.03)',
+                    color: active ? t.color : '#555',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'Tajawal, sans-serif',
+                    transition: 'all 0.2s',
+                    boxShadow: active ? `0 2px 12px ${t.color}20` : 'none',
+                  }}
+                >
+                  {active && <span style={{ marginLeft: 4 }}>✓</span>}
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -342,6 +385,8 @@ export default function PulseClient() {
   const [selected, setSelected] = useState<PulseItem | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const [savingInterests, setSavingInterests] = useState(false);
+  const interestsRef = useRef<string[]>([]);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const LIMIT = 30;
 
   const load = useCallback(async (reset = false) => {
@@ -358,26 +403,54 @@ export default function PulseClient() {
     if (res.ai_news) setAiNews(res.ai_news);
     if (res.interests && res.interests.length > 0 && interests.length === 0) {
       setInterests(res.interests);
+      interestsRef.current = res.interests;
     }
     if (reset) setPage(0);
     setLoading(false);
   }, [filter, page]);
 
-  const toggleInterest = useCallback(async (key: string) => {
-    const newInterests = interests.includes(key)
-      ? interests.filter(i => i !== key)
-      : [...interests, key];
-    setInterests(newInterests);
+  const toggleInterest = useCallback((key: string) => {
+    const current = interestsRef.current;
+    const newInterests = current.includes(key)
+      ? current.filter(i => i !== key)
+      : [...current, key];
+    interestsRef.current = newInterests;
+    setInterests([...newInterests]);
+
+    // Debounce: انتظار 600ms بعد آخر نقرة قبل الحفظ والتحميل
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSavingInterests(true);
-    await updateUserInterests(newInterests);
-    setSavingInterests(false);
-    // Reload with new interests
-    const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
-    setItems(res.data);
-    setTotal(res.total);
-    if (res.ai_news) setAiNews(res.ai_news);
-    setPage(0);
-  }, [interests]);
+    saveTimerRef.current = setTimeout(async () => {
+      const toSave = interestsRef.current;
+      await updateUserInterests(toSave);
+      const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
+      setItems(res.data);
+      setTotal(res.total);
+      if (res.ai_news) setAiNews(res.ai_news);
+      setPage(0);
+      setSavingInterests(false);
+    }, 600);
+  }, []);
+
+  const selectAllInterests = useCallback(() => {
+    const allKeys = INST_TYPES.map(t => t.key);
+    const allSelected = allKeys.every(k => interestsRef.current.includes(k));
+    const newInterests = allSelected ? [] : [...allKeys];
+    interestsRef.current = newInterests;
+    setInterests([...newInterests]);
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    setSavingInterests(true);
+    saveTimerRef.current = setTimeout(async () => {
+      await updateUserInterests(interestsRef.current);
+      const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
+      setItems(res.data);
+      setTotal(res.total);
+      if (res.ai_news) setAiNews(res.ai_news);
+      setPage(0);
+      setSavingInterests(false);
+    }, 600);
+  }, []);
 
   // أول تحميل + تغيير الفلتر
   useEffect(() => {
@@ -514,7 +587,7 @@ export default function PulseClient() {
             أحداث المجرة الحضارية لحظةً بلحظة — اتفاقيات، فعاليات، أخبار
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <FilterBar filter={filter} setFilter={f => { setFilter(f); }} interests={interests} toggleInterest={toggleInterest} savingInterests={savingInterests} />
+            <FilterBar filter={filter} setFilter={f => { setFilter(f); }} interests={interests} toggleInterest={toggleInterest} selectAllInterests={selectAllInterests} savingInterests={savingInterests} />
             <span style={{ color: '#556', fontSize: '0.8rem', marginRight: 'auto' }}>
               {total} نبضة · يتحدث كل 30 ث
             </span>
