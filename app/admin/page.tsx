@@ -329,6 +329,13 @@ export default function AdminDashboard() {
           color="#8B5CF6"
           link="/admin/galaxy-audio"
         />
+        <StatCard
+          title="تذاكر الدعم"
+          value="🎫"
+          icon="🎫"
+          color="#6366F1"
+          link="/admin/support"
+        />
       </div>
 
       {/* أقسام سريعة */}

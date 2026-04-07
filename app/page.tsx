@@ -453,6 +453,11 @@ function QuickActions({ user }: { user: any }) {
     );
   }
 
+  // Support link for all users
+  actions.push(
+    { icon: '🎫', label: 'الدعم الفني', href: '/support', color: '#6366f1' },
+  );
+
   // Static nav items moved from topbar
   // actions.push(
   //   { icon: '📚', label: 'المكتبة', href: '/library', color: '#85C79A' },
@@ -1857,6 +1862,48 @@ export default function HomePage() {
       {popupStar && (
         <StarPopup star={popupStar} onClose={() => setPopupStar(null)} />
       )}
+
+      {/* Floating Support Button */}
+      <Link href="/support" style={{ textDecoration: 'none' }}>
+        <div
+          className="support-fab"
+          style={{
+            position: 'fixed', bottom: 28, left: 28, zIndex: 999,
+            width: 60, height: 60, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #6366f1 0%, #4E8D9C 50%, #85C79A 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2)',
+            cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+            border: '2px solid rgba(255,255,255,0.15)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'scale(1.12) translateY(-4px)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(99,102,241,0.55), 0 0 60px rgba(78,141,156,0.3)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2)';
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            <path d="M12 7v2" />
+            <path d="M12 13h.01" />
+          </svg>
+        </div>
+      </Link>
+      <style>{`
+        @keyframes support-pulse {
+          0%, 100% { box-shadow: 0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2); }
+          50% { box-shadow: 0 4px 24px rgba(99,102,241,0.6), 0 0 60px rgba(78,141,156,0.35), 0 0 0 8px rgba(99,102,241,0.08); }
+        }
+        .support-fab { animation: support-pulse 3s ease-in-out infinite; }
+        .support-fab:hover { animation: none; }
+        @media (max-width: 480px) {
+          .support-fab { width: 50px !important; height: 50px !important; bottom: 18px !important; left: 18px !important; }
+          .support-fab svg { width: 22px !important; height: 22px !important; }
+        }
+      `}</style>
     </main>
   );
 }

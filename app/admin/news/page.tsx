@@ -17,6 +17,7 @@ const C = {
 interface NewsItem {
   id: number;
   title: string;
+  subtitle?: string;
   content: string;
   image_url?: string;
   category: string;
@@ -42,6 +43,7 @@ interface EventItem {
 
 const emptyNews = {
   title: '',
+  subtitle: '',
   content: '',
   image_url: '',
   category: 'announcement',
@@ -86,6 +88,9 @@ export default function AdminNewsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [editingSubtitle, setEditingSubtitle] = useState<number | null>(null);
+  const [subtitleValue, setSubtitleValue] = useState('');
+  const [savingSubtitle, setSavingSubtitle] = useState(false);
 
   const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
   const authH = { 'X-Session-ID': sid, 'Content-Type': 'application/json' };
@@ -124,6 +129,20 @@ export default function AdminNewsPage() {
     if (!confirm('هل أنت متأكد من حذف هذا الخبر؟')) return;
     await fetch(`${API_BASE}/api/news/${id}`, { method: 'DELETE', headers: authH });
     setNews(prev => prev.filter(n => n.id !== id));
+  };
+
+  const saveSubtitle = async (id: number) => {
+    setSavingSubtitle(true);
+    try {
+      await fetch(`${API_BASE}/api/news/${id}`, {
+        method: 'PATCH',
+        headers: { ...authH, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subtitle: subtitleValue }),
+      });
+      setNews(prev => prev.map(n => n.id === id ? { ...n, subtitle: subtitleValue } : n));
+      setEditingSubtitle(null);
+    } catch { setErr('فشل حفظ العنوان الفرعي'); }
+    finally { setSavingSubtitle(false); }
   };
 
   const deleteEvent = async (id: number) => {
@@ -311,6 +330,30 @@ export default function AdminNewsPage() {
                 )}
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ fontWeight: 800, color: C.darkNavy, fontSize: '1rem', marginBottom: 4 }}>{item.title}</div>
+                  {editingSubtitle === item.id ? (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                      <input
+                        value={subtitleValue}
+                        onChange={e => setSubtitleValue(e.target.value)}
+                        placeholder="العنوان الفرعي (لجلب أخبار مشابهة)..."
+                        style={{ flex: 1, padding: '5px 10px', borderRadius: 8, border: `1px solid ${C.teal}40`, fontSize: '0.82rem', fontFamily: "'Cairo',sans-serif", outline: 'none' }}
+                        autoFocus
+                        onKeyDown={e => e.key === 'Enter' && saveSubtitle(item.id)}
+                      />
+                      <button onClick={() => saveSubtitle(item.id)} disabled={savingSubtitle} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: C.teal, color: 'white', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Cairo',sans-serif" }}>
+                        {savingSubtitle ? '...' : '✓'}
+                      </button>
+                      <button onClick={() => setEditingSubtitle(null)} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: '#f1f5f9', color: '#64748b', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Cairo',sans-serif" }}>✗</button>
+                    </div>
+                  ) : item.subtitle ? (
+                    <div
+                      onClick={() => { setEditingSubtitle(item.id); setSubtitleValue(item.subtitle || ''); }}
+                      style={{ fontSize: '0.82rem', color: C.teal, marginBottom: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                      title="انقر للتعديل"
+                    >
+                      🏷 {item.subtitle} <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>✏️</span>
+                    </div>
+                  ) : null}
                   <div style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <span style={{ background: `${C.teal}18`, color: C.teal, padding: '2px 10px', borderRadius: 12, fontWeight: 600 }}>
                       {item.category === 'announcement' ? '📢 إعلان' : item.category === 'achievement' ? '🏆 إنجاز' : '📰 خبر'}
@@ -320,6 +363,13 @@ export default function AdminNewsPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <button
+                    onClick={() => { setEditingSubtitle(item.id); setSubtitleValue(item.subtitle || ''); }}
+                    style={{ padding: '7px 16px', borderRadius: 20, background: `${C.softGreen}25`, color: C.softGreen, border: 'none', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'Cairo',sans-serif" }}
+                    title="تعديل العنوان الفرعي"
+                  >
+                    🏷 subtitle
+                  </button>
                   <Link href={`/news/${item.id}`} target="_blank" style={{ padding: '7px 16px', borderRadius: 20, background: `${C.teal}15`, color: C.teal, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700 }}>
                     👁 عرض
                   </Link>
@@ -383,6 +433,10 @@ export default function AdminNewsPage() {
                 <div>
                   <label style={labelStyle}>العنوان *</label>
                   <input required value={newsForm.title} onChange={e => setNewsForm(p => ({ ...p, title: e.target.value }))} placeholder="عنوان الخبر" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>العنوان الفرعي <span style={{ color: '#94a3b8', fontWeight: 400 }}>(يُستخدم لجلب أخبار مشابهة من الإنترنت)</span></label>
+                  <input value={newsForm.subtitle} onChange={e => setNewsForm(p => ({ ...p, subtitle: e.target.value }))} placeholder="كلمات مفتاحية أو عنوان فرعي لجلب أخبار ذات صلة..." style={inputStyle} />
                 </div>
                 <div>
                   <label style={labelStyle}>التصنيف</label>

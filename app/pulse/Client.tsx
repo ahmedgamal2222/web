@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { fetchPulse, PulseItem } from '@/lib/api';
+import { fetchPulse, PulseItem, AINewsItem, updateUserInterests } from '@/lib/api';
 import PulseDetailPopup, { parsePulseUrl } from '@/components/PulseDetailPopup';
 
 // ── نبضة المجرة – Wall Page ──────────────────────────────────────────────────
@@ -30,6 +30,16 @@ function pulseIcon(content: string): string {
   return '✦';
 }
 
+const INST_TYPES = [
+  { key: 'charitable', label: '🕌 خيرية', color: '#22c55e' },
+  { key: 'educational', label: '🎓 تعليمية', color: '#3b82f6' },
+  { key: 'research', label: '🔬 بحثية', color: '#8b5cf6' },
+  { key: 'cultural', label: '🎭 ثقافية', color: '#f59e0b' },
+  { key: 'media', label: '📺 إعلامية', color: '#ef4444' },
+  { key: 'developmental', label: '🌱 تنموية', color: '#14b8a6' },
+  { key: 'ngo', label: '🏢 عام', color: '#6b7280' },
+] as const;
+
 // تحويل التاريخ لعربي نسبي
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -54,6 +64,8 @@ function PulseCard({ item, index, onOpen }: { item: PulseItem; index: number; on
     type === 'institution' ? '🏛️ مؤسسة' :
     type === 'event'       ? '📅 فعالية' :
     type === 'news'        ? '📢 خبر' : null;
+
+  const instTypeInfo = item.institution_type ? INST_TYPES.find(t => t.key === item.institution_type) : null;
 
   return (
     <article
@@ -134,19 +146,131 @@ function PulseCard({ item, index, onOpen }: { item: PulseItem; index: number; on
             padding: '2px 10px', borderRadius: 20,
           }}>{typeLabel}</span>
         )}
+        {instTypeInfo && (
+          <span style={{
+            color: instTypeInfo.color,
+            fontSize: '0.68rem',
+            background: `${instTypeInfo.color}15`,
+            padding: '2px 8px', borderRadius: 12,
+            fontWeight: 600,
+          }}>{instTypeInfo.label}</span>
+        )}
       </div>
     </article>
   );
 }
 
+// ── بطاقة خبر AI ─────────────────────────────────────────────────────────────
+function AINewsCard({ item, index }: { item: AINewsItem; index: number }) {
+  const instTypeInfo = item.institution_type ? INST_TYPES.find(t => t.key === item.institution_type) : null;
+  const scoreColor = item.relevance_score >= 70 ? '#22c55e' : item.relevance_score >= 40 ? '#f5c842' : '#6b7280';
+
+  return (
+    <a
+      href={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        background: 'linear-gradient(135deg, #0d1129, #1a1060)',
+        border: `1px solid rgba(139,92,246,0.3)`,
+        borderRadius: 16,
+        padding: '16px 18px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        textDecoration: 'none',
+        transition: 'transform 0.18s, box-shadow 0.18s',
+        animationDelay: `${index * 40}ms`,
+        cursor: 'pointer',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+      className="pulse-card"
+    >
+      {/* شارة AI */}
+      <div style={{
+        position: 'absolute', top: 10, left: 12,
+        background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+        color: '#fff',
+        fontSize: '0.62rem', fontWeight: 700,
+        padding: '2px 10px', borderRadius: 20,
+      }}>
+        🤖 AI
+      </div>
+
+      {/* عنوان الخبر */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0, marginTop: 2 }}>📰</span>
+        <div style={{ flex: 1 }}>
+          <p style={{
+            color: '#e2e0ff',
+            fontSize: '0.9rem',
+            lineHeight: 1.6,
+            margin: '0 0 6px',
+            fontFamily: 'Tajawal, sans-serif',
+            fontWeight: 700,
+          }}>
+            {item.title}
+          </p>
+          {item.summary && (
+            <p style={{
+              color: '#9992cc',
+              fontSize: '0.78rem',
+              lineHeight: 1.5,
+              margin: 0,
+              fontFamily: 'Tajawal, sans-serif',
+            }}>
+              💡 {item.summary}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* أسفل البطاقة */}
+      <div style={{
+        fontSize: '0.72rem',
+        color: '#6e6a99',
+        marginTop: 'auto',
+        display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+      }}>
+        <span style={{
+          color: scoreColor,
+          fontWeight: 700,
+          fontSize: '0.68rem',
+          background: `${scoreColor}15`,
+          padding: '2px 8px', borderRadius: 12,
+        }}>
+          {Math.round(item.relevance_score)}% صلة
+        </span>
+        {instTypeInfo && (
+          <span style={{
+            color: instTypeInfo.color,
+            fontSize: '0.66rem',
+            background: `${instTypeInfo.color}15`,
+            padding: '2px 8px', borderRadius: 12,
+            fontWeight: 600,
+          }}>{instTypeInfo.label}</span>
+        )}
+        <span style={{ color: '#555', marginRight: 'auto', fontSize: '0.65rem' }}>
+          {item.source}
+        </span>
+        <span style={{ color: COLORS.teal, fontSize: '0.65rem' }}>↗ اقرأ المزيد</span>
+      </div>
+    </a>
+  );
+}
+
 // ── شريط الفلاتر ─────────────────────────────────────────────────────────────
 function FilterBar({
-  filter, setFilter,
+  filter, setFilter, interests, toggleInterest, savingInterests,
 }: {
-  filter: 'all' | 'featured';
-  setFilter: (f: 'all' | 'featured') => void;
+  filter: 'all' | 'featured' | 'smart';
+  setFilter: (f: 'all' | 'featured' | 'smart') => void;
+  interests: string[];
+  toggleInterest: (key: string) => void;
+  savingInterests: boolean;
 }) {
-  const btn = (value: 'all' | 'featured', label: string) => (
+  const btn = (value: 'all' | 'featured' | 'smart', label: string) => (
     <button
       onClick={() => setFilter(value)}
       style={{
@@ -168,9 +292,41 @@ function FilterBar({
     </button>
   );
   return (
-    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-      {btn('all', 'الكل')}
-      {btn('featured', '✦ المميزة')}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        {btn('all', 'الكل')}
+        {btn('featured', '✦ المميزة')}
+        {btn('smart', '🤖 لك')}
+        {savingInterests && <span style={{ fontSize: '0.75rem', color: COLORS.teal }}>جاري الحفظ...</span>}
+      </div>
+      {filter === 'smart' && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.78rem', color: '#8888aa', marginLeft: 4 }}>اهتماماتك:</span>
+          {INST_TYPES.map(t => {
+            const active = interests.includes(t.key);
+            return (
+              <button
+                key={t.key}
+                onClick={() => toggleInterest(t.key)}
+                style={{
+                  padding: '5px 14px',
+                  borderRadius: 20,
+                  border: `1.5px solid ${active ? t.color : 'rgba(255,255,255,0.1)'}`,
+                  background: active ? `${t.color}20` : 'transparent',
+                  color: active ? t.color : '#777',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'Tajawal, sans-serif',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -178,11 +334,14 @@ function FilterBar({
 // ── الصفحة الرئيسية ──────────────────────────────────────────────────────────
 export default function PulseClient() {
   const [items, setItems]  = useState<PulseItem[]>([]);
+  const [aiNews, setAiNews] = useState<AINewsItem[]>([]);
   const [total, setTotal]  = useState(0);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState<'all' | 'featured'>('all');
+  const [filter, setFilter]   = useState<'all' | 'featured' | 'smart'>('all');
   const [page, setPage]   = useState(0);
   const [selected, setSelected] = useState<PulseItem | null>(null);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [savingInterests, setSavingInterests] = useState(false);
   const LIMIT = 30;
 
   const load = useCallback(async (reset = false) => {
@@ -192,12 +351,33 @@ export default function PulseClient() {
       limit: LIMIT,
       offset,
       featured: filter === 'featured' ? true : undefined,
+      smart: filter === 'smart' ? true : undefined,
     });
     setItems(prev => reset ? res.data : [...prev, ...res.data]);
     setTotal(res.total);
+    if (res.ai_news) setAiNews(res.ai_news);
+    if (res.interests && res.interests.length > 0 && interests.length === 0) {
+      setInterests(res.interests);
+    }
     if (reset) setPage(0);
     setLoading(false);
   }, [filter, page]);
+
+  const toggleInterest = useCallback(async (key: string) => {
+    const newInterests = interests.includes(key)
+      ? interests.filter(i => i !== key)
+      : [...interests, key];
+    setInterests(newInterests);
+    setSavingInterests(true);
+    await updateUserInterests(newInterests);
+    setSavingInterests(false);
+    // Reload with new interests
+    const res = await fetchPulse({ limit: LIMIT, offset: 0, smart: true });
+    setItems(res.data);
+    setTotal(res.total);
+    if (res.ai_news) setAiNews(res.ai_news);
+    setPage(0);
+  }, [interests]);
 
   // أول تحميل + تغيير الفلتر
   useEffect(() => {
@@ -334,7 +514,7 @@ export default function PulseClient() {
             أحداث المجرة الحضارية لحظةً بلحظة — اتفاقيات، فعاليات، أخبار
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <FilterBar filter={filter} setFilter={f => { setFilter(f); }} />
+            <FilterBar filter={filter} setFilter={f => { setFilter(f); }} interests={interests} toggleInterest={toggleInterest} savingInterests={savingInterests} />
             <span style={{ color: '#556', fontSize: '0.8rem', marginRight: 'auto' }}>
               {total} نبضة · يتحدث كل 30 ث
             </span>
@@ -356,6 +536,36 @@ export default function PulseClient() {
           </div>
         ) : (
           <>
+            {/* ── أخبار AI ── */}
+            {filter === 'smart' && aiNews.length > 0 && (
+              <div style={{ marginBottom: 28 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
+                }}>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                    color: '#fff',
+                    fontSize: '0.78rem', fontWeight: 700,
+                    padding: '4px 14px', borderRadius: 20,
+                  }}>
+                    🤖 أخبار ذكية
+                  </span>
+                  <span style={{ color: '#6e6a99', fontSize: '0.75rem' }}>
+                    أخبار مرتبطة باهتماماتك بتحليل الذكاء الاصطناعي
+                  </span>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 14,
+                }}>
+                  {aiNews.map((item, i) => (
+                    <AINewsCard key={`ai-${item.news_id}-${i}`} item={item} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* بطاقة مميزة كبيرة إن وجدت */}
             {items[0]?.is_featured ? (
               <div style={{ marginBottom: 28 }}>
@@ -432,6 +642,7 @@ export default function PulseClient() {
                       limit: LIMIT,
                       offset: nextPage * LIMIT,
                       featured: filter === 'featured' ? true : undefined,
+                      smart: filter === 'smart' ? true : undefined,
                     }).then(res => {
                       setItems(prev => [...prev, ...res.data]);
                       setTotal(res.total);

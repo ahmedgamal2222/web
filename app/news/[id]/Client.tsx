@@ -64,6 +64,9 @@ export default function NewsDetailPage() {
   const [news, setNews] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [relatedNews, setRelatedNews] = useState<{ title: string; url: string; source: string; published_at: string; summary?: string; relevance_score?: number }[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [aiSource, setAiSource] = useState<string>('');
 
   useEffect(() => {
     const parts = window.location.pathname.split('/').filter(Boolean);
@@ -76,7 +79,16 @@ export default function NewsDetailPage() {
     fetch(`${API_BASE}/api/news/${id}`)
       .then(r => r.json())
       .then((d: any) => {
-        if (d.success && d.data) setNews(d.data);
+        if (d.success && d.data) {
+          setNews(d.data);
+          // Fetch related news
+          setRelatedLoading(true);
+          fetch(`${API_BASE}/api/news/${id}/related`)
+            .then(r2 => r2.json())
+            .then((rd: any) => { if (rd.success && rd.data) { setRelatedNews(rd.data); setAiSource(rd.source || ''); } })
+            .catch(() => {})
+            .finally(() => setRelatedLoading(false));
+        }
         else setError(d.error || 'الخبر غير موجود');
       })
       .catch(() => setError('فشل في تحميل الخبر'))
@@ -185,6 +197,94 @@ export default function NewsDetailPage() {
               </div>
             </div>
           </article>
+
+          {/* Related News from AI */}
+          <section style={{ marginTop: 40 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.softGreen})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: `0 0 20px ${COLORS.teal}40` }}>🤖</div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#fff' }}>أخبار ذات صلة — AI</h2>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#6a8090' }}>
+                  تم تحليلها وترتيبها بواسطة الذكاء الاصطناعي (Cloudflare Workers AI)
+                  {aiSource === 'ai_cache' && <span style={{ color: COLORS.teal, marginRight: 8 }}>⚡ من الذاكرة</span>}
+                  {aiSource === 'ai_live' && <span style={{ color: COLORS.softGreen, marginRight: 8 }}>🔄 تحليل مباشر</span>}
+                </p>
+              </div>
+            </div>
+
+            {relatedLoading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(78,141,156,0.12)', borderRadius: 16, padding: 20, height: 160 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ width: 50, height: 10, borderRadius: 6, background: 'rgba(78,141,156,0.15)', animation: 'pulse 1.5s infinite' }} />
+                      <div style={{ width: 30, height: 10, borderRadius: 6, background: 'rgba(78,141,156,0.1)', animation: 'pulse 1.5s infinite' }} />
+                    </div>
+                    <div style={{ width: '90%', height: 14, borderRadius: 6, background: 'rgba(78,141,156,0.12)', marginBottom: 8, animation: 'pulse 1.5s infinite' }} />
+                    <div style={{ width: '70%', height: 14, borderRadius: 6, background: 'rgba(78,141,156,0.1)', marginBottom: 12, animation: 'pulse 1.5s infinite' }} />
+                    <div style={{ width: '100%', height: 10, borderRadius: 6, background: 'rgba(78,141,156,0.06)', animation: 'pulse 1.5s infinite' }} />
+                    <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+                  </div>
+                ))}
+              </div>
+            ) : relatedNews.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+                {relatedNews.map((item, i) => {
+                  const score = item.relevance_score || 0;
+                  const scoreColor = score >= 0.7 ? '#22c55e' : score >= 0.4 ? '#f59e0b' : '#6b7280';
+                  const scorePercent = Math.round(score * 100);
+                  return (
+                    <a
+                      key={i}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${score >= 0.7 ? `${COLORS.teal}30` : 'rgba(78,141,156,0.12)'}`, borderRadius: 16, padding: '18px 20px', textDecoration: 'none', transition: 'all 0.25s', display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = COLORS.teal; e.currentTarget.style.background = 'rgba(78,141,156,0.06)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = score >= 0.7 ? `${COLORS.teal}30` : 'rgba(78,141,156,0.12)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      {/* Relevance score badge */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ background: `${COLORS.teal}15`, color: COLORS.teal, padding: '2px 8px', borderRadius: 8, fontWeight: 600, fontSize: '0.72rem' }}>
+                          {item.source || 'مصدر خارجي'}
+                        </span>
+                        {scorePercent > 0 && (
+                          <span style={{ fontSize: '0.68rem', color: scoreColor, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3, background: `${scoreColor}12`, padding: '2px 8px', borderRadius: 8 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: scoreColor, display: 'inline-block' }} />
+                            {scorePercent}% صلة
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Title */}
+                      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#e0eaf0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {item.title}
+                      </div>
+
+                      {/* AI Summary */}
+                      {item.summary && (
+                        <div style={{ fontSize: '0.78rem', color: '#8a9aaa', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          💡 {item.summary}
+                        </div>
+                      )}
+
+                      {/* Footer */}
+                      <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#6a8090' }}>
+                        {item.published_at ? (
+                          <span>{new Date(item.published_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</span>
+                        ) : <span />}
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: COLORS.teal, opacity: 0.8 }}>↗ اقرأ المزيد</span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '30px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(78,141,156,0.1)', color: '#6a8090', fontSize: '0.9rem' }}>
+                لا توجد أخبار ذات صلة حالياً
+              </div>
+            )}
+          </section>
         )}
       </main>
     </div>

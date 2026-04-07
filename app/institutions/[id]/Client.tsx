@@ -735,7 +735,8 @@ function AboutSection({ institution }: { institution: Institution }) {
 }
 
 // ── Ad Create Modal ───────────────────────────────────────────
-const AD_COST = 20;
+const PRICE_PER_DAY = 10; // $10 per day
+const GLOBAL_SURCHARGE = 5; // +$5/day for global targeting
 
 function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
   institutionId: string; coins: number; onClose: () => void; onSuccess: () => void;
@@ -751,7 +752,29 @@ function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
-  const canAfford = coins >= AD_COST;
+  const [balance, setBalance] = useState<number | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
+
+  // Calculate duration and cost
+  const durationDays = (() => {
+    if (!form.start_date || !form.end_date) return 0;
+    const start = new Date(form.start_date);
+    const end = new Date(form.end_date);
+    return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+  })();
+  const dailyRate = PRICE_PER_DAY + (form.target_type === 'all' ? GLOBAL_SURCHARGE : 0);
+  const cost = durationDays * dailyRate;
+  const canAfford = balance !== null && balance >= cost && durationDays > 0;
+
+  // Fetch credits balance
+  useEffect(() => {
+    const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+    fetch(`${API_BASE}/api/ads/credits/${institutionId}`, { headers: { 'X-Session-ID': sid } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setBalance(d.balance); else setBalance(0); })
+      .catch(() => setBalance(0))
+      .finally(() => setLoadingCredits(false));
+  }, [institutionId]);
 
   const setField = (f: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(p => ({ ...p, [f]: e.target.value }));
@@ -767,6 +790,7 @@ function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
     ev.preventDefault();
     if (!canAfford) return;
     if (!form.title || !form.start_date || !form.end_date) { setErr('يرجى ملء الحقول المطلوبة'); return; }
+    if (durationDays <= 0) { setErr('تاريخ النهاية يجب أن يكون بعد تاريخ البداية'); return; }
     setSubmitting(true); setErr('');
     try {
       let imageUrl = form.image_url;
@@ -783,13 +807,7 @@ function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
         body: JSON.stringify({ ...form, image_url: imageUrl, institution_id: Number(institutionId) }),
       });
       const data = await res.json();
-      if (!data.success) throw new Error(data.message || 'فشل إنشاء الإعلان');
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const u = JSON.parse(userStr);
-        u.coins = (u.coins ?? 500) - AD_COST;
-        localStorage.setItem('user', JSON.stringify(u));
-      }
+      if (!data.success) throw new Error(data.message || data.error || 'فشل إنشاء الإعلان');
       onSuccess();
     } catch (e: any) {
       setErr(e.message);
@@ -842,24 +860,48 @@ function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
 
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: canAfford ? `${C.teal}0e` : 'rgba(255,107,107,0.08)',
-          border: `1px solid ${canAfford ? C.teal + '30' : 'rgba(255,107,107,0.28)'}`,
+          background: canAfford ? `${C.teal}0e` : (durationDays > 0 ? 'rgba(255,107,107,0.08)' : `${C.teal}06`),
+          border: `1px solid ${canAfford ? C.teal + '30' : (durationDays > 0 ? 'rgba(255,107,107,0.28)' : C.teal + '15')}`,
           borderRadius: 14, padding: '12px 16px', marginBottom: 22,
         }}>
           <div>
-            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>رصيدك الحالي</span>
-            <span style={{ fontWeight: 900, fontSize: '1.05rem', color: canAfford ? C.green : C.danger }}>🪙 {coins} كوين</span>
+            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>رصيدك الإعلاني</span>
+            <span style={{ fontWeight: 900, fontSize: '1.05rem', color: canAfford || !durationDays ? C.green : C.danger }}>
+              {loadingCredits ? '...' : `$${balance?.toFixed(0) || 0}`}
+            </span>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>سعر اليوم</span>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: C.teal }}>${PRICE_PER_DAY}</span>
           </div>
           <div style={{ textAlign: 'left' }}>
-            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>تكلفة الإعلان</span>
-            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: C.warning }}>{AD_COST} كوين</span>
+            <span style={{ fontSize: '0.72rem', color: C.textMuted, display: 'block', marginBottom: 2 }}>التكلفة</span>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: C.warning }}>
+              {durationDays > 0 ? `$${cost} (${durationDays} يوم)` : 'اختر التاريخ'}
+            </span>
           </div>
         </div>
 
-        {!canAfford ? (
+        {/* رسالة الرصيد المجاني */}
+        <div style={{
+          background: 'rgba(133,199,154,0.08)', border: '1px solid rgba(133,199,154,0.22)',
+          borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: '0.82rem', color: C.green,
+        }}>
+          💡 كل مؤسسة تحصل على <b>$50 رصيد مجاني</b> للإعلانات. الاستهداف العالمي يضيف <b>+$5/يوم</b>. بعد انتهاء الرصيد يمكنك شحن رصيد إضافي.
+        </div>
+
+        {/* رسالة الموافقة */}
+        <div style={{
+          background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.22)',
+          borderRadius: 12, padding: '10px 14px', marginBottom: 18, fontSize: '0.82rem', color: '#f59e0b',
+        }}>
+          ⏳ الإعلان يتطلب <b>موافقة الإدارة</b> قبل نشره. سيتم خصم الرصيد فوراً واسترداده في حال الرفض.
+        </div>
+
+        {durationDays > 0 && !canAfford && !loadingCredits ? (
           <div style={{ textAlign: 'center', padding: '28px 0' }}>
             <div style={{ fontSize: '2.8rem', marginBottom: 14 }}>⚠️</div>
-            <p style={{ color: C.danger, marginBottom: 20, fontWeight: 600 }}>رصيدك غير كافٍ ({coins} / {AD_COST} كوين)</p>
+            <p style={{ color: C.danger, marginBottom: 20, fontWeight: 600 }}>رصيدك غير كافٍ (${balance?.toFixed(0)} / ${cost} مطلوب)</p>
             <a href="https://paypal.me/hadmaj?amount=30" target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-block', background: '#0070ba', color: 'white',
               padding: '12px 28px', borderRadius: 30, textDecoration: 'none',
@@ -940,17 +982,17 @@ function AdCreateModal({ institutionId, coins, onClose, onSuccess }: {
             }}>
               <span style={{ fontSize: '0.83rem', color: C.textMuted }}>الملخص المالي</span>
               <span style={{ color: C.warning, fontWeight: 800, fontSize: '0.88rem' }}>
-                {AD_COST} كوين → يتبقى {coins - AD_COST} كوين
+                ${cost} ({durationDays} يوم × ${dailyRate}{form.target_type === 'all' ? ' شامل رسوم عالمي' : ''}) → يتبقى ${((balance || 0) - cost).toFixed(0)}
               </span>
             </div>
-            <button type="submit" disabled={submitting} style={{
+            <button type="submit" disabled={submitting || !canAfford} style={{
               padding: '14px', borderRadius: 40, border: 'none', cursor: submitting ? 'default' : 'pointer',
               background: submitting ? 'rgba(78,141,156,0.35)' : `linear-gradient(135deg, ${C.teal}, ${C.purple})`,
               color: 'white', fontSize: '0.98rem', fontWeight: 800,
               boxShadow: submitting ? 'none' : '0 6px 24px rgba(78,141,156,0.38)',
               transition: 'all 0.2s', fontFamily: "'Tajawal', sans-serif",
             }}>
-              {submitting ? '⏳ جاري النشر...' : `✦ نشر الإعلان (${AD_COST} كوين)`}
+              {submitting ? '⏳ جاري النشر...' : `✦ نشر الإعلان ($${cost})`}
             </button>
           </form>
         )}
@@ -1034,7 +1076,7 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
                 border: 'none', cursor: 'pointer',
                 background: 'linear-gradient(135deg, #f9a825, #e65100)', color: 'white',
                 fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 3px 10px rgba(249,168,37,0.28)',
-              }}>📢 إعلان <span style={{ opacity: 0.8, fontSize: '0.68rem' }}>({AD_COST}🪙)</span></button>
+              }}>📢 إعلان <span style={{ opacity: 0.8, fontSize: '0.68rem' }}>($10/يوم)</span></button>
             )}
           </div>
         </div>
@@ -1095,7 +1137,7 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
         <AdCreateModal
           institutionId={institutionId} coins={coins}
           onClose={() => setShowAdModal(false)}
-          onSuccess={() => { setShowAdModal(false); setAdDone(true); setCoins(c => c - AD_COST); setTimeout(() => setAdDone(false), 6000); }}
+          onSuccess={() => { setShowAdModal(false); setAdDone(true); setTimeout(() => setAdDone(false), 6000); }}
         />
       )}
     </div>

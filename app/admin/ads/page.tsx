@@ -26,7 +26,12 @@ interface Ad {
   end_date: string;
   target_type?: 'all' | 'country' | 'city';
   target_value?: string;
-  is_active?: boolean;
+  status: string;
+  duration_days?: number;
+  cost?: number;
+  views?: number;
+  clicks?: number;
+  approved_at?: string;
   created_at: string;
 }
 
@@ -50,7 +55,7 @@ export default function AdminAdsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'expired' | 'upcoming'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'active' | 'expired'>('all');
   const [search, setSearch] = useState('');
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [imageUploading, setImageUploading] = useState(false);
@@ -58,6 +63,8 @@ export default function AdminAdsPage() {
   const [imagePreview, setImagePreview] = useState('');
   const [detectedLocation, setDetectedLocation] = useState<{ country: string | null; city: string | null; region: string | null } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [statsModal, setStatsModal] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) { setErr('يرجى اختيار ملف صورة صالح'); return; }
@@ -95,7 +102,7 @@ export default function AdminAdsPage() {
     setLoading(true);
     try {
       const [adsRes, instRes] = await Promise.all([
-        fetch(`${API_BASE}/api/ads?limit=200`, { headers: authH }),
+        fetch(`${API_BASE}/api/ads?limit=200&all=true&status=all&auto_location=false`, { headers: authH }),
         fetch(`${API_BASE}/api/institutions?limit=200`, { headers: authH }),
       ]);
       const adsData = await adsRes.json();
@@ -160,13 +167,57 @@ export default function AdminAdsPage() {
     }
   };
 
+  const handleApprove = async (id: number) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/${id}/approve`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...authH },
+        body: JSON.stringify({ action: 'approve' }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      setSuccessMsg('✓ تمت الموافقة على الإعلان');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadAll();
+    } catch { alert('فشل الموافقة'); }
+  };
+
+  const handleReject = async (id: number) => {
+    if (!confirm('رفض هذا الإعلان؟ سيتم استرداد الرصيد للمؤسسة.')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/${id}/approve`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...authH },
+        body: JSON.stringify({ action: 'reject' }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      setSuccessMsg('✓ تم رفض الإعلان واسترداد الرصيد');
+      setTimeout(() => setSuccessMsg(''), 3000);
+      loadAll();
+    } catch { alert('فشل الرفض'); }
+  };
+
+  const handleViewStats = async (ad: Ad) => {
+    setStatsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/${ad.id}/stats`, { headers: authH });
+      const data = await res.json();
+      setStatsModal(data);
+    } catch { alert('فشل جلب الإحصائيات'); }
+    finally { setStatsLoading(false); }
+  };
+
   const adStatus = (ad: Ad) => {
+    if (ad.status === 'pending') return 'pending';
+    if (ad.status === 'rejected') return 'rejected';
     const now = new Date();
     const start = new Date(ad.start_date);
     const end = new Date(ad.end_date);
-    if (now < start) return 'upcoming';
-    if (now > end) return 'expired';
-    return 'active';
+    if (ad.status === 'approved') {
+      if (now < start) return 'approved';
+      if (now > end) return 'expired';
+      return 'active';
+    }
+    return ad.status;
   };
 
   const filtered = ads.filter(ad => {
@@ -182,8 +233,10 @@ export default function AdminAdsPage() {
 
   const stats = {
     total: ads.length,
+    pending: ads.filter(a => adStatus(a) === 'pending').length,
     active: ads.filter(a => adStatus(a) === 'active').length,
-    upcoming: ads.filter(a => adStatus(a) === 'upcoming').length,
+    approved: ads.filter(a => adStatus(a) === 'approved').length,
+    rejected: ads.filter(a => adStatus(a) === 'rejected').length,
     expired: ads.filter(a => adStatus(a) === 'expired').length,
   };
 
@@ -214,11 +267,13 @@ export default function AdminAdsPage() {
       )}
 
       {/* إحصائيات */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 16, marginBottom: 28 }}>
         {[
-          { label: 'إجمالي الإعلانات', val: stats.total, color: C.teal, icon: '📢' },
+          { label: 'الإجمالي', val: stats.total, color: C.teal, icon: '📢' },
+          { label: 'بانتظار الموافقة', val: stats.pending, color: '#f59e0b', icon: '⏳' },
           { label: 'نشطة الآن', val: stats.active, color: C.softGreen, icon: '✅' },
-          { label: 'قادمة', val: stats.upcoming, color: '#FFC107', icon: '⏳' },
+          { label: 'معتمدة (قادمة)', val: stats.approved, color: '#3b82f6', icon: '📋' },
+          { label: 'مرفوضة', val: stats.rejected, color: '#ef4444', icon: '🚫' },
           { label: 'منتهية', val: stats.expired, color: '#9E9E9E', icon: '❌' },
         ].map(s => (
           <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '18px 20px', boxShadow: `0 4px 14px ${C.darkNavy}15`, border: `1px solid ${s.color}30` }}>
@@ -237,13 +292,13 @@ export default function AdminAdsPage() {
           placeholder="🔍 بحث بالعنوان أو المؤسسة..."
           style={{ flex: 1, padding: '10px 15px', borderRadius: 30, border: `2px solid ${C.teal}40`, fontSize: '0.9rem', outline: 'none', minWidth: 180 }}
         />
-        {(['all', 'active', 'upcoming', 'expired'] as const).map(f => (
+        {(['all', 'pending', 'active', 'approved', 'rejected', 'expired'] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
             padding: '8px 18px', borderRadius: 30, border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: filter === f ? 700 : 400,
-            background: filter === f ? C.teal : `${C.teal}10`,
+            background: filter === f ? (f === 'pending' ? '#f59e0b' : C.teal) : `${C.teal}10`,
             color: filter === f ? 'white' : C.teal,
           }}>
-            {f === 'all' ? 'الكل' : f === 'active' ? '✅ نشطة' : f === 'upcoming' ? '⏳ قادمة' : '❌ منتهية'}
+            {f === 'all' ? 'الكل' : f === 'pending' ? '⏳ بانتظار' : f === 'active' ? '✅ نشطة' : f === 'approved' ? '📋 معتمدة' : f === 'rejected' ? '🚫 مرفوضة' : '❌ منتهية'}
             {f !== 'all' && <span style={{ marginRight: 4, opacity: 0.7 }}>({stats[f]})</span>}
           </button>
         ))}
@@ -261,11 +316,11 @@ export default function AdminAdsPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
           {filtered.map(ad => {
             const st = adStatus(ad);
-            const statusColor = st === 'active' ? C.softGreen : st === 'upcoming' ? '#FFC107' : '#9E9E9E';
-            const statusLabel = st === 'active' ? '✅ نشط' : st === 'upcoming' ? '⏳ قادم' : '❌ منتهي';
+            const statusColor = st === 'active' ? C.softGreen : st === 'pending' ? '#f59e0b' : st === 'approved' ? '#3b82f6' : st === 'rejected' ? '#ef4444' : '#9E9E9E';
+            const statusLabel = st === 'active' ? '✅ نشط' : st === 'pending' ? '⏳ بانتظار الموافقة' : st === 'approved' ? '📋 معتمد (قادم)' : st === 'rejected' ? '🚫 مرفوض' : '❌ منتهي';
             const instName = ad.institution_name_ar || ad.institution_name || `مؤسسة #${ad.institution_id}`;
             return (
-              <div key={ad.id} style={{ background: 'white', borderRadius: 18, overflow: 'hidden', boxShadow: `0 4px 18px ${C.darkNavy}12`, border: `1px solid ${statusColor}30` }}>
+              <div key={ad.id} style={{ background: 'white', borderRadius: 18, overflow: 'hidden', boxShadow: `0 4px 18px ${C.darkNavy}12`, border: `2px solid ${statusColor}30` }}>
                 {ad.image_url && (
                   <div style={{ height: 140, background: `url(${ad.image_url}) center/cover no-repeat` }} />
                 )}
@@ -280,26 +335,125 @@ export default function AdminAdsPage() {
                   <div style={{ fontSize: '0.85rem', color: C.teal, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>🏛️</span><span>{instName}</span>
                   </div>
-                  <div style={{ fontSize: '0.83rem', color: '#888', marginBottom: 8 }}>
+                  <div style={{ fontSize: '0.83rem', color: '#888', marginBottom: 6 }}>
                     📅 {new Date(ad.start_date).toLocaleDateString('ar-EG')} ← {new Date(ad.end_date).toLocaleDateString('ar-EG')}
+                    {ad.duration_days && <span style={{ marginRight: 8 }}>({ad.duration_days} يوم)</span>}
+                  </div>
+                  {/* Cost & Views row */}
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 8, fontSize: '0.83rem' }}>
+                    {ad.cost != null && <span style={{ background: `${C.darkNavy}08`, padding: '3px 10px', borderRadius: 20, color: C.darkNavy, fontWeight: 600 }}>💰 ${ad.cost}</span>}
+                    <span style={{ background: `${C.teal}10`, padding: '3px 10px', borderRadius: 20, color: C.teal, fontWeight: 600 }}>👁 {ad.views || 0} مشاهدة</span>
                   </div>
                   {ad.target_type && ad.target_type !== 'all' && (
                     <div style={{ fontSize: '0.83rem', color: C.teal, background: `${C.teal}10`, padding: '4px 10px', borderRadius: 20, display: 'inline-block', marginBottom: 8 }}>
                       {ad.target_type === 'country' ? `🏳️ ${ad.target_value}` : `🏙️ ${ad.target_value}`}
                     </div>
                   )}
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                    {st === 'pending' && (
+                      <>
+                        <button onClick={() => handleApprove(ad.id)} style={{ flex: 1, padding: '7px 0', borderRadius: 20, border: 'none', background: `${C.softGreen}20`, color: '#16a34a', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+                          ✓ موافقة
+                        </button>
+                        <button onClick={() => handleReject(ad.id)} style={{ flex: 1, padding: '7px 0', borderRadius: 20, border: 'none', background: '#ef444415', color: '#ef4444', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+                          ✕ رفض
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => handleViewStats(ad)} style={{ flex: 1, padding: '7px 0', borderRadius: 20, border: 'none', background: `${C.teal}12`, color: C.teal, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+                      📊 إحصائيات
+                    </button>
                     <button
                       onClick={() => handleDelete(ad.id)}
-                      style={{ flex: 1, padding: '7px 0', borderRadius: 20, border: 'none', background: '#ff505015', color: '#ff5050', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
+                      style={{ padding: '7px 14px', borderRadius: 20, border: 'none', background: '#ff505015', color: '#ff5050', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}
                     >
-                      🗑 حذف
+                      🗑
                     </button>
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* مودال الإحصائيات */}
+      {statsModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, direction: 'rtl' }}>
+          <div style={{ background: 'white', borderRadius: 24, padding: 32, width: '100%', maxWidth: 600, maxHeight: '85vh', overflowY: 'auto', boxShadow: `0 20px 60px ${C.darkNavy}40` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ margin: 0, color: C.darkNavy }}>📊 إحصائيات الإعلان</h2>
+              <button onClick={() => setStatsModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>×</button>
+            </div>
+            {statsModal.ad && (
+              <div style={{ background: `${C.teal}08`, borderRadius: 14, padding: 16, marginBottom: 20, border: `1px solid ${C.teal}20` }}>
+                <h3 style={{ margin: '0 0 6px', color: C.darkNavy }}>{statsModal.ad.title}</h3>
+                <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                  🏛️ {statsModal.ad.institution_name_ar || statsModal.ad.institution_name || 'عام'}
+                  {statsModal.ad.cost != null && <span style={{ marginRight: 12 }}>💰 التكلفة: ${statsModal.ad.cost}</span>}
+                </div>
+              </div>
+            )}
+            {/* Summary */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ background: `${C.softGreen}15`, borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: C.softGreen }}>{statsModal.stats?.total_views || 0}</div>
+                <div style={{ fontSize: '0.82rem', color: '#666' }}>إجمالي المشاهدات</div>
+              </div>
+              <div style={{ background: `${C.teal}12`, borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: C.teal }}>{statsModal.stats?.unique_viewers || 0}</div>
+                <div style={{ fontSize: '0.82rem', color: '#666' }}>زوار فريدون</div>
+              </div>
+            </div>
+            {/* Views by country */}
+            {statsModal.stats?.views_by_country?.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ color: C.darkNavy, margin: '0 0 10px', fontSize: '0.95rem' }}>🌍 المشاهدات حسب الدولة</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {statsModal.stats.views_by_country.map((c: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', background: `${C.teal}06`, borderRadius: 8 }}>
+                      <span style={{ color: C.darkNavy }}>{c.country || 'غير محدد'}</span>
+                      <span style={{ fontWeight: 700, color: C.teal }}>{c.cnt}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Views by city */}
+            {statsModal.stats?.views_by_city?.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ color: C.darkNavy, margin: '0 0 10px', fontSize: '0.95rem' }}>🏙️ المشاهدات حسب المدينة</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {statsModal.stats.views_by_city.map((c: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', background: `${C.teal}06`, borderRadius: 8 }}>
+                      <span style={{ color: C.darkNavy }}>{c.city || 'غير محدد'} ({c.country})</span>
+                      <span style={{ fontWeight: 700, color: C.teal }}>{c.cnt}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Views by day */}
+            {statsModal.stats?.views_by_day?.length > 0 && (
+              <div>
+                <h4 style={{ color: C.darkNavy, margin: '0 0 10px', fontSize: '0.95rem' }}>📅 المشاهدات حسب اليوم</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {statsModal.stats.views_by_day.slice(0, 14).map((d: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 12px', background: i % 2 === 0 ? `${C.teal}04` : 'transparent', borderRadius: 6 }}>
+                      <span style={{ fontSize: '0.85rem', color: '#666' }}>{d.day}</span>
+                      <span style={{ fontWeight: 700, color: C.teal, fontSize: '0.85rem' }}>{d.cnt} مشاهدة</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(!statsModal.stats?.total_views) && (
+              <div style={{ textAlign: 'center', padding: 30, color: '#aaa' }}>
+                <div style={{ fontSize: '2rem', marginBottom: 8 }}>📭</div>
+                لا توجد مشاهدات بعد
+              </div>
+            )}
+          </div>
         </div>
       )}
 

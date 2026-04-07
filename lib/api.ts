@@ -630,6 +630,22 @@ export interface PulseItem {
   is_featured: number;
   pulse_date: string;
   created_at?: string;
+  category?: string;
+  institution_type?: string;
+  institution_id?: number;
+  relevance?: number;
+}
+
+export interface AINewsItem {
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  published_at: string;
+  relevance_score: number;
+  institution_type: string | null;
+  original_news_title: string;
+  news_id: number;
 }
 
 // ============================================================
@@ -659,16 +675,26 @@ export async function fetchMyInstitutionRequests(): Promise<MyInstitutionRequest
   return json.data ?? [];
 }
 
-export async function fetchPulse(params?: { limit?: number; offset?: number; featured?: boolean }): Promise<{ data: PulseItem[]; total: number }> {
+export async function fetchPulse(params?: { limit?: number; offset?: number; featured?: boolean; smart?: boolean }): Promise<{ data: PulseItem[]; total: number; interests?: string[]; ai_news?: AINewsItem[] }> {
   const q = new URLSearchParams();
   if (params?.limit)    q.set('limit',    String(params.limit));
   if (params?.offset)   q.set('offset',   String(params.offset));
   if (params?.featured) q.set('featured', '1');
 
-  const res = await fetch(`${API_BASE}/api/pulse?${q}`, {
+  const endpoint = params?.smart ? '/api/pulse/feed' : '/api/pulse';
+  const res = await fetch(`${API_BASE}${endpoint}?${q}`, {
     headers: getAuthHeaders(),
   });
   if (!res.ok) return { data: [], total: 0 };
   const json = await res.json() as any;
-  return { data: json.data ?? [], total: json.total ?? 0 };
+  return { data: json.data ?? [], total: json.total ?? 0, interests: json.interests, ai_news: json.ai_news };
+}
+
+export async function updateUserInterests(interests: string[]): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/api/users/interests`, {
+    method: 'PUT',
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ interests }),
+  });
+  return res.ok;
 }

@@ -261,7 +261,23 @@ export default function ScreenPage() {
     const pulseInterval = setInterval(() => {
       fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
     }, 30000);
-    return () => { clearInterval(pulseInterval); };
+
+    // نبض الشاشة كل 5 دقائق لتسجيل النشاط ومكافآت الإعلانات
+    const heartbeatInterval = setInterval(() => {
+      fetch(`${API_BASE}/api/screen/heartbeat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ institution_id: Number(resolvedId) }),
+      }).catch(() => {});
+    }, 5 * 60 * 1000);
+    // Send initial heartbeat immediately
+    fetch(`${API_BASE}/api/screen/heartbeat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ institution_id: Number(resolvedId) }),
+    }).catch(() => {});
+
+    return () => { clearInterval(pulseInterval); clearInterval(heartbeatInterval); };
   }, [authenticated, resolvedId]);
 
   // متابعة حالة التسجيل عندما يكون CF يعالج الفيديو بعد انتهاء البث

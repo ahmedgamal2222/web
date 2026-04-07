@@ -47,6 +47,7 @@ const NAV_LINKS = [
   { href: '/library',     label: 'المكتبة' },
   { href: '/forum',       label: 'المنتدى' },
   { href: '/podcast',     label: 'البودكاست' },
+  { href: '/support',     label: '🎫 الدعم' },
 ];
 
 interface AppNavBarProps {
