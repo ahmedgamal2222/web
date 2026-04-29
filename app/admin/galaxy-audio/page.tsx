@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createFFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
@@ -69,32 +68,42 @@ export default function GalaxyAudioPage() {
   };
 
   // ✅ 🔥 ضغط الصوت باستخدام ffmpeg (بديل lamejs)
-  const compressAudio = async (file: File): Promise<File> => {
-    if (!ffmpeg.isLoaded()) {
-      await ffmpeg.load();
-    }
+  const toUint8Array = async (file: File): Promise<Uint8Array> => {
+  const buffer = await file.arrayBuffer();
+  return new Uint8Array(buffer);
+};
 
-    const inputName = 'input';
-    const outputName = 'output.mp3';
+const compressAudio = async (file: File): Promise<File> => {
+  // مهم جداً عشان Next.js build
+  if (typeof window === 'undefined') return file;
 
-    ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  }
 
-    await ffmpeg.run(
-      '-i', inputName,
-      '-t', '10',     // أقصى 10 ثواني
-      '-ac', '1',     // mono
-      '-ar', '8000',  // 8kHz
-      '-b:a', '8k',   // 8kbps
-      outputName
-    );
+  const inputName = 'input';
+  const outputName = 'output.mp3';
 
-    const data = ffmpeg.FS('readFile', outputName);
+  // ✅ بديل fetchFile
+  const data = await toUint8Array(file);
 
-    return new File([data.buffer], file.name.replace(/\.[^.]+$/, '.mp3'), {
-      type: 'audio/mpeg',
-    });
-  };
+  ffmpeg.FS('writeFile', inputName, data);
 
+  await ffmpeg.run(
+    '-i', inputName,
+    '-t', '10',
+    '-ac', '1',
+    '-ar', '8000',
+    '-b:a', '8k',
+    outputName
+  );
+
+  const output = ffmpeg.FS('readFile', outputName);
+
+  return new File([output.buffer], file.name.replace(/\.[^.]+$/, '.mp3'), {
+    type: 'audio/mpeg',
+  });
+};
   const handleUpload = async () => {
     if (!audioFile) { setErr('يرجى اختيار ملف صوتي'); return; }
     if (!newTitle.trim()) { setErr('يرجى كتابة عنوان للصوت'); return; }
