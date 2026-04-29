@@ -3,12 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createFFmpeg } from '@ffmpeg/ffmpeg';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
 // ✅ تحميل ffmpeg مرة واحدة
-const ffmpeg = createFFmpeg({ log: false });
 
 const C = {
   lightMint: '#EDF7BD',
@@ -74,35 +72,68 @@ export default function GalaxyAudioPage() {
 };
 
 const compressAudio = async (file: File): Promise<File> => {
-  // مهم جداً عشان Next.js build
   if (typeof window === 'undefined') return file;
 
-  if (!ffmpeg.isLoaded()) {
-    await ffmpeg.load();
+  const arrayBuffer = await file.arrayBuffer();
+  const audioCtx = new AudioContext();
+  const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+  audioCtx.close();
+
+  // ⏱️ أقصى 10 ثواني
+  const duration = Math.min(decoded.duration, 10);
+  const sampleRate = 8000;
+  const frameCount = Math.floor(duration * sampleRate);
+
+  // 🎧 mono + resample
+  const offlineCtx = new OfflineAudioContext(1, frameCount, sampleRate);
+  const source = offlineCtx.createBufferSource();
+  source.buffer = decoded;
+  source.connect(offlineCtx.destination);
+  source.start(0, 0, duration);
+
+  const rendered = await offlineCtx.startRendering();
+
+  const samples = rendered.getChannelData(0);
+
+  // 🎯 تحويل إلى WAV
+  const wavBuffer = encodeWAV(samples, sampleRate);
+
+  return new File([wavBuffer], file.name.replace(/\.[^.]+$/, '.wav'), {
+    type: 'audio/wav',
+  });
+};
+const encodeWAV = (samples: Float32Array, sampleRate: number) => {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  const writeString = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, samples.length * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    let s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s * 0x7fff, true);
+    offset += 2;
   }
 
-  const inputName = 'input';
-  const outputName = 'output.mp3';
-
-  // ✅ بديل fetchFile
-  const data = await toUint8Array(file);
-
-  ffmpeg.FS('writeFile', inputName, data);
-
-  await ffmpeg.run(
-    '-i', inputName,
-    '-t', '10',
-    '-ac', '1',
-    '-ar', '8000',
-    '-b:a', '8k',
-    outputName
-  );
-
-  const output = ffmpeg.FS('readFile', outputName);
-
-  return new File([output.buffer], file.name.replace(/\.[^.]+$/, '.mp3'), {
-    type: 'audio/mpeg',
-  });
+  return buffer;
 };
   const handleUpload = async () => {
     if (!audioFile) { setErr('يرجى اختيار ملف صوتي'); return; }
