@@ -6,8 +6,6 @@ import Link from 'next/link';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
-// ✅ تحميل ffmpeg مرة واحدة
-
 const C = {
   lightMint: '#EDF7BD',
   softGreen: '#85C79A',
@@ -65,88 +63,79 @@ export default function GalaxyAudioPage() {
     setLoadingTracks(false);
   };
 
-  // ✅ 🔥 ضغط الصوت باستخدام ffmpeg (بديل lamejs)
-  const toUint8Array = async (file: File): Promise<Uint8Array> => {
-  const buffer = await file.arrayBuffer();
-  return new Uint8Array(buffer);
-};
+  // ✅ ضغط الصوت بدون أي مكتبات
+  const compressAudio = async (file: File): Promise<File> => {
+    if (typeof window === 'undefined') return file;
 
-const compressAudio = async (file: File): Promise<File> => {
-  if (typeof window === 'undefined') return file;
+    const arrayBuffer = await file.arrayBuffer();
+    const audioCtx = new AudioContext();
+    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    audioCtx.close();
 
-  const arrayBuffer = await file.arrayBuffer();
-  const audioCtx = new AudioContext();
-  const decoded = await audioCtx.decodeAudioData(arrayBuffer);
-  audioCtx.close();
+    const duration = Math.min(decoded.duration, 10);
+    const sampleRate = 8000;
+    const frameCount = Math.floor(duration * sampleRate);
 
-  // ⏱️ أقصى 10 ثواني
-  const duration = Math.min(decoded.duration, 10);
-  const sampleRate = 8000;
-  const frameCount = Math.floor(duration * sampleRate);
+    const offlineCtx = new OfflineAudioContext(1, frameCount, sampleRate);
+    const source = offlineCtx.createBufferSource();
+    source.buffer = decoded;
+    source.connect(offlineCtx.destination);
+    source.start(0, 0, duration);
 
-  // 🎧 mono + resample
-  const offlineCtx = new OfflineAudioContext(1, frameCount, sampleRate);
-  const source = offlineCtx.createBufferSource();
-  source.buffer = decoded;
-  source.connect(offlineCtx.destination);
-  source.start(0, 0, duration);
+    const rendered = await offlineCtx.startRendering();
+    const samples = rendered.getChannelData(0);
 
-  const rendered = await offlineCtx.startRendering();
+    const wavBuffer = encodeWAV(samples, sampleRate);
 
-  const samples = rendered.getChannelData(0);
-
-  // 🎯 تحويل إلى WAV
-  const wavBuffer = encodeWAV(samples, sampleRate);
-
-  return new File([wavBuffer], file.name.replace(/\.[^.]+$/, '.wav'), {
-    type: 'audio/wav',
-  });
-};
-const encodeWAV = (samples: Float32Array, sampleRate: number) => {
-  const buffer = new ArrayBuffer(44 + samples.length * 2);
-  const view = new DataView(buffer);
-
-  const writeString = (offset: number, str: string) => {
-    for (let i = 0; i < str.length; i++) {
-      view.setUint8(offset + i, str.charCodeAt(i));
-    }
+    return new File([wavBuffer], file.name.replace(/\.[^.]+$/, '.wav'), {
+      type: 'audio/wav',
+    });
   };
 
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + samples.length * 2, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, 'data');
-  view.setUint32(40, samples.length * 2, true);
+  const encodeWAV = (samples: Float32Array, sampleRate: number) => {
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
 
-  let offset = 44;
-  for (let i = 0; i < samples.length; i++) {
-    let s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(offset, s * 0x7fff, true);
-    offset += 2;
-  }
+    const writeString = (offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    };
 
-  return buffer;
-};
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + samples.length * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, samples.length * 2, true);
+
+    let offset = 44;
+    for (let i = 0; i < samples.length; i++) {
+      let s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, s * 0x7fff, true);
+      offset += 2;
+    }
+
+    return buffer;
+  };
+
   const handleUpload = async () => {
     if (!audioFile) { setErr('يرجى اختيار ملف صوتي'); return; }
-    if (!newTitle.trim()) { setErr('يرجى كتابة عنوان للصوت'); return; }
+    if (!newTitle.trim()) { setErr('يرجى كتابة عنوان'); return; }
 
     setUploading(true); setErr(''); setSuccessMsg('');
 
     try {
       setCompressing(true);
-
       const fileToUpload = await compressAudio(audioFile);
       setCompressedSize(fileToUpload.size);
-
       setCompressing(false);
 
       const formData = new FormData();
@@ -162,17 +151,15 @@ const encodeWAV = (samples: Float32Array, sampleRate: number) => {
       const d = await res.json();
 
       if (d.success) {
-        setSuccessMsg(`تم رفع الصوت بنجاح (${formatSize(fileToUpload.size)})`);
+        setSuccessMsg(`تم الرفع (${formatSize(fileToUpload.size)})`);
         setNewTitle('');
         setAudioFile(null);
-        setCompressedSize(null);
         loadTracks();
       } else {
-        setErr(d.error || 'فشل رفع الملف');
+        setErr(d.error || 'فشل الرفع');
       }
-    } catch (e) {
-      console.error(e);
-      setErr('حدث خطأ أثناء الضغط أو الرفع');
+    } catch {
+      setErr('خطأ أثناء الضغط أو الرفع');
     } finally {
       setUploading(false);
       setCompressing(false);
@@ -186,83 +173,67 @@ const encodeWAV = (samples: Float32Array, sampleRate: number) => {
     } else {
       previewRef.current?.pause();
       const audio = new Audio(track.file_url);
-      audio.volume = 0.5;
       audio.play().catch(() => {});
-      audio.onended = () => setPlayingId(null);
       previewRef.current = audio;
       setPlayingId(track.id);
     }
   };
 
-  const handleToggle = async (id: number) => {
-    await fetch(`${API_BASE}/api/admin/galaxy-audio/${id}/toggle`, {
-      method: 'PUT', headers: authH,
-    });
-    loadTracks();
-  };
-
   const handleDelete = async (id: number) => {
-    if (!confirm('هل أنت متأكد؟')) return;
+    if (!confirm('تأكيد الحذف؟')) return;
     await fetch(`${API_BASE}/api/admin/galaxy-audio/${id}`, {
-      method: 'DELETE', headers: authH,
+      method: 'DELETE',
+      headers: authH,
     });
     loadTracks();
   };
 
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file?.type.startsWith('audio/')) {
-      setAudioFile(file);
-      setCompressedSize(null);
-    } else {
-      setErr('ملف غير صالح');
-    }
-  };
-
-  const activeCount = tracks.filter(t => t.is_active).length;
+  const formatSize = (b: number) =>
+    b < 1024 ? `${b}B` : `${(b / 1024).toFixed(1)}KB`;
 
   return (
-    <div style={{ minHeight: '100vh', direction: 'rtl', background: '#07091e', color: '#fff' }}>
-      <div style={{ padding: 20 }}>
+    <div style={{ minHeight: '100vh', background: '#07091e', color: '#fff', direction: 'rtl' }}>
+      
+      {/* Header */}
+      <div style={{ padding: 20, borderBottom: '1px solid #333' }}>
+        <Link href="/admin">← رجوع</Link>
         <h2>🎵 إدارة صوت المجرة</h2>
+      </div>
 
+      <div style={{ maxWidth: 900, margin: 'auto', padding: 20 }}>
+
+        {/* Upload */}
+        <div style={{ marginBottom: 20 }}>
+          <input
+            placeholder="عنوان الصوت"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+          />
+
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+          />
+
+          <button onClick={handleUpload}>
+            {uploading ? (compressing ? 'جاري الضغط...' : 'جاري الرفع...') : 'رفع'}
+          </button>
+        </div>
+
+        {/* Messages */}
         {err && <div style={{ color: 'red' }}>{err}</div>}
         {successMsg && <div style={{ color: 'green' }}>{successMsg}</div>}
 
-        <input
-          placeholder="عنوان الصوت"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-        />
-
-        <input
-          type="file"
-          accept="audio/*"
-          onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-        />
-
-        <button onClick={handleUpload} disabled={uploading}>
-          {uploading ? (compressing ? 'جاري الضغط...' : 'جاري الرفع...') : 'رفع'}
-        </button>
-
-        <hr />
-
-        {tracks.map(track => (
-          <div key={track.id}>
-            {track.title}
-            <button onClick={() => togglePreview(track)}>▶</button>
-            <button onClick={() => handleToggle(track.id)}>تفعيل</button>
-            <button onClick={() => handleDelete(track.id)}>حذف</button>
+        {/* List */}
+        {tracks.map(t => (
+          <div key={t.id} style={{ marginBottom: 10 }}>
+            {t.title}
+            <button onClick={() => togglePreview(t)}>▶</button>
+            <button onClick={() => handleDelete(t.id)}>🗑</button>
           </div>
         ))}
+
       </div>
     </div>
   );
