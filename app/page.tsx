@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
-import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE } from '@/lib/api';
+import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE, fetchInstitutionTypes } from '@/lib/api';
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,14 +23,9 @@ const COLORS = {
 // ============================================================
 // Type Labels and Colors
 // ============================================================
-const TYPE_LABELS: Record<string, string> = {
-  educational: 'تعليمية',
-  research: 'بحثية',
-  cultural: 'ثقافية',
-  charitable: 'خيرية',
-  media: 'إعلامية',
-  developmental: 'تنموية',
-  default: 'عامة',
+// سيتم جلب الأنواع ديناميكياً
+let TYPE_LABELS: Record<string, string> = {
+  default: 'مؤسسة',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -806,6 +801,19 @@ function StatusBadge({
 }
 
 // ============================================================
+// قاموس ترجمة الدول
+const COUNTRY_LABELS: Record<string, string> = {
+  Egypt: 'مصر', Saudi: 'السعودية', SaudiArabia: 'السعودية', KSA: 'السعودية',
+  UAE: 'الإمارات', UnitedArabEmirates: 'الإمارات', Jordan: 'الأردن',
+  Morocco: 'المغرب', Algeria: 'الجزائر', Tunisia: 'تونس',
+  Palestine: 'فلسطين', Lebanon: 'لبنان', Iraq: 'العراق',
+  Syria: 'سوريا', Sudan: 'السودان', Yemen: 'اليمن',
+  Libya: 'ليبيا', Qatar: 'قطر', Bahrain: 'البحرين',
+  Kuwait: 'الكويت', Oman: 'عمان', Mauritania: 'موريتانيا',
+  Somalia: 'الصومال', Djibouti: 'جيبوتي', Comoros: 'جزر القمر',
+};
+
+// ============================================================
 // Institutions Panel
 // ============================================================
 function InstitutionsPanel({
@@ -830,10 +838,18 @@ function InstitutionsPanel({
   const [showAgreements, setShowAgreements] = useState(false);
   const [loadingAgreements, setLoadingAgreements] = useState(false);
 
+  // جلب الأنواع المترجمة
+  const [institutionTypes, setInstitutionTypes] = useState<{ type: string; name_ar: string }[]>([]);
+  useEffect(() => {
+    fetchInstitutionTypes().then(types => {
+      setInstitutionTypes(types);
+      TYPE_LABELS = { default: 'مؤسسة', ...Object.fromEntries(types.map(t => [t.type, t.name_ar])) };
+    });
+  }, []);
+
   const types = useMemo(() => {
-    const s = new Set(stars.map(s => s.type));
-    return ['all', ...Array.from(s)];
-  }, [stars]);
+    return ['all', ...institutionTypes.map(t => t.type)];
+  }, [institutionTypes]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -1172,6 +1188,26 @@ function InstitutionsPanel({
                     {t === 'all' ? 'الكل' : (TYPE_LABELS[t] || t)}
                   </button>
                 ))}
+              </div>
+
+              {/* فلتر الدولة بالعربية */}
+              <div style={{ marginTop: 14 }}>
+                <select
+                  value={''}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{
+                    width: '100%', padding: '10px 14px', borderRadius: 12,
+                    border: '1px solid #4E8D9C40', background: 'rgba(255,255,255,0.04)',
+                    color: '#e2eaf2', fontSize: '0.92rem', marginTop: 2,
+                  }}
+                >
+                  <option value="">كل الدول</option>
+                  {Array.from(new Set(stars.map(s => s.country).filter(Boolean))).map(c => (
+                    <option key={c} value={c}>
+                      {COUNTRY_LABELS[c] || c}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

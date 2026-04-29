@@ -1,3 +1,10 @@
+// جلب أنواع المؤسسات مع الترجمة العربية من الـ API
+export async function fetchInstitutionTypes(): Promise<{ type: string; name_ar: string }[]> {
+  const res = await fetchWithRetry<{ institution_types: { type: string; name_ar: string }[] }>(
+    `${API_BASE}/api/institutions?limit=1`
+  );
+  return res.institution_types || [];
+}
 // src/lib/api.ts
 
 import { GalaxyData, Institution, Agreement } from './types';

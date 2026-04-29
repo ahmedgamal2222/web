@@ -573,9 +573,24 @@ export default function GalaxyCanvas({
           // const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
           // const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
           const location   = [s.city, s.country].filter(Boolean).join('، ');
+          // ترجمة نوع المؤسسة للعربية
+          const typeAr = (s.name_ar_type || s.type_ar || s.type_label || {
+            educational: 'تعليمية',
+            research: 'بحثية',
+            cultural: 'ثقافية',
+            charitable: 'خيرية',
+            media: 'إعلامية',
+            developmental: 'تنموية',
+            ngo: 'منظمات غير ربحية',
+            governmental: 'حكومية',
+            startup: 'ناشئة',
+            private: 'خاصة',
+            healthcare: 'صحية',
+            default: 'مؤسسة'
+          }[s.type] || 'مؤسسة');
           tooltipRef.current.innerHTML = `
             <strong style="color:${s.color||'#4fc3f7'};display:block;margin-bottom:4px">${s.name_ar || s.name}</strong>
-            <span style="display:block;font-size:0.75rem;color:#8aa4bc">${s.type || ''}</span>
+            <span style="display:block;font-size:0.75rem;color:#8aa4bc">${typeAr}</span>
             ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
           `;
         }
@@ -731,6 +746,7 @@ export default function GalaxyCanvas({
     // Show institution name label above the star
     const star = sortedStarsRef.current[idx];
     if (focusLabelRef.current && star) {
+      // إظهار اسم المؤسسة بالعربية فقط
       focusLabelRef.current.textContent = star.name_ar || star.name;
       focusLabelRef.current.style.display = 'block';
     }
