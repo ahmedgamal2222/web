@@ -838,12 +838,56 @@ function InstitutionsPanel({
   const [showAgreements, setShowAgreements] = useState(false);
   const [loadingAgreements, setLoadingAgreements] = useState(false);
 
-  // جلب الأنواع المترجمة
+
+  // جلب الأنواع المترجمة مع fallback يدوي
   const [institutionTypes, setInstitutionTypes] = useState<{ type: string; name_ar: string }[]>([]);
   useEffect(() => {
     fetchInstitutionTypes().then(types => {
       setInstitutionTypes(types);
-      TYPE_LABELS = { default: 'مؤسسة', ...Object.fromEntries(types.map(t => [t.type, t.name_ar])) };
+      // fallback يدوي للأنواع الشائعة
+      const fallback: Record<string, string> = {
+        default: 'مؤسسة',
+        nashe2a: 'ناشئة',
+        nashe2: 'ناشئة',
+        nashe2ah: 'ناشئة',
+        nashe2een: 'ناشئة',
+        startup: 'ناشئة',
+        ngo: 'غير ربحية',
+        healthcare: 'رعاية صحية',
+        governmental: 'حكومية',
+        government: 'حكومية',
+        khass: 'خاصة',
+        private: 'خاصة',
+        public: 'حكومية',
+        civil: 'أهلية',
+        ahlia: 'أهلية',
+        charitable: 'خيرية',
+        research: 'بحثية',
+        educational: 'تعليمية',
+        cultural: 'ثقافية',
+        media: 'إعلامية',
+        developmental: 'تنموية',
+        social: 'اجتماعية',
+        sports: 'رياضية',
+        youth: 'شبابية',
+        women: 'نسائية',
+        business: 'تجارية',
+        cooperative: 'تعاونية',
+        professional: 'مهنية',
+        scientific: 'علمية',
+        advocacy: 'دعوية',
+        environment: 'بيئية',
+        health: 'صحية',
+        technology: 'تقنية',
+        industrial: 'صناعية',
+        agricultural: 'زراعية',
+        housing: 'إسكانية',
+        consumer: 'استهلاكية',
+        union: 'اتحاد',
+        association: 'جمعية',
+        club: 'نادي',
+      };
+      TYPE_LABELS = { ...fallback, ...Object.fromEntries(types.map(t => [t.type, t.name_ar])) };
     });
   }, []);
 
@@ -1190,24 +1234,48 @@ function InstitutionsPanel({
                 ))}
               </div>
 
-              {/* فلتر الدولة بالعربية */}
-              <div style={{ marginTop: 14 }}>
+              {/* فلتر الدولة بالعربية مع تحسين الاستايل */}
+              <div style={{ marginTop: 14, position: 'relative' }}>
                 <select
                   value={''}
                   onChange={e => setSearch(e.target.value)}
                   style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 12,
-                    border: '1px solid #4E8D9C40', background: 'rgba(255,255,255,0.04)',
-                    color: '#e2eaf2', fontSize: '0.92rem', marginTop: 2,
+                    width: '100%',
+                    padding: '13px 44px 13px 16px',
+                    borderRadius: 16,
+                    border: '1.5px solid #4E8D9C60',
+                    background: 'rgba(255,255,255,0.07)',
+                    color: '#EDF7BD',
+                    fontSize: '1.02rem',
+                    marginTop: 2,
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    outline: 'none',
+                    boxShadow: '0 2px 12px rgba(78,141,156,0.07)',
+                    fontWeight: 600,
+                    letterSpacing: '0.01em',
+                    cursor: 'pointer',
                   }}
                 >
                   <option value="">كل الدول</option>
                   {Array.from(new Set(stars.map(s => s.country).filter(Boolean))).map(c => (
-                    <option key={c} value={c}>
+                    <option key={c} value={c} style={{ color: '#222', background: '#fff' }}>
                       {COUNTRY_LABELS[c] || c}
                     </option>
                   ))}
                 </select>
+                {/* سهم مخصص للدروب داون */}
+                <span style={{
+                  position: 'absolute',
+                  left: 18,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: '#85C79A',
+                  fontSize: '1.3rem',
+                  opacity: 0.8,
+                }}>▼</span>
               </div>
             </div>
 
