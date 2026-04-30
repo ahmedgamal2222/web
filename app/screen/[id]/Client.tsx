@@ -1708,6 +1708,50 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
+        {/* زر احترافي لتشغيل صوت المجرة */}
+        <button
+          className="galaxy-sound-btn"
+          onClick={startSpaceSound}
+          style={{
+            position: 'absolute',
+            top: 24,
+            left: 24,
+            zIndex: 50,
+            background: 'linear-gradient(90deg, #FFD700 0%, #FFB300 100%)',
+            color: '#0a0a1a',
+            border: 'none',
+            borderRadius: 40,
+            padding: '16px 38px',
+            fontSize: '1.25rem',
+            fontWeight: 900,
+            boxShadow: '0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset',
+            cursor: 'pointer',
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            transition: 'transform 0.18s, box-shadow 0.18s',
+            outline: 'none',
+            animation: 'galaxyBtnPulse 2.5s infinite',
+          }}
+          title="تشغيل صوت المجرة"
+        >
+          <span style={{ fontSize: '1.5em', marginRight: 10 }}>🔊</span>
+          تشغيل صوت المجرة
+        </button>
+        <style jsx global>{`
+          @keyframes galaxyBtnPulse {
+            0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
+            50%      { box-shadow: 0 0 60px 10px rgba(255,215,0,0.45), 0 1.5px 0 0 #fff inset; transform: scale(1.07); }
+          }
+          .galaxy-sound-btn:hover {
+            background: linear-gradient(90deg, #FFB300 0%, #FFD700 100%);
+            color: #0a0a1a;
+            transform: scale(1.08);
+            box-shadow: 0 8px 40px 0 rgba(255,215,0,0.35), 0 1.5px 0 0 #fff inset;
+          }
+          .galaxy-sound-btn:active {
+            transform: scale(0.97);
+          }
+        `}</style>
         {galaxyData ? (
           <GalaxyCanvas
             data={galaxyData}
