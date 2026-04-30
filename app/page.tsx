@@ -1952,7 +1952,6 @@ export default function HomePage() {
           <div
             className="galaxy-mobile-card"
             style={{
-              display: 'none',
               position: 'relative',
               margin: '32px auto 18px',
               width: '95vw',
@@ -2009,9 +2008,6 @@ export default function HomePage() {
           {/* للشاشات الكبيرة: المجرة كما هي */}
           <div
             className="galaxy-desktop"
-            style={{
-              display: 'block',
-            }}
           >
             <GalaxyCanvas
               data={galaxyData}
