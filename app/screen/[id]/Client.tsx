@@ -373,7 +373,7 @@ export default function ScreenPage() {
     return () => clearInterval(tick);
   }, [currentAd]);
 
-  // ─── صوت المجرة — يُهيَّأ عند أول تفاعل (متطلب المتصفح) ─────────────────
+  // ─── صوت المجرة — يُهيَّأ ويعمل فوراً عند أول تفاعل ─────────────────
   useEffect(() => {
     let audioUrl = '/sound/galaxy-ambient.mp3';
     let cancelled = false;
@@ -391,12 +391,21 @@ export default function ScreenPage() {
         if (cancelled) return;
 
         const unlock = () => {
-          if (audioRef.current) return;
+          if (audioRef.current) {
+            // إذا كان الصوت موجوداً، شغّله وارفع الصوت فوراً
+            try {
+              audioRef.current.currentTime = 0;
+              audioRef.current.volume = 1;
+              audioRef.current.play().catch(() => {});
+            } catch {}
+            return;
+          }
           try {
             const audio = new Audio(audioUrl);
             audio.loop = true;
-            audio.volume = 0;
+            audio.volume = 1; // صوت مرتفع مباشرة
             audioRef.current = audio;
+            audio.play().catch(() => {});
           } catch (_) {}
         };
         document.addEventListener('click', unlock, { once: true });
@@ -412,36 +421,24 @@ export default function ScreenPage() {
     };
   }, []);
 
-  // رفع/خفض الصوت عند دخول/خروج ربع المجرة
-  const fadeTo = (target: number, onDone?: () => void) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (fadeFnRef.current) clearInterval(fadeFnRef.current);
-    const step = 0.02;
-    const interval = 60; // ms — ~2 ثانية للوصول من 0 إلى 1
-    fadeFnRef.current = setInterval(() => {
-      const cur = audio.volume;
-      if (Math.abs(cur - target) <= step) {
-        audio.volume = target;
-        clearInterval(fadeFnRef.current);
-        onDone?.();
-      } else {
-        audio.volume = cur < target ? Math.min(cur + step, target) : Math.max(cur - step, target);
-      }
-    }, interval);
-  };
-
+  // رفع/خفض الصوت عند دخول/خروج ربع المجرة — تشغيل فوري وبصوت مرتفع
   const startSpaceSound = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) audio.play().catch(() => {});
-    fadeTo(0.6);
+    try {
+      audio.currentTime = 0;
+      audio.volume = 1; // صوت مرتفع فوراً
+      audio.play().catch(() => {});
+    } catch {}
   };
 
   const stopSpaceSound = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    fadeTo(0, () => audio.pause());
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch {}
   };
 
   // ─── تبديل كتم/تشغيل صوت الفيديو ────────────────────────────────────────
