@@ -92,46 +92,13 @@ export default function GalaxyCanvas({
     let w = container.clientWidth;
     let h = container.clientHeight;
 
-    // ── Camera ───────────────────────────────────────────────
-    const sph    = { theta: 0.3, phi: 1.2, radius: 480 };
-    // ====== Pinch-to-zoom (touch zoom) support ======
-    let lastTouchDist = 0;
-    let pinchZooming = false;
-    function getTouchDist(e: TouchEvent) {
-      if (e.touches.length < 2) return 0;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-    function onTouchStart(e: TouchEvent) {
-      if (e.touches.length === 2) {
-        pinchZooming = true;
-        lastTouchDist = getTouchDist(e);
-      }
-    }
-    function onTouchMove(e: TouchEvent) {
-      if (pinchZooming && e.touches.length === 2) {
-        const dist = getTouchDist(e);
-        if (lastTouchDist > 0) {
-          const delta = dist - lastTouchDist;
-          sph.radius = Math.max(80, Math.min(1200, sph.radius - delta * 1.1));
-        }
-        lastTouchDist = dist;
-        e.preventDefault();
-      }
-    }
-    function onTouchEnd(e: TouchEvent) {
-      if (e.touches.length < 2) {
-        pinchZooming = false;
-        lastTouchDist = 0;
-      }
-    }
-
     // ── Scene ────────────────────────────────────────────────
     const scene = new THREE.Scene();
     scene.fog   = new THREE.FogExp2(0x000010, 0.0008);
 
+    // ── Camera ───────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 3000);
+    const sph    = { theta: 0.3, phi: 1.2, radius: 480 };
     const camTarget = new THREE.Vector3(0, 0, 0);
     camera.position.set(0, 120, 480);
     camera.lookAt(0, 0, 0);
@@ -666,10 +633,6 @@ export default function GalaxyCanvas({
     window.addEventListener('pointerup',    onPointerUp);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('resize', onResize);
-    // Touch zoom events
-    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-    renderer.domElement.addEventListener('touchmove',  onTouchMove,  { passive: false });
-    renderer.domElement.addEventListener('touchend',   onTouchEnd,   { passive: false });
 
     // ── Animation Loop ────────────────────────────────────────
     let animId: number;
@@ -746,9 +709,6 @@ export default function GalaxyCanvas({
       window.removeEventListener('pointerup',   onPointerUp);
       renderer.domElement.removeEventListener('wheel', onWheel as EventListener);
       window.removeEventListener('resize', onResize);
-      renderer.domElement.removeEventListener('touchstart', onTouchStart as EventListener);
-      renderer.domElement.removeEventListener('touchmove',  onTouchMove as EventListener);
-      renderer.domElement.removeEventListener('touchend',   onTouchEnd as EventListener);
       if (tooltipRef.current) tooltipRef.current.style.display = 'none';
       if (focusLabelRef.current) focusLabelRef.current.style.display = 'none';
       if (highlightMeshRef.current) {
