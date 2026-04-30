@@ -1724,7 +1724,7 @@ const stopSpaceSound = () => {
           }
         `}</style>
         <div className="galaxy-view" style={{position: 'relative', width: '100%', height: '100%'}}>
-          <button
+          {/* <button
             className="galaxy-sound-btn"
             onClick={startSpaceSound}
             style={{
@@ -1751,7 +1751,7 @@ const stopSpaceSound = () => {
           >
             <span style={{ fontSize: '1.5em', marginRight: 10 }}>🔊</span>
             تشغيل صوت المجرة
-          </button>
+          </button> */}
           {galaxyData ? (
             <GalaxyCanvas
               data={galaxyData}
