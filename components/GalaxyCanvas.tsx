@@ -92,6 +92,8 @@ export default function GalaxyCanvas({
     let w = container.clientWidth;
     let h = container.clientHeight;
 
+    // ── Camera ───────────────────────────────────────────────
+    const sph    = { theta: 0.3, phi: 1.2, radius: 480 };
     // ====== Pinch-to-zoom (touch zoom) support ======
     let lastTouchDist = 0;
     let pinchZooming = false;
@@ -129,9 +131,7 @@ export default function GalaxyCanvas({
     const scene = new THREE.Scene();
     scene.fog   = new THREE.FogExp2(0x000010, 0.0008);
 
-    // ── Camera ───────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 3000);
-    const sph    = { theta: 0.3, phi: 1.2, radius: 480 };
     const camTarget = new THREE.Vector3(0, 0, 0);
     camera.position.set(0, 120, 480);
     camera.lookAt(0, 0, 0);
