@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
-import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE } from '@/lib/api';
+import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE, fetchInstitutionTypes } from '@/lib/api';
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,14 +23,9 @@ const COLORS = {
 // ============================================================
 // Type Labels and Colors
 // ============================================================
-const TYPE_LABELS: Record<string, string> = {
-  educational: 'تعليمية',
-  research: 'بحثية',
-  cultural: 'ثقافية',
-  charitable: 'خيرية',
-  media: 'إعلامية',
-  developmental: 'تنموية',
-  default: 'عامة',
+// سيتم جلب الأنواع ديناميكياً
+let TYPE_LABELS: Record<string, string> = {
+  default: 'مؤسسة',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -453,6 +448,11 @@ function QuickActions({ user }: { user: any }) {
     );
   }
 
+  // Support link for all users
+  // actions.push(
+  //   { icon: '🎫', label: 'الدعم الفني', href: '/support', color: '#6366f1' },
+  // );
+
   // Static nav items moved from topbar
   // actions.push(
   //   { icon: '📚', label: 'المكتبة', href: '/library', color: '#85C79A' },
@@ -801,6 +801,19 @@ function StatusBadge({
 }
 
 // ============================================================
+// قاموس ترجمة الدول
+const COUNTRY_LABELS: Record<string, string> = {
+  Egypt: 'مصر', Saudi: 'السعودية', SaudiArabia: 'السعودية', KSA: 'السعودية',
+  UAE: 'الإمارات', UnitedArabEmirates: 'الإمارات', Jordan: 'الأردن',
+  Morocco: 'المغرب', Algeria: 'الجزائر', Tunisia: 'تونس',
+  Palestine: 'فلسطين', Lebanon: 'لبنان', Iraq: 'العراق',
+  Syria: 'سوريا', Sudan: 'السودان', Yemen: 'اليمن',
+  Libya: 'ليبيا', Qatar: 'قطر', Bahrain: 'البحرين',
+  Kuwait: 'الكويت', Oman: 'عمان', Mauritania: 'موريتانيا',
+  Somalia: 'الصومال', Djibouti: 'جيبوتي', Comoros: 'جزر القمر',
+};
+
+// ============================================================
 // Institutions Panel
 // ============================================================
 function InstitutionsPanel({
@@ -825,10 +838,62 @@ function InstitutionsPanel({
   const [showAgreements, setShowAgreements] = useState(false);
   const [loadingAgreements, setLoadingAgreements] = useState(false);
 
+
+  // جلب الأنواع المترجمة مع fallback يدوي
+  const [institutionTypes, setInstitutionTypes] = useState<{ type: string; name_ar: string }[]>([]);
+  useEffect(() => {
+    fetchInstitutionTypes().then(types => {
+      setInstitutionTypes(types);
+      // fallback يدوي للأنواع الشائعة
+      const fallback: Record<string, string> = {
+        default: 'مؤسسة',
+        nashe2a: 'ناشئة',
+        nashe2: 'ناشئة',
+        nashe2ah: 'ناشئة',
+        nashe2een: 'ناشئة',
+        startup: 'ناشئة',
+        ngo: 'غير ربحية',
+        healthcare: 'رعاية صحية',
+        governmental: 'حكومية',
+        government: 'حكومية',
+        khass: 'خاصة',
+        private: 'خاصة',
+        public: 'حكومية',
+        civil: 'أهلية',
+        ahlia: 'أهلية',
+        charitable: 'خيرية',
+        research: 'بحثية',
+        educational: 'تعليمية',
+        cultural: 'ثقافية',
+        media: 'إعلامية',
+        developmental: 'تنموية',
+        social: 'اجتماعية',
+        sports: 'رياضية',
+        youth: 'شبابية',
+        women: 'نسائية',
+        business: 'تجارية',
+        cooperative: 'تعاونية',
+        professional: 'مهنية',
+        scientific: 'علمية',
+        advocacy: 'دعوية',
+        environment: 'بيئية',
+        health: 'صحية',
+        technology: 'تقنية',
+        industrial: 'صناعية',
+        agricultural: 'زراعية',
+        housing: 'إسكانية',
+        consumer: 'استهلاكية',
+        union: 'اتحاد',
+        association: 'جمعية',
+        club: 'نادي',
+      };
+      TYPE_LABELS = { ...fallback, ...Object.fromEntries(types.map(t => [t.type, t.name_ar])) };
+    });
+  }, []);
+
   const types = useMemo(() => {
-    const s = new Set(stars.map(s => s.type));
-    return ['all', ...Array.from(s)];
-  }, [stars]);
+    return ['all', ...institutionTypes.map(t => t.type)];
+  }, [institutionTypes]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -1167,6 +1232,50 @@ function InstitutionsPanel({
                     {t === 'all' ? 'الكل' : (TYPE_LABELS[t] || t)}
                   </button>
                 ))}
+              </div>
+
+              {/* فلتر الدولة بالعربية مع تحسين الاستايل */}
+              <div style={{ marginTop: 14, position: 'relative' }}>
+                <select
+                  value={''}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '13px 44px 13px 16px',
+                    borderRadius: 16,
+                    border: '1.5px solid #4E8D9C60',
+                    background: 'rgba(255,255,255,0.07)',
+                    color: '#EDF7BD',
+                    fontSize: '1.02rem',
+                    marginTop: 2,
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    outline: 'none',
+                    boxShadow: '0 2px 12px rgba(78,141,156,0.07)',
+                    fontWeight: 600,
+                    letterSpacing: '0.01em',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="">كل الدول</option>
+                  {Array.from(new Set(stars.map(s => s.country).filter(Boolean))).map(c => (
+                    <option key={c} value={c} style={{ color: '#222', background: '#fff' }}>
+                      {COUNTRY_LABELS[c] || c}
+                    </option>
+                  ))}
+                </select>
+                {/* سهم مخصص للدروب داون */}
+                <span style={{
+                  position: 'absolute',
+                  left: 18,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: '#85C79A',
+                  fontSize: '1.3rem',
+                  opacity: 0.8,
+                }}>▼</span>
               </div>
             </div>
 
@@ -1857,6 +1966,48 @@ export default function HomePage() {
       {popupStar && (
         <StarPopup star={popupStar} onClose={() => setPopupStar(null)} />
       )}
+
+      {/* Floating Support Button */}
+      <Link href={user?.role === 'admin' ? '/admin/support' : '/support'} style={{ textDecoration: 'none' }}>
+        <div
+          className="support-fab"
+          style={{
+            position: 'fixed', bottom: 28, left: 28, zIndex: 999,
+            width: 60, height: 60, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #6366f1 0%, #4E8D9C 50%, #85C79A 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2)',
+            cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+            border: '2px solid rgba(255,255,255,0.15)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'scale(1.12) translateY(-4px)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(99,102,241,0.55), 0 0 60px rgba(78,141,156,0.3)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2)';
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            <path d="M12 7v2" />
+            <path d="M12 13h.01" />
+          </svg>
+        </div>
+      </Link>
+      <style>{`
+        @keyframes support-pulse {
+          0%, 100% { box-shadow: 0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2); }
+          50% { box-shadow: 0 4px 24px rgba(99,102,241,0.6), 0 0 60px rgba(78,141,156,0.35), 0 0 0 8px rgba(99,102,241,0.08); }
+        }
+        .support-fab { animation: support-pulse 3s ease-in-out infinite; }
+        .support-fab:hover { animation: none; }
+        @media (max-width: 480px) {
+          .support-fab { width: 50px !important; height: 50px !important; bottom: 18px !important; left: 18px !important; }
+          .support-fab svg { width: 22px !important; height: 22px !important; }
+        }
+      `}</style>
     </main>
   );
 }
