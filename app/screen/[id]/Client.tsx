@@ -375,72 +375,82 @@ export default function ScreenPage() {
 
   // ─── صوت المجرة — يُهيَّأ ويعمل فوراً عند أول تفاعل ─────────────────
   useEffect(() => {
-    let audioUrl = '/sound/galaxy-ambient.mp3';
-    let cancelled = false;
+  let audioUrl = '/sound/galaxy-ambient.mp3';
+  let cancelled = false;
 
-    // محاولة جلب الصوت النشط من الـ API
-    fetch(`${API_BASE}/api/galaxy-audio/active`)
-      .then(r => r.json())
-      .then(d => {
-        if (!cancelled && d.success && d.data?.length > 0) {
-          audioUrl = d.data[0].file_url;
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (cancelled) return;
+  // تحميل من API
+  fetch(`${API_BASE}/api/galaxy-audio/active`)
+    .then(r => r.json())
+    .then(d => {
+      if (!cancelled && d.success && d.data?.length > 0) {
+        audioUrl = d.data[0].file_url;
+      }
+    })
+    .catch(() => {})
+    .finally(() => {
+      if (cancelled) return;
 
-        const unlock = () => {
-          if (audioRef.current) {
-            // إذا كان الصوت موجوداً، شغّله وارفع الصوت فوراً
-            try {
-              audioRef.current.currentTime = 0;
-              audioRef.current.volume = 1;
-              audioRef.current.play().catch(() => {});
-            } catch {}
-            return;
-          }
-          try {
-            const audio = new Audio(audioUrl);
-            audio.loop = true;
-            audio.volume = 1; // صوت مرتفع مباشرة
-            audioRef.current = audio;
-            audio.play().catch(() => {});
-          } catch (_) {}
-        };
-        document.addEventListener('click', unlock, { once: true });
-        document.addEventListener('touchstart', unlock, { once: true });
-      });
+      const audio = new Audio(audioUrl);
+      audio.loop = true;
+      audio.volume = 0;
+      audio.muted = true; // 👈 مهم جداً
+      audio.preload = 'auto';
 
-    return () => {
-      cancelled = true;
-      document.removeEventListener('click', () => {});
-      document.removeEventListener('touchstart', () => {});
-      if (fadeFnRef.current) clearInterval(fadeFnRef.current);
-      audioRef.current?.pause();
-    };
-  }, []);
+      audioRef.current = audio;
 
-  // رفع/خفض الصوت عند دخول/خروج ربع المجرة — تشغيل فوري وبصوت مرتفع
-  const startSpaceSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    try {
-      audio.currentTime = 0;
-      audio.volume = 1; // صوت مرتفع فوراً
+      // تشغيل صامت (يسمح به المتصفح)
       audio.play().catch(() => {});
-    } catch {}
-  };
+    });
 
-  const stopSpaceSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-    } catch {}
+  return () => {
+    cancelled = true;
+    audioRef.current?.pause();
   };
+}, []);
+const startSpaceSound = () => {
+  const audio = audioRef.current;
+  if (!audio) return;
 
+  try {
+    audio.muted = false;
+
+    // fade in ناعم 🔥
+    let vol = 0;
+    audio.volume = 0;
+
+    const fade = setInterval(() => {
+      vol += 0.1;
+      if (vol >= 1) {
+        audio.volume = 1;
+        clearInterval(fade);
+      } else {
+        audio.volume = vol;
+      }
+    }, 50);
+
+    audio.play().catch(() => {});
+  } catch {}
+};
+const stopSpaceSound = () => {
+  const audio = audioRef.current;
+  if (!audio) return;
+
+  try {
+    // fade out
+    let vol = audio.volume;
+
+    const fade = setInterval(() => {
+      vol -= 0.1;
+      if (vol <= 0) {
+        audio.volume = 0;
+        audio.pause();
+        clearInterval(fade);
+      } else {
+        audio.volume = vol;
+      }
+    }, 50);
+  } catch {}
+};
   // ─── تبديل كتم/تشغيل صوت الفيديو ────────────────────────────────────────
   const toggleVideoMute = () => {
     const newMuted = !isVideoMuted;

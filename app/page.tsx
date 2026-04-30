@@ -1659,6 +1659,8 @@ export default function HomePage() {
   const [popupStar, setPopupStar] = useState<GalaxyStar | null>(null);
   const [user, setUser] = useState<any>(null);
   const [focusStarId, setFocusStarId] = useState<number | undefined>(undefined);
+  // حالة تكبير المجرة على الشاشات الصغيرة
+  const [galaxyExpanded, setGalaxyExpanded] = useState(false);
   const mountedRef = useRef(true);
 
   // التحقق من تسجيل الدخول
@@ -1705,7 +1707,15 @@ export default function HomePage() {
     };
   }, []);;
 
-  const handleStarClick = (star: GalaxyStar) => setPopupStar(star);
+  // عند الضغط على النجم: إذا الشاشة صغيرة، فعّل تكبير المجرة
+  const handleStarClick = (star: GalaxyStar) => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setGalaxyExpanded(true);
+      setPopupStar(star);
+    } else {
+      setPopupStar(star);
+    }
+  };
 
   const handleViewAgreement = (agreementId: string) => {
     setSelectedAgreementId(agreementId);
@@ -1846,7 +1856,6 @@ export default function HomePage() {
     }}>
       <style>{`
         /* ===== RESPONSIVE: GALAXY HOME PAGE ===== */
-
         /* --- Logo --- */
         @media (max-width: 480px) {
           .galaxy-logo { gap: 8px !important; }
@@ -1854,7 +1863,6 @@ export default function HomePage() {
           .logo-title { font-size: 1.05rem !important; }
           .logo-subtitle { display: none !important; }
         }
-
         /* --- TopBar --- */
         @media (max-width: 640px) {
           .topbar { padding: 0 12px !important; height: 60px !important; }
@@ -1867,7 +1875,6 @@ export default function HomePage() {
         @media (max-width: 480px) {
           .topbar-nav { display: none !important; }
         }
-
         /* --- Quick Actions: icon-only circular dock on mobile --- */
         @media (max-width: 768px) {
           .quick-actions {
@@ -1889,7 +1896,6 @@ export default function HomePage() {
           .quick-action-label { display: none !important; }
           .quick-action-icon { width: auto !important; font-size: 1.1rem !important; }
         }
-
         /* --- Stats Bar: compact + horizontal scroll on mobile --- */
         @media (max-width: 640px) {
           .stats-bar {
@@ -1910,63 +1916,116 @@ export default function HomePage() {
           .stat-icon { font-size: 0.8rem !important; }
           .stat-label { display: none !important; }
         }
-
         /* --- Institutions Panel: full-width on mobile --- */
         @media (max-width: 768px) {
           .inst-panel { width: 100vw !important; }
         }
-
         /* --- User menu dropdown: align right on mobile --- */
         @media (max-width: 480px) {
           .user-dropdown { left: auto !important; right: 0 !important; }
         }
+        /* --- Galaxy Expanded (fullscreen on mobile) --- */
+        .galaxy-expanded {
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          z-index: 200 !important;
+          background: #05041a !important;
+          box-shadow: 0 0 0 9999px #05041a !important;
+          animation: fadeInGalaxy 0.3s;
+        }
+        @keyframes fadeInGalaxy {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .galaxy-expanded-blur {
+          filter: blur(2px) brightness(0.7);
+          pointer-events: none;
+          user-select: none;
+        }
       `}</style>
       {galaxyData && (
-        <GalaxyCanvas
-          data={galaxyData}
-          onStarClick={handleStarClick}
-          focusStarId={focusStarId}
-          autoRotate
-        />
+        <div
+          className={galaxyExpanded ? 'galaxy-expanded' : ''}
+          style={galaxyExpanded ? { zIndex: 200, background: '#05041a', position: 'fixed', inset: 0 } : {}}
+        >
+          <GalaxyCanvas
+            data={galaxyData}
+            onStarClick={handleStarClick}
+            focusStarId={focusStarId}
+            autoRotate
+          />
+          {/* زر إغلاق التكبير يظهر فقط في وضع التكبير على الجوال */}
+          {galaxyExpanded && (
+            <button
+              onClick={() => { setGalaxyExpanded(false); setPopupStar(null); }}
+              style={{
+                position: 'fixed',
+                top: 18, left: 18,
+                zIndex: 210,
+                background: 'rgba(0,0,0,0.7)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '50%',
+                width: 40, height: 40,
+                fontSize: '1.3rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+                cursor: 'pointer',
+              }}
+              aria-label="إغلاق المجرة المكبرة"
+            >✕</button>
+          )}
+        </div>
       )}
+      {/* باقي الصفحة يُعتم ويُمنع التفاعل معه عند التكبير */}
+      <div className={galaxyExpanded ? 'galaxy-expanded-blur' : ''} style={galaxyExpanded ? { pointerEvents: 'none', userSelect: 'none' } : {}}>
+        <TopBar
+          starCount={galaxyData?.stars.length ?? 0}
+          onToggleList={() => setListOpen(o => !o)}
+          listOpen={listOpen}
+          user={user}
+          onLogout={handleLogout}
+        />
 
-      <TopBar
-        starCount={galaxyData?.stars.length ?? 0}
-        onToggleList={() => setListOpen(o => !o)}
-        listOpen={listOpen}
-        user={user}
-        onLogout={handleLogout}
-      />
+        {user && <QuickActions user={user} />}
 
-      {user && <QuickActions user={user} />}
+        {galaxyData && <StatsBar data={galaxyData} />}
 
-      {galaxyData && <StatsBar data={galaxyData} />}
+        {galaxyData && (
+          <InstitutionsPanel
+            stars={galaxyData.stars}
+            open={listOpen}
+            onClose={() => setListOpen(false)}
+            onSelect={() => {}}
+            onViewAgreement={handleViewAgreement}
+            onFocusStar={(star) => {
+              setListOpen(false);
+              setFocusStarId(star.id);
+            }}
+          />
+        )}
 
-      {galaxyData && (
-        <InstitutionsPanel
-          stars={galaxyData.stars}
-          open={listOpen}
-          onClose={() => setListOpen(false)}
-          onSelect={() => {}}
-          onViewAgreement={handleViewAgreement}
-          onFocusStar={(star) => {
-            setListOpen(false);
-            setFocusStarId(star.id);
+        {selectedAgreementId && (
+          <AgreementDetails
+            agreementId={selectedAgreementId}
+            onClose={() => setSelectedAgreementId(null)}
+          />
+        )}
+      </div>
+      {/* StarPopup يظهر فوق المجرة المكبرة */}
+      {popupStar && (
+        <StarPopup
+          star={popupStar}
+          onClose={() => {
+            setPopupStar(null);
+            setGalaxyExpanded(false);
           }}
         />
       )}
-
-      {selectedAgreementId && (
-        <AgreementDetails
-          agreementId={selectedAgreementId}
-          onClose={() => setSelectedAgreementId(null)}
-        />
-      )}
-
-      {popupStar && (
-        <StarPopup star={popupStar} onClose={() => setPopupStar(null)} />
-      )}
-
       {/* Floating Support Button */}
       <Link href={user?.role === 'admin' ? '/admin/support' : '/support'} style={{ textDecoration: 'none' }}>
         <div
