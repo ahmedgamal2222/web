@@ -1972,13 +1972,14 @@ export default function HomePage() {
               overflow: 'hidden', background: '#181a2a', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 2px 16px #4E8D9C22',
             }}>
-              <GalaxyCanvas
-                data={galaxyData}
-                onStarClick={() => setGalaxyExpanded(true)}
-                focusStarId={focusStarId}
-                autoRotate
-                style={{ width: '100%', height: '100%' }}
-              />
+              <div style={{ width: '100%', height: '100%' }}>
+                <GalaxyCanvas
+                  data={galaxyData}
+                  onStarClick={() => setGalaxyExpanded(true)}
+                  focusStarId={focusStarId}
+                  autoRotate
+                />
+              </div>
             </div>
             <div style={{ textAlign: 'center', color: '#EDF7BD', fontWeight: 700, fontSize: '1.1rem', marginBottom: 6 }}>
               استكشف المجرة الحضارية
@@ -2034,11 +2035,7 @@ export default function HomePage() {
                 animation: 'fadeInGalaxy 0.3s',
               }}
             >
-              <GalaxyCanvas
-                data={galaxyData}
-                onStarClick={handleStarClick}
-                focusStarId={focusStarId}
-                autoRotate
+              <div
                 style={{
                   width: '96vw',
                   height: '60vw',
@@ -2048,7 +2045,14 @@ export default function HomePage() {
                   background: '#181a2a',
                   boxShadow: '0 4px 32px #0008, 0 0 0 1.5px #4E8D9C33',
                 }}
-              />
+              >
+                <GalaxyCanvas
+                  data={galaxyData}
+                  onStarClick={handleStarClick}
+                  focusStarId={focusStarId}
+                  autoRotate
+                />
+              </div>
               <button
                 onClick={() => { setGalaxyExpanded(false); setPopupStar(null); }}
                 style={{
