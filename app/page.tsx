@@ -1945,41 +1945,131 @@ export default function HomePage() {
           user-select: none;
         }
       `}</style>
+      {/* عرض المجرة بشكل مبسط وجذاب على الجوال */}
       {galaxyData && (
-        <div
-          className={galaxyExpanded ? 'galaxy-expanded' : ''}
-          style={galaxyExpanded ? { zIndex: 200, background: '#05041a', position: 'fixed', inset: 0 } : {}}
-        >
-          <GalaxyCanvas
-            data={galaxyData}
-            onStarClick={handleStarClick}
-            focusStarId={focusStarId}
-            autoRotate
-          />
-          {/* زر إغلاق التكبير يظهر فقط في وضع التكبير على الجوال */}
-          {galaxyExpanded && (
+        <>
+          {/* للهواتف: بطاقة مختصرة مع زر استكشاف */}
+          <div
+            className="galaxy-mobile-card"
+            style={{
+              display: 'none',
+              position: 'relative',
+              margin: '32px auto 18px',
+              width: '95vw',
+              maxWidth: 420,
+              background: 'linear-gradient(135deg, #0a0a1a 60%, #1a1a2a 100%)',
+              borderRadius: 24,
+              boxShadow: '0 4px 32px #0008, 0 0 0 1.5px #4E8D9C33',
+              padding: '24px 0 18px',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              zIndex: 10,
+            }}
+          >
+            <div style={{
+              width: 180, height: 120, margin: '0 auto 10px', borderRadius: 18,
+              overflow: 'hidden', background: '#181a2a', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 16px #4E8D9C22',
+            }}>
+              <GalaxyCanvas
+                data={galaxyData}
+                onStarClick={() => setGalaxyExpanded(true)}
+                focusStarId={focusStarId}
+                autoRotate
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+            <div style={{ textAlign: 'center', color: '#EDF7BD', fontWeight: 700, fontSize: '1.1rem', marginBottom: 6 }}>
+              استكشف المجرة الحضارية
+            </div>
+            <div style={{ color: '#aaa', fontSize: '0.92rem', marginBottom: 12 }}>
+              اضغط لاستكشاف المؤسسات المضيئة
+            </div>
             <button
-              onClick={() => { setGalaxyExpanded(false); setPopupStar(null); }}
+              onClick={() => setGalaxyExpanded(true)}
+              style={{
+                background: 'linear-gradient(90deg, #4E8D9C, #85C79A)',
+                color: '#181a2a',
+                border: 'none',
+                borderRadius: 22,
+                fontWeight: 800,
+                fontSize: '1rem',
+                padding: '10px 32px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 12px #4E8D9C22',
+                marginTop: 4,
+                transition: 'all 0.2s',
+              }}
+            >
+              استكشاف المجرة
+            </button>
+          </div>
+          {/* للشاشات الكبيرة: المجرة كما هي */}
+          <div
+            className="galaxy-desktop"
+            style={{
+              display: 'block',
+            }}
+          >
+            <GalaxyCanvas
+              data={galaxyData}
+              onStarClick={handleStarClick}
+              focusStarId={focusStarId}
+              autoRotate
+            />
+          </div>
+          {/* Overlay للمجرة المكبرة على الجوال */}
+          {galaxyExpanded && (
+            <div
               style={{
                 position: 'fixed',
-                top: 18, left: 18,
-                zIndex: 210,
-                background: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '50%',
-                width: 40, height: 40,
-                fontSize: '1.3rem',
+                inset: 0,
+                zIndex: 200,
+                background: 'rgba(10,10,30,0.98)',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
-                cursor: 'pointer',
+                animation: 'fadeInGalaxy 0.3s',
               }}
-              aria-label="إغلاق المجرة المكبرة"
-            >✕</button>
+            >
+              <GalaxyCanvas
+                data={galaxyData}
+                onStarClick={handleStarClick}
+                focusStarId={focusStarId}
+                autoRotate
+                style={{
+                  width: '96vw',
+                  height: '60vw',
+                  maxWidth: 480,
+                  maxHeight: 340,
+                  borderRadius: 24,
+                  background: '#181a2a',
+                  boxShadow: '0 4px 32px #0008, 0 0 0 1.5px #4E8D9C33',
+                }}
+              />
+              <button
+                onClick={() => { setGalaxyExpanded(false); setPopupStar(null); }}
+                style={{
+                  marginTop: 18,
+                  background: 'linear-gradient(90deg, #4E8D9C, #85C79A)',
+                  color: '#181a2a',
+                  border: 'none',
+                  borderRadius: 22,
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  padding: '10px 32px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 12px #4E8D9C22',
+                  transition: 'all 0.2s',
+                }}
+              >
+                إغلاق المجرة
+              </button>
+            </div>
           )}
-        </div>
+        </>
       )}
       {/* باقي الصفحة يُعتم ويُمنع التفاعل معه عند التكبير */}
       <div className={galaxyExpanded ? 'galaxy-expanded-blur' : ''} style={galaxyExpanded ? { pointerEvents: 'none', userSelect: 'none' } : {}}>
