@@ -1708,7 +1708,7 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
-        <style jsx global>{`
+        {/* <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
             50%      { box-shadow: 0 0 60px 10px rgba(255,215,0,0.45), 0 1.5px 0 0 #fff inset; transform: scale(1.07); }
@@ -1722,7 +1722,7 @@ const stopSpaceSound = () => {
           .galaxy-sound-btn:active {
             transform: scale(0.97);
           }
-        `}</style>
+        `}</style> */}
         <div className="galaxy-view" style={{position: 'relative', width: '100%', height: '100%'}}>
           {/* <button
             className="galaxy-sound-btn"
