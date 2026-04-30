@@ -145,7 +145,7 @@ export default function GalaxyCanvas({
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
     renderer.domElement.style.cursor      = 'grab';
-    renderer.domElement.style.touchAction = 'none';
+    renderer.domElement.style.touchAction = 'manipulation';
     renderer.domElement.style.position    = 'absolute';
     renderer.domElement.style.inset       = '0';
     renderer.domElement.style.width       = '100%';
@@ -594,8 +594,7 @@ export default function GalaxyCanvas({
       mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
-      const hits = raycaster.intersectObject(raySystem);
+raycaster.params.Points!.threshold = Math.max(10, sph.radius * 0.02);      const hits = raycaster.intersectObject(raySystem);
       if (hits.length > 0) {
         const s = sortedStars[hits[0].index!];
         renderer.domElement.style.cursor = 'pointer';
@@ -653,7 +652,29 @@ export default function GalaxyCanvas({
     const onWheel = (e: WheelEvent) => {
       sph.radius = Math.max(80, Math.min(1200, sph.radius + e.deltaY * 0.3));
     };
+const onTouchEndClick = (e: TouchEvent) => {
+  // لو المستخدم كان بيعمل pinch zoom → تجاهل
+  if (pinchZooming) return;
 
+  if (e.changedTouches.length === 0) return;
+
+  const touch = e.changedTouches[0];
+  const rect = renderer.domElement.getBoundingClientRect();
+
+  mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  // زوّد الحساسية للموبايل
+  raycaster.params.Points!.threshold = Math.max(12, sph.radius * 0.025);
+
+  const hits = raycaster.intersectObject(raySystem);
+
+  if (hits.length > 0) {
+    onStarClickRef.current?.(sortedStars[hits[0].index!]);
+  }
+};
     const onResize = () => {
       w = container.clientWidth; h = container.clientHeight;
       camera.aspect = w / h;
@@ -661,16 +682,19 @@ export default function GalaxyCanvas({
       renderer.setSize(w, h);
     };
 
-    renderer.domElement.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('pointermove',  onPointerMove);
-    window.addEventListener('pointerup',    onPointerUp);
-    renderer.domElement.addEventListener('wheel', onWheel, { passive: true });
-    window.addEventListener('resize', onResize);
-    // Touch zoom events
-    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-    renderer.domElement.addEventListener('touchmove',  onTouchMove,  { passive: false });
-    renderer.domElement.addEventListener('touchend',   onTouchEnd,   { passive: false });
+   renderer.domElement.addEventListener('pointerdown', onPointerDown);
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
 
+renderer.domElement.addEventListener('wheel', onWheel, { passive: true });
+window.addEventListener('resize', onResize);
+
+// Touch zoom events
+renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+
+// 👇 ده الجديد (المهم)
+renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: false });
     // ── Animation Loop ────────────────────────────────────────
     let animId: number;
     const animate = () => {
@@ -748,7 +772,7 @@ export default function GalaxyCanvas({
       window.removeEventListener('resize', onResize);
       renderer.domElement.removeEventListener('touchstart', onTouchStart as EventListener);
       renderer.domElement.removeEventListener('touchmove',  onTouchMove as EventListener);
-      renderer.domElement.removeEventListener('touchend',   onTouchEnd as EventListener);
+      renderer.domElement.removeEventListener('touchend',   onTouchEndClick as EventListener);
       if (tooltipRef.current) tooltipRef.current.style.display = 'none';
       if (focusLabelRef.current) focusLabelRef.current.style.display = 'none';
       if (highlightMeshRef.current) {
