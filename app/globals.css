@@ -1,3 +1,18 @@
+/* Galaxy responsive display fix */
+.galaxy-desktop {
+  display: none;
+}
+.galaxy-mobile-card {
+  display: flex;
+}
+@media (min-width: 641px) {
+  .galaxy-desktop {
+    display: block;
+  }
+  .galaxy-mobile-card {
+    display: none;
+  }
+}
 /* ═══════════════════════════════════════════════════════════
    CIVILIZATION GALAXY — Dark Space Theme
    Font: Tajawal / Cairo (Arabic) — Google Fonts
