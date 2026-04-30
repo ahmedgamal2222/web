@@ -1708,35 +1708,6 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
-        {/* زر احترافي لتشغيل صوت المجرة */}
-        <button
-          className="galaxy-sound-btn"
-          onClick={startSpaceSound}
-          style={{
-            position: 'absolute',
-            top: 24,
-            left: 24,
-            zIndex: 50,
-            background: 'linear-gradient(90deg, #FFD700 0%, #FFB300 100%)',
-            color: '#0a0a1a',
-            border: 'none',
-            borderRadius: 40,
-            padding: '16px 38px',
-            fontSize: '1.25rem',
-            fontWeight: 900,
-            boxShadow: '0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset',
-            cursor: 'pointer',
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            transition: 'transform 0.18s, box-shadow 0.18s',
-            outline: 'none',
-            animation: 'galaxyBtnPulse 2.5s infinite',
-          }}
-          title="تشغيل صوت المجرة"
-        >
-          <span style={{ fontSize: '1.5em', marginRight: 10 }}>🔊</span>
-          تشغيل صوت المجرة
-        </button>
         <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
@@ -1752,19 +1723,49 @@ const stopSpaceSound = () => {
             transform: scale(0.97);
           }
         `}</style>
-        {galaxyData ? (
-          <GalaxyCanvas
-            data={galaxyData}
-            autoRotate={true}
-            backgroundStarsCount={15000}
-            highlightStarId={Number(resolvedId)}
-          />
-        ) : (
-          <div className="galaxy-view">
-            <div className="highlighted-star" />
-            <div className="star-label">{institution?.name_ar || institution?.name}</div>
-          </div>
-        )}
+        <div className="galaxy-view" style={{position: 'relative', width: '100%', height: '100%'}}>
+          <button
+            className="galaxy-sound-btn"
+            onClick={startSpaceSound}
+            style={{
+              position: 'absolute',
+              top: 24,
+              left: 24,
+              zIndex: 50,
+              background: 'linear-gradient(90deg, #FFD700 0%, #FFB300 100%)',
+              color: '#0a0a1a',
+              border: 'none',
+              borderRadius: 40,
+              padding: '16px 38px',
+              fontSize: '1.25rem',
+              fontWeight: 900,
+              boxShadow: '0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset',
+              cursor: 'pointer',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              transition: 'transform 0.18s, box-shadow 0.18s',
+              outline: 'none',
+              animation: 'galaxyBtnPulse 2.5s infinite',
+            }}
+            title="تشغيل صوت المجرة"
+          >
+            <span style={{ fontSize: '1.5em', marginRight: 10 }}>🔊</span>
+            تشغيل صوت المجرة
+          </button>
+          {galaxyData ? (
+            <GalaxyCanvas
+              data={galaxyData}
+              autoRotate={true}
+              backgroundStarsCount={15000}
+              highlightStarId={Number(resolvedId)}
+            />
+          ) : (
+            <>
+              <div className="highlighted-star" />
+              <div className="star-label">{institution?.name_ar || institution?.name}</div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* الربع 3: نبض المجرة */}
