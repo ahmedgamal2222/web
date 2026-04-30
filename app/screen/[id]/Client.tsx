@@ -1708,6 +1708,7 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
+        {/* زر صوت المجرة: أنماط عالمية */}
         <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
@@ -1723,8 +1724,14 @@ const stopSpaceSound = () => {
             transform: scale(0.97);
           }
         `}</style>
+
+      {/* شريط المؤسسة */}
+      <div className="institution-info">
+        <span className="institution-name">{institution?.name_ar || institution?.name}</span>
+        {' — الشاشة الحضارية'}
+      </div>
         <div className="galaxy-view" style={{position: 'relative', width: '100%', height: '100%'}}>
-          <button
+          {/* <button
             className="galaxy-sound-btn"
             onClick={startSpaceSound}
             style={{
@@ -1751,7 +1758,7 @@ const stopSpaceSound = () => {
           >
             <span style={{ fontSize: '1.5em', marginRight: 10 }}>🔊</span>
             تشغيل صوت المجرة
-          </button>
+          </button> */}
           {galaxyData ? (
             <GalaxyCanvas
               data={galaxyData}

@@ -1845,6 +1845,29 @@ export default function HomePage() {
       fontFamily: "'Segoe UI', 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif",
     }}>
       <style>{`
+        /* --- Galaxy Canvas: تكبير المجرة على الشاشات الصغيرة --- */
+        @media (max-width: 640px) {
+          .galaxy-canvas-container {
+            width: 100vw !important;
+            height: 68vh !important;
+            min-height: 340px !important;
+            max-height: 72vh !important;
+            position: absolute !important;
+            top: 55px !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin: 0 auto !important;
+            z-index: 10 !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .galaxy-canvas-container {
+            height: 54vh !important;
+            min-height: 220px !important;
+            max-height: 60vh !important;
+            top: 45px !important;
+          }
+        }
         /* ===== RESPONSIVE: GALAXY HOME PAGE ===== */
 
         /* --- Logo --- */
@@ -1922,12 +1945,14 @@ export default function HomePage() {
         }
       `}</style>
       {galaxyData && (
-        <GalaxyCanvas
-          data={galaxyData}
-          onStarClick={handleStarClick}
-          focusStarId={focusStarId}
-          autoRotate
-        />
+        <div className="galaxy-canvas-container">
+          <GalaxyCanvas
+            data={galaxyData}
+            onStarClick={handleStarClick}
+            focusStarId={focusStarId}
+            autoRotate
+          />
+        </div>
       )}
 
       <TopBar
@@ -1964,7 +1989,9 @@ export default function HomePage() {
       )}
 
       {popupStar && (
-        <StarPopup star={popupStar} onClose={() => setPopupStar(null)} />
+        <div className="star-popup-mobile-wrapper">
+          <StarPopup star={popupStar} onClose={() => setPopupStar(null)} />
+        </div>
       )}
 
       {/* Floating Support Button */}
@@ -2006,6 +2033,33 @@ export default function HomePage() {
         @media (max-width: 480px) {
           .support-fab { width: 50px !important; height: 50px !important; bottom: 18px !important; left: 18px !important; }
           .support-fab svg { width: 22px !important; height: 22px !important; }
+        }
+
+        /* --- StarPopup: نافذة التفاصيل على الموبايل --- */
+        @media (max-width: 640px) {
+          .star-popup-mobile-wrapper > div[style*='position: fixed'] {
+            width: 98vw !important;
+            min-width: 0 !important;
+            max-width: 99vw !important;
+            left: 50% !important;
+            top: 52% !important;
+            transform: translate(-50%, -50%) !important;
+            border-radius: 16px !important;
+            padding: 0 !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .star-popup-mobile-wrapper > div[style*='position: fixed'] {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            left: 0 !important;
+            top: 0 !important;
+            transform: none !important;
+            border-radius: 0 !important;
+            min-height: 100vh !important;
+            height: 100vh !important;
+            overflow-y: auto !important;
+          }
         }
       `}</style>
     </main>
