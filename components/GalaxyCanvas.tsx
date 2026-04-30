@@ -594,7 +594,8 @@ export default function GalaxyCanvas({
       mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
       mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-raycaster.params.Points!.threshold = Math.max(10, sph.radius * 0.02);      const hits = raycaster.intersectObject(raySystem);
+raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
+     const hits = raycaster.intersectObject(raySystem);
       if (hits.length > 0) {
         const s = sortedStars[hits[0].index!];
         renderer.domElement.style.cursor = 'pointer';
