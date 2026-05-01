@@ -523,6 +523,29 @@ export async function verifyEmail(
   return res.json();
 }
 
+export async function forgotPassword(
+  email: string
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return res.json();
+}
+
+export async function resetPassword(
+  token: string,
+  new_password: string
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, new_password }),
+  });
+  return res.json();
+}
+
 export async function resendVerification(): Promise<{ success: boolean; message?: string; error?: string }> {
   const sessionId = typeof localStorage !== 'undefined' ? localStorage.getItem('sessionId') : null;
   const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {

@@ -331,6 +331,17 @@ export default function LoginPage() {
               <span style={{ color: '#b48fff' }}>سجّل الآن ←</span>
             </Link>
             <Link
+              href="/forgot-password"
+              style={{
+                color: 'rgba(140,165,195,0.7)',
+                textDecoration: 'none',
+                fontSize: '0.88rem',
+                transition: 'color 0.2s',
+              }}
+            >
+              نسيت كلمة المرور؟
+            </Link>
+            <Link
               href="/"
               style={{
                 color: 'rgba(140,165,195,0.6)',
