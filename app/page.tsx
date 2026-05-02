@@ -1837,6 +1837,7 @@ export default function HomePage() {
   }
 
   return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#05041a' }}>
     <main style={{
       width: '100vw', height: '100vh',
       overflow: 'hidden', position: 'relative',
@@ -2029,101 +2030,101 @@ export default function HomePage() {
           .site-footer { padding: 24px 16px 20px !important; }
         }
       `}</style>
-
-      {/* ── Site Footer ── */}
-      <footer
-        className="site-footer"
-        style={{
-          position: 'relative', zIndex: 10,
-          padding: '36px 24px 28px',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(10,6,30,0.95) 35%, rgba(5,3,18,1) 100%)',
-          borderTop: '1px solid rgba(79,195,247,0.1)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
-          direction: 'rtl', fontFamily: "'Tajawal', sans-serif",
-        }}
-      >
-        {/* Glowing separator */}
-        <div style={{
-          width: '100%', maxWidth: 480,
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(79,195,247,0.4) 30%, rgba(133,199,154,0.4) 70%, transparent)',
-          animation: 'footer-glow 3s ease-in-out infinite',
-          marginBottom: 4,
-        }} />
-
-        {/* Social icons row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-
-          {/* YouTube */}
-          <a
-            href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ"
-            target="_blank" rel="noopener noreferrer"
-            className="social-link"
-            title="قناة يوتيوب حضرمج"
-            style={{ '--hover-color': '#FF0000' } as React.CSSProperties}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444">
-              <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81zM9.75 15.52V8.48L15.5 12l-5.75 3.52z"/>
-            </svg>
-          </a>
-
-          {/* Instagram */}
-          <a
-            href="https://www.instagram.com/hadmajcom/"
-            target="_blank" rel="noopener noreferrer"
-            className="social-link"
-            title="انستغرام حضرمج"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <defs>
-                <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#f09433"/>
-                  <stop offset="25%" stopColor="#e6683c"/>
-                  <stop offset="50%" stopColor="#dc2743"/>
-                  <stop offset="75%" stopColor="#cc2366"/>
-                  <stop offset="100%" stopColor="#bc1888"/>
-                </linearGradient>
-              </defs>
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-grad)" strokeWidth="2"/>
-              <circle cx="12" cy="12" r="5" stroke="url(#ig-grad)" strokeWidth="2"/>
-              <circle cx="17.5" cy="6.5" r="1.2" fill="url(#ig-grad)"/>
-            </svg>
-          </a>
-
-          {/* TikTok */}
-          <a
-            href="https://www.tiktok.com/@hadmajcom?lang=en"
-            target="_blank" rel="noopener noreferrer"
-            className="social-link"
-            title="تيك توك حضرمج"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.21a8.18 8.18 0 0 0 4.78 1.52V7.28a4.85 4.85 0 0 1-1.01-.59z"/>
-            </svg>
-          </a>
-
-          {/* X (Twitter) */}
-          <a
-            href="https://x.com/hadmajcom"
-            target="_blank" rel="noopener noreferrer"
-            className="social-link"
-            title="منصة X حضرمج"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.731-8.835L2.25 2.25h6.964l4.263 5.636 5.767-5.636zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-          </a>
-        </div>
-
-        {/* Copyright */}
-        <p style={{
-          margin: 0, fontSize: '0.78rem',
-          color: 'rgba(150,170,200,0.5)',
-          letterSpacing: '0.04em',
-        }}>
-          © {new Date().getFullYear()} حضرمج — جميع الحقوق محفوظة
-        </p>
-      </footer>
     </main>
+
+    {/* ── Site Footer (outside main so overflow:hidden doesn't hide it) ── */}
+    <footer
+      className="site-footer"
+      style={{
+        position: 'relative', zIndex: 10,
+        padding: '36px 24px 28px',
+        background: 'linear-gradient(180deg, rgba(5,3,18,0.0) 0%, rgba(10,6,30,0.97) 35%, rgba(5,3,18,1) 100%)',
+        borderTop: '1px solid rgba(79,195,247,0.1)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+        direction: 'rtl', fontFamily: "'Tajawal', sans-serif",
+      }}
+    >
+      {/* Glowing separator */}
+      <div style={{
+        width: '100%', maxWidth: 480,
+        height: 1,
+        background: 'linear-gradient(90deg, transparent, rgba(79,195,247,0.4) 30%, rgba(133,199,154,0.4) 70%, transparent)',
+        animation: 'footer-glow 3s ease-in-out infinite',
+        marginBottom: 4,
+      }} />
+
+      {/* Social icons row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+
+        {/* YouTube */}
+        <a
+          href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ"
+          target="_blank" rel="noopener noreferrer"
+          className="social-link"
+          title="قناة يوتيوب حضرمج"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444">
+            <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81zM9.75 15.52V8.48L15.5 12l-5.75 3.52z"/>
+          </svg>
+        </a>
+
+        {/* Instagram */}
+        <a
+          href="https://www.instagram.com/hadmajcom/"
+          target="_blank" rel="noopener noreferrer"
+          className="social-link"
+          title="انستغرام حضرمج"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <defs>
+              <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#f09433"/>
+                <stop offset="25%" stopColor="#e6683c"/>
+                <stop offset="50%" stopColor="#dc2743"/>
+                <stop offset="75%" stopColor="#cc2366"/>
+                <stop offset="100%" stopColor="#bc1888"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-grad)" strokeWidth="2"/>
+            <circle cx="12" cy="12" r="5" stroke="url(#ig-grad)" strokeWidth="2"/>
+            <circle cx="17.5" cy="6.5" r="1.2" fill="url(#ig-grad)"/>
+          </svg>
+        </a>
+
+        {/* TikTok */}
+        <a
+          href="https://www.tiktok.com/@hadmajcom?lang=en"
+          target="_blank" rel="noopener noreferrer"
+          className="social-link"
+          title="تيك توك حضرمج"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.21a8.18 8.18 0 0 0 4.78 1.52V7.28a4.85 4.85 0 0 1-1.01-.59z"/>
+          </svg>
+        </a>
+
+        {/* X (Twitter) */}
+        <a
+          href="https://x.com/hadmajcom"
+          target="_blank" rel="noopener noreferrer"
+          className="social-link"
+          title="منصة X حضرمج"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.731-8.835L2.25 2.25h6.964l4.263 5.636 5.767-5.636zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
+      </div>
+
+      {/* Copyright */}
+      <p style={{
+        margin: 0, fontSize: '0.78rem',
+        color: 'rgba(150,170,200,0.5)',
+        letterSpacing: '0.04em',
+      }}>
+        © {new Date().getFullYear()} حضرمج — جميع الحقوق محفوظة
+      </p>
+    </footer>
+    </div>
   );
 }
