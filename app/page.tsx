@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
-import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE, fetchInstitutionTypes } from '@/lib/api';
+import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE, fetchInstitutionTypes, fetchMyInstitutionRequests, MyInstitutionRequest } from '@/lib/api';
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -413,6 +413,15 @@ function TopBar({
 
 function QuickActions({ user }: { user: any }) {
   // SAAS quick actions disabled for now
+  const [myRequest, setMyRequest] = useState<MyInstitutionRequest | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (user.role === 'explorer' || !user.institution_id) {
+      fetchMyInstitutionRequests().then(reqs => {
+        setMyRequest(reqs.length > 0 ? reqs[0] : null);
+      });
+    }
+  }, [user]);
 
   const actions: { icon: string; label: string; href: string; color: string }[] = [];
 
@@ -443,9 +452,23 @@ function QuickActions({ user }: { user: any }) {
   // );
 
   if (user.role === 'explorer' || !user.institution_id) {
-    actions.push(
-      { icon: '✨', label: 'طلب اعتماد مؤسسة', href: '/institution-request', color: '#FFD700' },
-    );
+    if (myRequest === undefined) {
+      // لا تُضف شيئاً حتى ينتهي التحميل
+    } else if (myRequest === null) {
+      actions.push(
+        { icon: '✨', label: 'طلب اعتماد مؤسسة', href: '/institution-request', color: '#FFD700' },
+      );
+    } else {
+      const statusMap: Record<string, { icon: string; label: string; color: string }> = {
+        pending:  { icon: '⏳', label: 'طلبك قيد المراجعة', color: '#f59e0b' },
+        approved: { icon: '✅', label: 'تم قبول طلبك', color: '#22c55e' },
+        rejected: { icon: '❌', label: 'مراجعة طلبك', color: '#ef4444' },
+      };
+      const s = statusMap[myRequest.status] ?? statusMap.pending;
+      actions.push(
+        { icon: s.icon, label: s.label, href: '/my-institution-request', color: s.color },
+      );
+    }
   }
 
   // Support link for all users
