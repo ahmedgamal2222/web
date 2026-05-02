@@ -2061,7 +2061,7 @@ export default function HomePage() {
           href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ"
           target="_blank" rel="noopener noreferrer"
           className="social-link"
-          title="قناة يوتيوب حضرمج"
+          title="قناة يوتيوب المجرة الحضارية"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444">
             <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81zM9.75 15.52V8.48L15.5 12l-5.75 3.52z"/>
@@ -2073,7 +2073,7 @@ export default function HomePage() {
           href="https://www.instagram.com/hadmajcom/"
           target="_blank" rel="noopener noreferrer"
           className="social-link"
-          title="انستغرام حضرمج"
+          title="انستغرام المجرة الحضارية"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <defs>
@@ -2096,7 +2096,7 @@ export default function HomePage() {
           href="https://www.tiktok.com/@hadmajcom?lang=en"
           target="_blank" rel="noopener noreferrer"
           className="social-link"
-          title="تيك توك حضرمج"
+          title="تيك توك المجرة الحضارية"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
             <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.21a8.18 8.18 0 0 0 4.78 1.52V7.28a4.85 4.85 0 0 1-1.01-.59z"/>
@@ -2108,7 +2108,7 @@ export default function HomePage() {
           href="https://x.com/hadmajcom"
           target="_blank" rel="noopener noreferrer"
           className="social-link"
-          title="منصة X حضرمج"
+          title="منصة X المجرة الحضارية"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.731-8.835L2.25 2.25h6.964l4.263 5.636 5.767-5.636zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
