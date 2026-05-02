@@ -365,7 +365,6 @@ export default function InstitutionRequestPage() {
                   whiteSpace: 'nowrap',
                   minWidth: 64,
                 }}>
-                  {formData.dialCode}
                 </div>
                 <input
                   type="tel"
