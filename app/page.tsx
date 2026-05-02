@@ -2122,7 +2122,7 @@ export default function HomePage() {
         color: 'rgba(150,170,200,0.5)',
         letterSpacing: '0.04em',
       }}>
-        © {new Date().getFullYear()} حضرمج — جميع الحقوق محفوظة
+        © {new Date().getFullYear()} المجرة الحضارية — جميع الحقوق محفوظة
       </p>
     </footer>
     </div>
