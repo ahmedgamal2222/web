@@ -577,61 +577,61 @@ export default function GalaxyCanvas({
       renderer.domElement.style.cursor = 'grabbing';
     };
 
-    const onPointerMove = (e: PointerEvent) => {
-      if (drag.active) {
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        sph.theta -= dx * 0.004;
-        sph.phi    = Math.max(0.1, Math.min(Math.PI - 0.1, sph.phi - dy * 0.004));
-        lastX = e.clientX;
-        lastY = e.clientY;
-        if (Math.hypot(e.clientX - drag.downX, e.clientY - drag.downY) > 5) drag.moved = true;
-      }
+//     const onPointerMove = (e: PointerEvent) => {
+//       if (drag.active) {
+//         const dx = e.clientX - lastX;
+//         const dy = e.clientY - lastY;
+//         sph.theta -= dx * 0.004;
+//         sph.phi    = Math.max(0.1, Math.min(Math.PI - 0.1, sph.phi - dy * 0.004));
+//         lastX = e.clientX;
+//         lastY = e.clientY;
+//         if (Math.hypot(e.clientX - drag.downX, e.clientY - drag.downY) > 5) drag.moved = true;
+//       }
 
-      // Hover tooltip (desktop only)
-      if ((e as PointerEvent).pointerType === 'touch') return;
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-      mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
-     const hits = raycaster.intersectObject(raySystem);
-      if (hits.length > 0) {
-        const s = sortedStars[hits[0].index!];
-        renderer.domElement.style.cursor = 'pointer';
-        if (tooltipRef.current && s) {
-          tooltipRef.current.style.display = 'block';
-          tooltipRef.current.style.left = (e.clientX - rect.left + 16) + 'px';
-          tooltipRef.current.style.top  = (e.clientY - rect.top  - 10) + 'px';
-          // const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
-          // const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
-          const location   = [s.city, s.country].filter(Boolean).join('، ');
-          // ترجمة نوع المؤسسة للعربية
-          const typeAr = (s.name_ar_type || s.type_ar || s.type_label || {
-            educational: 'تعليمية',
-            research: 'بحثية',
-            cultural: 'ثقافية',
-            charitable: 'خيرية',
-            media: 'إعلامية',
-            developmental: 'تنموية',
-            ngo: 'منظمات غير ربحية',
-            governmental: 'حكومية',
-            startup: 'ناشئة',
-            private: 'خاصة',
-            healthcare: 'صحية',
-            default: 'مؤسسة'
-          }[s.type] || 'مؤسسة');
-          tooltipRef.current.innerHTML = `
-            <strong style="color:${s.color||'#4fc3f7'};display:block;margin-bottom:4px">${s.name_ar || s.name}</strong>
-            <span style="display:block;font-size:0.75rem;color:#8aa4bc">${typeAr}</span>
-            ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
-          `;
-        }
-      } else {
-        if (!drag.active) renderer.domElement.style.cursor = 'grab';
-        if (tooltipRef.current) tooltipRef.current.style.display = 'none';
-      }
-    };
+//       // Hover tooltip (desktop only)
+//       if ((e as PointerEvent).pointerType === 'touch') return;
+//       const rect = renderer.domElement.getBoundingClientRect();
+//       mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+//       mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+//       raycaster.setFromCamera(mouse, camera);
+// raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
+//      const hits = raycaster.intersectObject(raySystem);
+//       if (hits.length > 0) {
+//         const s = sortedStars[hits[0].index!];
+//         renderer.domElement.style.cursor = 'pointer';
+//         if (tooltipRef.current && s) {
+//           tooltipRef.current.style.display = 'block';
+//           tooltipRef.current.style.left = (e.clientX - rect.left + 16) + 'px';
+//           tooltipRef.current.style.top  = (e.clientY - rect.top  - 10) + 'px';
+//           // const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
+//           // const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
+//           const location   = [s.city, s.country].filter(Boolean).join('، ');
+//           // ترجمة نوع المؤسسة للعربية
+//           const typeAr = (s.name_ar_type || s.type_ar || s.type_label || {
+//             educational: 'تعليمية',
+//             research: 'بحثية',
+//             cultural: 'ثقافية',
+//             charitable: 'خيرية',
+//             media: 'إعلامية',
+//             developmental: 'تنموية',
+//             ngo: 'منظمات غير ربحية',
+//             governmental: 'حكومية',
+//             startup: 'ناشئة',
+//             private: 'خاصة',
+//             healthcare: 'صحية',
+//             default: 'مؤسسة'
+//           }[s.type] || 'مؤسسة');
+//           tooltipRef.current.innerHTML = `
+//             <strong style="color:${s.color||'#4fc3f7'};display:block;margin-bottom:4px">${s.name_ar || s.name}</strong>
+//             <span style="display:block;font-size:0.75rem;color:#8aa4bc">${typeAr}</span>
+//             ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
+//           `;
+//         }
+//       } else {
+//         if (!drag.active) renderer.domElement.style.cursor = 'grab';
+//         if (tooltipRef.current) tooltipRef.current.style.display = 'none';
+//       }
+//     };
 
     const onPointerUp = (e: PointerEvent) => {
       const wasDrag = drag.moved;
@@ -684,7 +684,7 @@ const onTouchEndClick = (e: TouchEvent) => {
     };
 
    renderer.domElement.addEventListener('pointerdown', onPointerDown);
-window.addEventListener('pointermove', onPointerMove);
+// window.addEventListener('pointermove', onPointerMove);
 window.addEventListener('pointerup', onPointerUp);
 
 renderer.domElement.addEventListener('wheel', onWheel, { passive: true });
@@ -767,7 +767,7 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
     return () => {
       cancelAnimationFrame(animId);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointermove', onPointerMove);
+      // // window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup',   onPointerUp);
       renderer.domElement.removeEventListener('wheel', onWheel as EventListener);
       window.removeEventListener('resize', onResize);
