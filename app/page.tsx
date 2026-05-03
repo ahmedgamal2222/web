@@ -262,7 +262,7 @@ function TopBar({
       <GalaxyLogo />
 
       {/* ── Global Nav ── */}
-      <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      {/* <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {([
           { href: '/pulse',        icon: '📰', label: '💫 نبض المجرة' },
           // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
@@ -308,11 +308,11 @@ function TopBar({
             <span className="topbar-nav-label">{link.label}</span>
           </Link>
         ))}
-      </nav>
+      </nav> */}
 
       <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
-        {/* Institutions toggle */}
+        {/* Institutions toggle
         <button
           onClick={onToggleList}
           aria-pressed={listOpen}
@@ -348,7 +348,7 @@ function TopBar({
           }}>
             {starCount}
           </span>
-        </button>
+        </button> */}
 
         {user ? (
           <UserMenu user={user} onLogout={onLogout} />
@@ -1479,14 +1479,14 @@ function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void })
   const name     = inst?.name_ar || inst?.name || star.name_ar || star.name;
   const isActive = inst ? inst.status === 'active' : star.is_active;
 
-  const stats = [
-    { icon: '🔗', label: 'الاتفاقيات',  value: inst?.total_agreements ?? inst?.agreements?.length ?? 0, color: '#FF9B4E' },
-    { icon: '👥', label: 'الموظفون',    value: inst?.employees_count    ?? '—',                          color: '#4fc3f7' },
-    { icon: '📁', label: 'المشاريع',    value: inst?.projects_count     ?? '—',                          color: '#7c4dff' },
-    { icon: '🌟', label: 'المستفيدون',  value: inst?.beneficiaries_count ?? '—',                          color: COLORS.softGreen },
-    { icon: '🌐', label: 'الروابط',     value: star.connections?.length  ?? 0,                           color: accent },
-    { icon: '📺', label: 'الشاشة',      value: (inst?.screen_active ?? star.screen_active) ? 'نشطة' : 'غير نشطة', color: (inst?.screen_active ?? star.screen_active) ? COLORS.softGreen : '#555' },
-  ];
+  // const stats = [
+  //   { icon: '🔗', label: 'الاتفاقيات',  value: inst?.total_agreements ?? inst?.agreements?.length ?? 0, color: '#FF9B4E' },
+  //   { icon: '👥', label: 'الموظفون',    value: inst?.employees_count    ?? '—',                          color: '#4fc3f7' },
+  //   { icon: '📁', label: 'المشاريع',    value: inst?.projects_count     ?? '—',                          color: '#7c4dff' },
+  //   { icon: '🌟', label: 'المستفيدون',  value: inst?.beneficiaries_count ?? '—',                          color: COLORS.softGreen },
+  //   { icon: '🌐', label: 'الروابط',     value: star.connections?.length  ?? 0,                           color: accent },
+  //   { icon: '📺', label: 'الشاشة',      value: (inst?.screen_active ?? star.screen_active) ? 'نشطة' : 'غير نشطة', color: (inst?.screen_active ?? star.screen_active) ? COLORS.softGreen : '#555' },
+  // ];
 
   return (
     <>
@@ -1612,7 +1612,7 @@ function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void })
               )}
 
               {/* Stats grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+              {/* <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
                 {stats.map(stat => (
                   <div key={stat.label} style={{
                     background: `${stat.color}0d`,
@@ -1627,7 +1627,7 @@ function StarPopup({ star, onClose }: { star: GalaxyStar; onClose: () => void })
                     <div style={{ fontSize: '0.7rem', color: '#5a7080', marginTop: 4, letterSpacing: '0.03em' }}>{stat.label}</div>
                   </div>
                 ))}
-              </div>
+              </div> */}
 
               {/* Description if available */}
               {inst?.description && (
