@@ -216,7 +216,7 @@ export default function RegisterPage() {
   const [registeredEmail, setRegisteredEmail] = useState('');
 
   const [form, setForm] = useState({
-    name_ar: '', name: '', email: '',
+    name_ar: '', name: '', email: '', confirmEmail: '',
     phone: '', password: '', confirmPassword: '',
   });
 
@@ -225,6 +225,9 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.email.trim().toLowerCase() !== form.confirmEmail.trim().toLowerCase()) {
+      setError('البريد الإلكتروني غير متطابق في الحقلين'); return;
+    }
     if (form.password !== form.confirmPassword) {
       setError('كلمتا المرور غير متطابقتين'); return;
     }
@@ -238,7 +241,8 @@ export default function RegisterPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: form.email, password: form.password,
+          email: form.email, email_confirm: form.confirmEmail,
+          password: form.password,
           name: form.name, name_ar: form.name_ar || undefined,
           role: 'explorer', phone: fullPhone,
         }),
@@ -408,7 +412,46 @@ export default function RegisterPage() {
             <Field label="البريد الإلكتروني" icon="📧" required>
               <input type="email" placeholder="example@domain.com"
                 value={form.email} onChange={set('email')} required
+                autoComplete="email"
                 style={{ ...iStyle, direction: 'ltr' }} onFocus={onFocus} onBlur={onBlur} />
+            </Field>
+
+            {/* Confirm Email */}
+            <Field label="تأكيد البريد الإلكتروني" icon="📨" required>
+              {(() => {
+                const emailMatch = form.confirmEmail
+                  ? form.confirmEmail.trim().toLowerCase() === form.email.trim().toLowerCase()
+                  : null;
+                return (
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="email"
+                      placeholder="أعد كتابة البريد الإلكتروني"
+                      value={form.confirmEmail}
+                      onChange={set('confirmEmail')}
+                      required
+                      autoComplete="off"
+                      onPaste={(e) => e.preventDefault()}
+                      onCopy={(e) => e.preventDefault()}
+                      style={{
+                        ...iStyle, direction: 'ltr', paddingLeft: 36,
+                        borderColor: emailMatch === null
+                          ? 'rgba(79,195,247,0.18)'
+                          : emailMatch ? 'rgba(102,187,106,0.45)' : 'rgba(255,80,80,0.4)',
+                      }}
+                      onFocus={onFocus} onBlur={onBlur}
+                    />
+                    {emailMatch !== null && (
+                      <span style={{
+                        position: 'absolute', left: 12, top: '50%',
+                        transform: 'translateY(-50%)', fontSize: '0.9rem',
+                      }}>
+                        {emailMatch ? '✅' : '❌'}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </Field>
 
             {/* Phone + country code */}

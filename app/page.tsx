@@ -545,47 +545,47 @@ function QuickActions({ user }: { user: any }) {
 function StatsBar({ data }: { data: GalaxyData }) {
   const activeInstitutions = data.stars.filter(s => s.is_active === true).length;
   
-  const stats = [
-    { label: 'المؤسسات', value: data.stars.length, color: COLORS.teal, icon: '🏛️' },
-    { label: 'شاشات نشطة', value: data.stats?.active_screens ?? 0, color: COLORS.softGreen, icon: '✨' },
-    { label: 'مؤسسات نشطة', value: activeInstitutions, color: '#4CAF50', icon: '🟢' },
-    { label: 'اتفاقيات', value: data.stats?.total_connections ?? 0, color: '#FF9B4E', icon: '🔗' },
-  ];
+  // const stats = [
+  //   { label: 'المؤسسات', value: data.stars.length, color: COLORS.teal, icon: '🏛️' },
+  //   { label: 'شاشات نشطة', value: data.stats?.active_screens ?? 0, color: COLORS.softGreen, icon: '✨' },
+  //   { label: 'مؤسسات نشطة', value: activeInstitutions, color: '#4CAF50', icon: '🟢' },
+  //   { label: 'اتفاقيات', value: data.stats?.total_connections ?? 0, color: '#FF9B4E', icon: '🔗' },
+  // ];
   
-  return (
-    <div className="stats-bar" style={{
-      position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 40, display: 'flex', gap: 10, alignItems: 'stretch',
-    }}>
-      {stats.map((s) => (
-        <div key={s.label} className="stat-card" style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '12px 26px',
-          background: 'rgba(6, 7, 22, 0.88)',
-          backdropFilter: 'blur(22px)',
-          WebkitBackdropFilter: 'blur(22px)',
-          border: `1px solid ${s.color}30`,
-          borderRadius: 18,
-          boxShadow: `0 0 24px ${s.color}12, 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)`,
-          minWidth: 96,
-          transition: 'all 0.3s ease',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 5 }}>
-            <span className="stat-icon" style={{ fontSize: '1rem', opacity: 0.8 }}>{s.icon}</span>
-            <span className="stat-value" style={{
-              fontSize: '1.55rem', fontWeight: 800, color: s.color,
-              textShadow: `0 0 14px ${s.color}70`,
-              lineHeight: 1, fontVariantNumeric: 'tabular-nums',
-            }}>{s.value}</span>
-          </div>
-          <div className="stat-label" style={{
-            fontSize: '0.82rem', color: '#6a7f90',
-            letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
-          }}>{s.label}</div>
-        </div>
-      ))}
-    </div>
-  );
+  // return (
+  //   // <div className="stats-bar" style={{
+  //   //   position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+  //   //   zIndex: 40, display: 'flex', gap: 10, alignItems: 'stretch',
+  //   // }}>
+  //   //   {stats.map((s) => (
+  //   //     <div key={s.label} className="stat-card" style={{
+  //   //       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+  //   //       padding: '12px 26px',
+  //   //       background: 'rgba(6, 7, 22, 0.88)',
+  //   //       backdropFilter: 'blur(22px)',
+  //   //       WebkitBackdropFilter: 'blur(22px)',
+  //   //       border: `1px solid ${s.color}30`,
+  //   //       borderRadius: 18,
+  //   //       boxShadow: `0 0 24px ${s.color}12, 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)`,
+  //   //       minWidth: 96,
+  //   //       transition: 'all 0.3s ease',
+  //   //     }}>
+  //   //       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 5 }}>
+  //   //         <span className="stat-icon" style={{ fontSize: '1rem', opacity: 0.8 }}>{s.icon}</span>
+  //   //         <span className="stat-value" style={{
+  //   //           fontSize: '1.55rem', fontWeight: 800, color: s.color,
+  //   //           textShadow: `0 0 14px ${s.color}70`,
+  //   //           lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+  //   //         }}>{s.value}</span>
+  //   //       </div>
+  //   //       <div className="stat-label" style={{
+  //   //         fontSize: '0.82rem', color: '#6a7f90',
+  //   //         letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+  //   //       }}>{s.label}</div>
+  //   //     </div>
+  //   //   ))}
+  //   // </div>
+  // );
 }
 
 // ============================================================
@@ -839,619 +839,619 @@ const COUNTRY_LABELS: Record<string, string> = {
 // ============================================================
 // Institutions Panel
 // ============================================================
-function InstitutionsPanel({
-  stars,
-  open,
-  onClose,
-  onSelect,
-  onViewAgreement,
-  onFocusStar,
-}: {
-  stars: GalaxyStar[];
-  open: boolean;
-  onClose: () => void;
-  onSelect: (star: GalaxyStar) => void;
-  onViewAgreement: (id: string) => void;
-  onFocusStar: (star: GalaxyStar) => void;
-}) {
-  const [search, setSearch] = useState('');
-  const [activeType, setActiveType] = useState<string>('all');
-  const [screenFilter, setScreenFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [selectedStar, setSelectedStar] = useState<GalaxyStar | null>(null);
-  const [showAgreements, setShowAgreements] = useState(false);
-  const [loadingAgreements, setLoadingAgreements] = useState(false);
+// function InstitutionsPanel({
+//   stars,
+//   open,
+//   onClose,
+//   onSelect,
+//   onViewAgreement,
+//   onFocusStar,
+// }: {
+//   stars: GalaxyStar[];
+//   open: boolean;
+//   onClose: () => void;
+//   onSelect: (star: GalaxyStar) => void;
+//   onViewAgreement: (id: string) => void;
+//   onFocusStar: (star: GalaxyStar) => void;
+// }) {
+//   const [search, setSearch] = useState('');
+//   const [activeType, setActiveType] = useState<string>('all');
+//   const [screenFilter, setScreenFilter] = useState<'all' | 'active' | 'inactive'>('all');
+//   const [selectedStar, setSelectedStar] = useState<GalaxyStar | null>(null);
+//   const [showAgreements, setShowAgreements] = useState(false);
+//   const [loadingAgreements, setLoadingAgreements] = useState(false);
 
 
-  // جلب الأنواع المترجمة مع fallback يدوي
-  const [institutionTypes, setInstitutionTypes] = useState<{ type: string; name_ar: string }[]>([]);
-  useEffect(() => {
-    fetchInstitutionTypes().then(types => {
-      setInstitutionTypes(types);
-      // fallback يدوي للأنواع الشائعة
-      const fallback: Record<string, string> = {
-        default: 'مؤسسة',
-        nashe2a: 'ناشئة',
-        nashe2: 'ناشئة',
-        nashe2ah: 'ناشئة',
-        nashe2een: 'ناشئة',
-        startup: 'ناشئة',
-        ngo: 'غير ربحية',
-        healthcare: 'رعاية صحية',
-        governmental: 'حكومية',
-        government: 'حكومية',
-        khass: 'خاصة',
-        private: 'خاصة',
-        public: 'حكومية',
-        civil: 'أهلية',
-        ahlia: 'أهلية',
-        charitable: 'خيرية',
-        research: 'بحثية',
-        educational: 'تعليمية',
-        cultural: 'ثقافية',
-        media: 'إعلامية',
-        developmental: 'تنموية',
-        social: 'اجتماعية',
-        sports: 'رياضية',
-        youth: 'شبابية',
-        women: 'نسائية',
-        business: 'تجارية',
-        cooperative: 'تعاونية',
-        professional: 'مهنية',
-        scientific: 'علمية',
-        advocacy: 'دعوية',
-        environment: 'بيئية',
-        health: 'صحية',
-        technology: 'تقنية',
-        industrial: 'صناعية',
-        agricultural: 'زراعية',
-        housing: 'إسكانية',
-        consumer: 'استهلاكية',
-        union: 'اتحاد',
-        association: 'جمعية',
-        club: 'نادي',
-      };
-      TYPE_LABELS = { ...fallback, ...Object.fromEntries(types.map(t => [t.type, t.name_ar])) };
-    });
-  }, []);
+//   // جلب الأنواع المترجمة مع fallback يدوي
+//   const [institutionTypes, setInstitutionTypes] = useState<{ type: string; name_ar: string }[]>([]);
+//   useEffect(() => {
+//     fetchInstitutionTypes().then(types => {
+//       setInstitutionTypes(types);
+//       // fallback يدوي للأنواع الشائعة
+//       const fallback: Record<string, string> = {
+//         default: 'مؤسسة',
+//         nashe2a: 'ناشئة',
+//         nashe2: 'ناشئة',
+//         nashe2ah: 'ناشئة',
+//         nashe2een: 'ناشئة',
+//         startup: 'ناشئة',
+//         ngo: 'غير ربحية',
+//         healthcare: 'رعاية صحية',
+//         governmental: 'حكومية',
+//         government: 'حكومية',
+//         khass: 'خاصة',
+//         private: 'خاصة',
+//         public: 'حكومية',
+//         civil: 'أهلية',
+//         ahlia: 'أهلية',
+//         charitable: 'خيرية',
+//         research: 'بحثية',
+//         educational: 'تعليمية',
+//         cultural: 'ثقافية',
+//         media: 'إعلامية',
+//         developmental: 'تنموية',
+//         social: 'اجتماعية',
+//         sports: 'رياضية',
+//         youth: 'شبابية',
+//         women: 'نسائية',
+//         business: 'تجارية',
+//         cooperative: 'تعاونية',
+//         professional: 'مهنية',
+//         scientific: 'علمية',
+//         advocacy: 'دعوية',
+//         environment: 'بيئية',
+//         health: 'صحية',
+//         technology: 'تقنية',
+//         industrial: 'صناعية',
+//         agricultural: 'زراعية',
+//         housing: 'إسكانية',
+//         consumer: 'استهلاكية',
+//         union: 'اتحاد',
+//         association: 'جمعية',
+//         club: 'نادي',
+//       };
+//       TYPE_LABELS = { ...fallback, ...Object.fromEntries(types.map(t => [t.type, t.name_ar])) };
+//     });
+//   }, []);
 
-  const types = useMemo(() => {
-    return ['all', ...institutionTypes.map(t => t.type)];
-  }, [institutionTypes]);
+//   const types = useMemo(() => {
+//     return ['all', ...institutionTypes.map(t => t.type)];
+//   }, [institutionTypes]);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return stars.filter(s => {
-      const matchType = activeType === 'all' || s.type === activeType;
-      const matchScreen = screenFilter === 'all' || 
-                         (screenFilter === 'active' && s.screen_active) ||
-                         (screenFilter === 'inactive' && !s.screen_active);
-      const matchSearch = !q
-        || (s.name_ar || s.name).toLowerCase().includes(q)
-        || (s.country || '').toLowerCase().includes(q);
-      return matchType && matchSearch && matchScreen;
-    });
-  }, [stars, search, activeType, screenFilter]);
+//   const filtered = useMemo(() => {
+//     const q = search.toLowerCase();
+//     return stars.filter(s => {
+//       const matchType = activeType === 'all' || s.type === activeType;
+//       const matchScreen = screenFilter === 'all' || 
+//                          (screenFilter === 'active' && s.screen_active) ||
+//                          (screenFilter === 'inactive' && !s.screen_active);
+//       const matchSearch = !q
+//         || (s.name_ar || s.name).toLowerCase().includes(q)
+//         || (s.country || '').toLowerCase().includes(q);
+//       return matchType && matchSearch && matchScreen;
+//     });
+//   }, [stars, search, activeType, screenFilter]);
 
-  const handleStarClick = (star: GalaxyStar) => {
-    if (showAgreements && selectedStar?.id === star.id) {
-      setShowAgreements(false);
-      setSelectedStar(null);
-    } else {
-      setSelectedStar(star);
-      setShowAgreements(true);
-    }
-  };
+//   const handleStarClick = (star: GalaxyStar) => {
+//     if (showAgreements && selectedStar?.id === star.id) {
+//       setShowAgreements(false);
+//       setSelectedStar(null);
+//     } else {
+//       setSelectedStar(star);
+//       setShowAgreements(true);
+//     }
+//   };
 
-  // دالة للحصول على العدد الإجمالي للاتفاقيات النشطة
-  const getActiveAgreementsCount = (star: GalaxyStar) => {
-    return star.agreements?.filter(a => a.status === 'active').length || 0;
-  };
+//   // دالة للحصول على العدد الإجمالي للاتفاقيات النشطة
+//   const getActiveAgreementsCount = (star: GalaxyStar) => {
+//     return star.agreements?.filter(a => a.status === 'active').length || 0;
+//   };
 
-  return (
-    <>
-      {open && (
-        <div
-          onClick={onClose}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 45,
-            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-          }}
-        />
-      )}
+//   return (
+//     <>
+//       {open && (
+//         <div
+//           onClick={onClose}
+//           style={{
+//             position: 'fixed', inset: 0, zIndex: 45,
+//             background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+//           }}
+//         />
+//       )}
 
-      <aside className="inst-panel" style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 46,
-        width: 480,
-        transform: open ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.45s cubic-bezier(0.4,0,0.2,1)',
-        background: 'rgba(5, 6, 22, 0.97)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-        borderLeft: '1px solid rgba(78,141,156,0.25)',
-        display: 'flex', flexDirection: 'column',
-        direction: 'rtl',
-        boxShadow: '-12px 0 70px rgba(0,0,0,0.75), inset 1px 0 0 rgba(133,199,154,0.07)',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '22px 26px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: 'linear-gradient(135deg, rgba(78,141,156,0.13) 0%, rgba(40,28,89,0.12) 100%)',
-          borderBottom: '1px solid rgba(78,141,156,0.18)',
-          boxShadow: '0 1px 0 rgba(133,199,154,0.06)',
-        }}>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#EDF7BD', letterSpacing: '-0.01em' }}>
-              {showAgreements && selectedStar ?
-                (selectedStar.name_ar || selectedStar.name) :
-                'جميع المؤسسات'
-              }
-            </div>
-            <div style={{ fontSize: '0.83rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
-              {showAgreements && selectedStar ?
-                `${selectedStar.city}، ${selectedStar.country}` :
-                `${filtered.length} من أصل ${stars.length} مؤسسة`
-              }
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {showAgreements && selectedStar && (
-              <button 
-                onClick={() => {
-                  setShowAgreements(false);
-                  setSelectedStar(null);
-                }} 
-                style={{
-                  background: `${COLORS.teal}20`,
-                  border: `1px solid ${COLORS.teal}`,
-                  borderRadius: 30,
-                  color: COLORS.teal,
-                  padding: '6px 14px',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = COLORS.teal;
-                  e.currentTarget.style.color = '#fff';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = `${COLORS.teal}20`;
-                  e.currentTarget.style.color = COLORS.teal;
-                }}
-              >
-                <span>←</span>
-                العودة للقائمة
-              </button>
-            )}
-            <button 
-              onClick={onClose} 
-              style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: 'none',
-                borderRadius: '50%',
-                color: '#999',
-                width: 32, height: 32,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#ff505020';
-                e.currentTarget.style.color = '#ff5050';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                e.currentTarget.style.color = '#999';
-              }}
-            >
-              ✕
-            </button>
-          </div>
-        </div>
+//       <aside className="inst-panel" style={{
+//         position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 46,
+//         width: 480,
+//         transform: open ? 'translateX(0)' : 'translateX(100%)',
+//         transition: 'transform 0.45s cubic-bezier(0.4,0,0.2,1)',
+//         background: 'rgba(5, 6, 22, 0.97)',
+//         backdropFilter: 'blur(28px)',
+//         WebkitBackdropFilter: 'blur(28px)',
+//         borderLeft: '1px solid rgba(78,141,156,0.25)',
+//         display: 'flex', flexDirection: 'column',
+//         direction: 'rtl',
+//         boxShadow: '-12px 0 70px rgba(0,0,0,0.75), inset 1px 0 0 rgba(133,199,154,0.07)',
+//       }}>
+//         {/* Header */}
+//         <div style={{
+//           padding: '22px 26px',
+//           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+//           background: 'linear-gradient(135deg, rgba(78,141,156,0.13) 0%, rgba(40,28,89,0.12) 100%)',
+//           borderBottom: '1px solid rgba(78,141,156,0.18)',
+//           boxShadow: '0 1px 0 rgba(133,199,154,0.06)',
+//         }}>
+//           <div>
+//             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#EDF7BD', letterSpacing: '-0.01em' }}>
+//               {showAgreements && selectedStar ?
+//                 (selectedStar.name_ar || selectedStar.name) :
+//                 'جميع المؤسسات'
+//               }
+//             </div>
+//             <div style={{ fontSize: '0.83rem', color: '#4E8D9C', marginTop: 5, fontWeight: 500 }}>
+//               {showAgreements && selectedStar ?
+//                 `${selectedStar.city}، ${selectedStar.country}` :
+//                 `${filtered.length} من أصل ${stars.length} مؤسسة`
+//               }
+//             </div>
+//           </div>
+//           <div style={{ display: 'flex', gap: 10 }}>
+//             {showAgreements && selectedStar && (
+//               <button 
+//                 onClick={() => {
+//                   setShowAgreements(false);
+//                   setSelectedStar(null);
+//                 }} 
+//                 style={{
+//                   background: `${COLORS.teal}20`,
+//                   border: `1px solid ${COLORS.teal}`,
+//                   borderRadius: 30,
+//                   color: COLORS.teal,
+//                   padding: '6px 14px',
+//                   fontSize: '0.8rem',
+//                   cursor: 'pointer',
+//                   display: 'flex',
+//                   alignItems: 'center',
+//                   gap: 4,
+//                   transition: 'all 0.2s',
+//                 }}
+//                 onMouseEnter={e => {
+//                   e.currentTarget.style.background = COLORS.teal;
+//                   e.currentTarget.style.color = '#fff';
+//                 }}
+//                 onMouseLeave={e => {
+//                   e.currentTarget.style.background = `${COLORS.teal}20`;
+//                   e.currentTarget.style.color = COLORS.teal;
+//                 }}
+//               >
+//                 <span>←</span>
+//                 العودة للقائمة
+//               </button>
+//             )}
+//             <button 
+//               onClick={onClose} 
+//               style={{
+//                 background: 'rgba(255,255,255,0.05)',
+//                 border: 'none',
+//                 borderRadius: '50%',
+//                 color: '#999',
+//                 width: 32, height: 32,
+//                 cursor: 'pointer',
+//                 display: 'flex',
+//                 alignItems: 'center',
+//                 justifyContent: 'center',
+//                 transition: 'all 0.2s',
+//               }}
+//               onMouseEnter={e => {
+//                 e.currentTarget.style.background = '#ff505020';
+//                 e.currentTarget.style.color = '#ff5050';
+//               }}
+//               onMouseLeave={e => {
+//                 e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+//                 e.currentTarget.style.color = '#999';
+//               }}
+//             >
+//               ✕
+//             </button>
+//           </div>
+//         </div>
 
-        {showAgreements && selectedStar ? (
-          // عرض تفاصيل المؤسسة المحددة
-          <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* الأيقونة والاسم */}
-            <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
-              <div style={{
-                width: 80, height: 80, borderRadius: '50%',
-                background: `radial-gradient(circle at 30% 30%, ${selectedStar.color || COLORS.teal}, ${COLORS.darkNavy})`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: '2rem', fontWeight: 700,
-                boxShadow: `0 0 30px ${selectedStar.color || COLORS.teal}60`,
-                margin: '0 auto 16px',
-              }}>
-                {(selectedStar.name_ar || selectedStar.name).charAt(0)}
-              </div>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#EDF7BD', marginBottom: 4 }}>
-                {selectedStar.name_ar || selectedStar.name}
-              </div>
-              {selectedStar.name && selectedStar.name_ar && (
-                <div style={{ fontSize: '0.85rem', color: '#666' }}>{selectedStar.name}</div>
-              )}
-            </div>
+//         {showAgreements && selectedStar ? (
+//           // عرض تفاصيل المؤسسة المحددة
+//           <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+//             {/* الأيقونة والاسم */}
+//             <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
+//               <div style={{
+//                 width: 80, height: 80, borderRadius: '50%',
+//                 background: `radial-gradient(circle at 30% 30%, ${selectedStar.color || COLORS.teal}, ${COLORS.darkNavy})`,
+//                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+//                 color: '#fff', fontSize: '2rem', fontWeight: 700,
+//                 boxShadow: `0 0 30px ${selectedStar.color || COLORS.teal}60`,
+//                 margin: '0 auto 16px',
+//               }}>
+//                 {(selectedStar.name_ar || selectedStar.name).charAt(0)}
+//               </div>
+//               <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#EDF7BD', marginBottom: 4 }}>
+//                 {selectedStar.name_ar || selectedStar.name}
+//               </div>
+//               {selectedStar.name && selectedStar.name_ar && (
+//                 <div style={{ fontSize: '0.85rem', color: '#666' }}>{selectedStar.name}</div>
+//               )}
+//             </div>
 
-            {/* بطاقة التفاصيل */}
-            <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(78,141,156,0.2)',
-              borderRadius: 16,
-              padding: '20px',
-              display: 'flex', flexDirection: 'column', gap: 14,
-            }}>
-              <DetailRow icon="🏷️" label="النوع" value={TYPE_LABELS[selectedStar.type] || selectedStar.type} />
-              <DetailRow icon="📍" label="الموقع" value={`${selectedStar.city}، ${selectedStar.country}`} />
-              <DetailRow
-                icon="📺" label="الشاشة"
-                value={selectedStar.screen_active ? '✨ نشطة' : '⚪ غير نشطة'}
-                valueColor={selectedStar.screen_active ? COLORS.softGreen : '#888'}
-              />
-              <DetailRow
-                icon="🏛️" label="الحالة"
-                value={selectedStar.is_active ? '🟢 نشطة' : '⚪ غير نشطة'}
-                valueColor={selectedStar.is_active ? COLORS.softGreen : '#888'}
-              />
-              {(selectedStar.total_agreements ?? 0) > 0 && (
-                <DetailRow icon="🔗" label="الاتفاقيات" value={`${selectedStar.total_agreements} اتفاقية`} />
-              )}
-            </div>
+//             {/* بطاقة التفاصيل */}
+//             <div style={{
+//               background: 'rgba(255,255,255,0.03)',
+//               border: '1px solid rgba(78,141,156,0.2)',
+//               borderRadius: 16,
+//               padding: '20px',
+//               display: 'flex', flexDirection: 'column', gap: 14,
+//             }}>
+//               <DetailRow icon="🏷️" label="النوع" value={TYPE_LABELS[selectedStar.type] || selectedStar.type} />
+//               <DetailRow icon="📍" label="الموقع" value={`${selectedStar.city}، ${selectedStar.country}`} />
+//               <DetailRow
+//                 icon="📺" label="الشاشة"
+//                 value={selectedStar.screen_active ? '✨ نشطة' : '⚪ غير نشطة'}
+//                 valueColor={selectedStar.screen_active ? COLORS.softGreen : '#888'}
+//               />
+//               <DetailRow
+//                 icon="🏛️" label="الحالة"
+//                 value={selectedStar.is_active ? '🟢 نشطة' : '⚪ غير نشطة'}
+//                 valueColor={selectedStar.is_active ? COLORS.softGreen : '#888'}
+//               />
+//               {(selectedStar.total_agreements ?? 0) > 0 && (
+//                 <DetailRow icon="🔗" label="الاتفاقيات" value={`${selectedStar.total_agreements} اتفاقية`} />
+//               )}
+//             </div>
 
-            {/* زر رؤية النجم في المجرة */}
-            <button
-              onClick={() => {
-                onFocusStar(selectedStar);
-                onClose();
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '13px 24px',
-                background: 'transparent',
-                color: COLORS.softGreen,
-                border: `1px solid ${COLORS.softGreen}60`,
-                borderRadius: 40,
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = `${COLORS.softGreen}18`;
-                e.currentTarget.style.borderColor = COLORS.softGreen;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = `${COLORS.softGreen}60`;
-              }}
-            >
-              <span>🌌</span>
-              رؤية النجم في المجرة
-            </button>
+//             {/* زر رؤية النجم في المجرة */}
+//             <button
+//               onClick={() => {
+//                 onFocusStar(selectedStar);
+//                 onClose();
+//               }}
+//               style={{
+//                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+//                 padding: '13px 24px',
+//                 background: 'transparent',
+//                 color: COLORS.softGreen,
+//                 border: `1px solid ${COLORS.softGreen}60`,
+//                 borderRadius: 40,
+//                 fontWeight: 700,
+//                 fontSize: '0.95rem',
+//                 cursor: 'pointer',
+//                 transition: 'all 0.2s',
+//               }}
+//               onMouseEnter={e => {
+//                 e.currentTarget.style.background = `${COLORS.softGreen}18`;
+//                 e.currentTarget.style.borderColor = COLORS.softGreen;
+//               }}
+//               onMouseLeave={e => {
+//                 e.currentTarget.style.background = 'transparent';
+//                 e.currentTarget.style.borderColor = `${COLORS.softGreen}60`;
+//               }}
+//             >
+//               <span>🌌</span>
+//               رؤية النجم في المجرة
+//             </button>
 
-            {/* زر التوجه للمؤسسة */}
-            <a
-              href={`/institutions/${selectedStar.id}`}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '14px 24px',
-                background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
-                color: '#EDF7BD',
-                textDecoration: 'none',
-                borderRadius: 40,
-                fontWeight: 700,
-                fontSize: '1rem',
-                boxShadow: `0 4px 20px ${COLORS.teal}40`,
-                transition: 'opacity 0.2s',
-                marginTop: 8,
-              }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-            >
-              <span>🏛️</span>
-              الذهاب إلى صفحة المؤسسة
-              <span style={{ fontSize: '0.9rem' }}>←</span>
-            </a>
-          </div>
-        ) : (
-          // عرض قائمة المؤسسات
-          <>
-            {/* Search */}
-            <div style={{ padding: '16px 20px 12px' }}>
-              <input
-                type="search"
-                placeholder="🔍 بحث باسم المؤسسة أو البلد..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 20px',
-                  background: 'rgba(5,4,20,0.6)',
-                  border: '1px solid rgba(78,141,156,0.35)',
-                  borderRadius: 14,
-                  color: '#e8f4f8',
-                  fontSize: '0.88rem',
-                  outline: 'none',
-                  transition: 'all 0.22s',
-                  letterSpacing: '0.01em',
-                }}
-                onFocus={e => {
-                  e.currentTarget.style.borderColor = 'rgba(133,199,154,0.7)';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(133,199,154,0.12)';
-                }}
-                onBlur={e => {
-                  e.currentTarget.style.borderColor = 'rgba(78,141,156,0.35)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-            </div>
+//             {/* زر التوجه للمؤسسة */}
+//             <a
+//               href={`/institutions/${selectedStar.id}`}
+//               style={{
+//                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+//                 padding: '14px 24px',
+//                 background: `linear-gradient(135deg, ${COLORS.teal}, ${COLORS.darkNavy})`,
+//                 color: '#EDF7BD',
+//                 textDecoration: 'none',
+//                 borderRadius: 40,
+//                 fontWeight: 700,
+//                 fontSize: '1rem',
+//                 boxShadow: `0 4px 20px ${COLORS.teal}40`,
+//                 transition: 'opacity 0.2s',
+//                 marginTop: 8,
+//               }}
+//               onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+//               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+//             >
+//               <span>🏛️</span>
+//               الذهاب إلى صفحة المؤسسة
+//               <span style={{ fontSize: '0.9rem' }}>←</span>
+//             </a>
+//           </div>
+//         ) : (
+//           // عرض قائمة المؤسسات
+//           <>
+//             {/* Search */}
+//             <div style={{ padding: '16px 20px 12px' }}>
+//               <input
+//                 type="search"
+//                 placeholder="🔍 بحث باسم المؤسسة أو البلد..."
+//                 value={search}
+//                 onChange={e => setSearch(e.target.value)}
+//                 style={{
+//                   width: '100%',
+//                   padding: '12px 20px',
+//                   background: 'rgba(5,4,20,0.6)',
+//                   border: '1px solid rgba(78,141,156,0.35)',
+//                   borderRadius: 14,
+//                   color: '#e8f4f8',
+//                   fontSize: '0.88rem',
+//                   outline: 'none',
+//                   transition: 'all 0.22s',
+//                   letterSpacing: '0.01em',
+//                 }}
+//                 onFocus={e => {
+//                   e.currentTarget.style.borderColor = 'rgba(133,199,154,0.7)';
+//                   e.currentTarget.style.boxShadow = '0 0 0 3px rgba(133,199,154,0.12)';
+//                 }}
+//                 onBlur={e => {
+//                   e.currentTarget.style.borderColor = 'rgba(78,141,156,0.35)';
+//                   e.currentTarget.style.boxShadow = 'none';
+//                 }}
+//               />
+//             </div>
 
-            {/* Filters */}
-            <div style={{ padding: '0 20px 16px' }}>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                <button
-                  onClick={() => setScreenFilter('all')}
-                  style={{
-                    flex: 1, padding: '8px 0', borderRadius: 30,
-                    border: `1px solid ${screenFilter === 'all' ? COLORS.teal : 'rgba(255,255,255,0.1)'}`,
-                    background: screenFilter === 'all' ? `${COLORS.teal}20` : 'transparent',
-                    color: screenFilter === 'all' ? COLORS.teal : '#888',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  الكل
-                </button>
-                <button
-                  onClick={() => setScreenFilter('active')}
-                  style={{
-                    flex: 1, padding: '8px 0', borderRadius: 30,
-                    border: `1px solid ${screenFilter === 'active' ? COLORS.softGreen : 'rgba(255,255,255,0.1)'}`,
-                    background: screenFilter === 'active' ? `${COLORS.softGreen}20` : 'transparent',
-                    color: screenFilter === 'active' ? COLORS.softGreen : '#888',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  ✨ شاشة نشطة
-                </button>
-                <button
-                  onClick={() => setScreenFilter('inactive')}
-                  style={{
-                    flex: 1, padding: '8px 0', borderRadius: 30,
-                    border: `1px solid ${screenFilter === 'inactive' ? '#9E9E9E' : 'rgba(255,255,255,0.1)'}`,
-                    background: screenFilter === 'inactive' ? '#9E9E9E20' : 'transparent',
-                    color: screenFilter === 'inactive' ? '#9E9E9E' : '#888',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  ⚪ غير نشطة
-                </button>
-              </div>
+//             {/* Filters */}
+//             <div style={{ padding: '0 20px 16px' }}>
+//               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+//                 <button
+//                   onClick={() => setScreenFilter('all')}
+//                   style={{
+//                     flex: 1, padding: '8px 0', borderRadius: 30,
+//                     border: `1px solid ${screenFilter === 'all' ? COLORS.teal : 'rgba(255,255,255,0.1)'}`,
+//                     background: screenFilter === 'all' ? `${COLORS.teal}20` : 'transparent',
+//                     color: screenFilter === 'all' ? COLORS.teal : '#888',
+//                     cursor: 'pointer',
+//                     transition: 'all 0.2s',
+//                   }}
+//                 >
+//                   الكل
+//                 </button>
+//                 <button
+//                   onClick={() => setScreenFilter('active')}
+//                   style={{
+//                     flex: 1, padding: '8px 0', borderRadius: 30,
+//                     border: `1px solid ${screenFilter === 'active' ? COLORS.softGreen : 'rgba(255,255,255,0.1)'}`,
+//                     background: screenFilter === 'active' ? `${COLORS.softGreen}20` : 'transparent',
+//                     color: screenFilter === 'active' ? COLORS.softGreen : '#888',
+//                     cursor: 'pointer',
+//                     transition: 'all 0.2s',
+//                   }}
+//                 >
+//                   ✨ شاشة نشطة
+//                 </button>
+//                 <button
+//                   onClick={() => setScreenFilter('inactive')}
+//                   style={{
+//                     flex: 1, padding: '8px 0', borderRadius: 30,
+//                     border: `1px solid ${screenFilter === 'inactive' ? '#9E9E9E' : 'rgba(255,255,255,0.1)'}`,
+//                     background: screenFilter === 'inactive' ? '#9E9E9E20' : 'transparent',
+//                     color: screenFilter === 'inactive' ? '#9E9E9E' : '#888',
+//                     cursor: 'pointer',
+//                     transition: 'all 0.2s',
+//                   }}
+//                 >
+//                   ⚪ غير نشطة
+//                 </button>
+//               </div>
 
-              {/* Type filter chips */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {types.map(t => (
-                  <button
-                    key={t}
-                    onClick={() => setActiveType(t)}
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: 30,
-                      fontSize: '0.83rem',
-                      border: `1px solid ${activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : 'rgba(255,255,255,0.1)'}`,
-                      background: activeType === t ? `${TYPE_COLORS[t] || COLORS.teal}20` : 'transparent',
-                      color: activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : '#888',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {t === 'all' ? 'الكل' : (TYPE_LABELS[t] || t)}
-                  </button>
-                ))}
-              </div>
+//               {/* Type filter chips */}
+//               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+//                 {types.map(t => (
+//                   <button
+//                     key={t}
+//                     onClick={() => setActiveType(t)}
+//                     style={{
+//                       padding: '5px 12px',
+//                       borderRadius: 30,
+//                       fontSize: '0.83rem',
+//                       border: `1px solid ${activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : 'rgba(255,255,255,0.1)'}`,
+//                       background: activeType === t ? `${TYPE_COLORS[t] || COLORS.teal}20` : 'transparent',
+//                       color: activeType === t ? (TYPE_COLORS[t] || COLORS.teal) : '#888',
+//                       cursor: 'pointer',
+//                       transition: 'all 0.2s',
+//                     }}
+//                   >
+//                     {t === 'all' ? 'الكل' : (TYPE_LABELS[t] || t)}
+//                   </button>
+//                 ))}
+//               </div>
 
-              {/* فلتر الدولة بالعربية مع تحسين الاستايل */}
-              <div style={{ marginTop: 14, position: 'relative' }}>
-                <select
-                  value={''}
-                  onChange={e => setSearch(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '13px 44px 13px 16px',
-                    borderRadius: 16,
-                    border: '1.5px solid #4E8D9C60',
-                    background: 'rgba(255,255,255,0.07)',
-                    color: '#EDF7BD',
-                    fontSize: '1.02rem',
-                    marginTop: 2,
-                    appearance: 'none',
-                    WebkitAppearance: 'none',
-                    MozAppearance: 'none',
-                    outline: 'none',
-                    boxShadow: '0 2px 12px rgba(78,141,156,0.07)',
-                    fontWeight: 600,
-                    letterSpacing: '0.01em',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="">كل الدول</option>
-                  {Array.from(new Set(stars.map(s => s.country).filter(Boolean))).map(c => (
-                    <option key={c} value={c} style={{ color: '#222', background: '#fff' }}>
-                      {COUNTRY_LABELS[c] || c}
-                    </option>
-                  ))}
-                </select>
-                {/* سهم مخصص للدروب داون */}
-                <span style={{
-                  position: 'absolute',
-                  left: 18,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
-                  color: '#85C79A',
-                  fontSize: '1.3rem',
-                  opacity: 0.8,
-                }}>▼</span>
-              </div>
-            </div>
+//               {/* فلتر الدولة بالعربية مع تحسين الاستايل */}
+//               <div style={{ marginTop: 14, position: 'relative' }}>
+//                 <select
+//                   value={''}
+//                   onChange={e => setSearch(e.target.value)}
+//                   style={{
+//                     width: '100%',
+//                     padding: '13px 44px 13px 16px',
+//                     borderRadius: 16,
+//                     border: '1.5px solid #4E8D9C60',
+//                     background: 'rgba(255,255,255,0.07)',
+//                     color: '#EDF7BD',
+//                     fontSize: '1.02rem',
+//                     marginTop: 2,
+//                     appearance: 'none',
+//                     WebkitAppearance: 'none',
+//                     MozAppearance: 'none',
+//                     outline: 'none',
+//                     boxShadow: '0 2px 12px rgba(78,141,156,0.07)',
+//                     fontWeight: 600,
+//                     letterSpacing: '0.01em',
+//                     cursor: 'pointer',
+//                   }}
+//                 >
+//                   <option value="">كل الدول</option>
+//                   {Array.from(new Set(stars.map(s => s.country).filter(Boolean))).map(c => (
+//                     <option key={c} value={c} style={{ color: '#222', background: '#fff' }}>
+//                       {COUNTRY_LABELS[c] || c}
+//                     </option>
+//                   ))}
+//                 </select>
+//                 {/* سهم مخصص للدروب داون */}
+//                 <span style={{
+//                   position: 'absolute',
+//                   left: 18,
+//                   top: '50%',
+//                   transform: 'translateY(-50%)',
+//                   pointerEvents: 'none',
+//                   color: '#85C79A',
+//                   fontSize: '1.3rem',
+//                   opacity: 0.8,
+//                 }}>▼</span>
+//               </div>
+//             </div>
 
-            {/* List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 20px' }}>
-              {filtered.length === 0 && (
-                <div style={{ 
-                  textAlign: 'center', 
-                  color: '#666', 
-                  padding: '60px 20px',
-                  background: 'rgba(0,0,0,0.2)',
-                  borderRadius: 12,
-                  border: `1px dashed ${COLORS.teal}`,
-                }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: 15 }}>🌌</span>
-                  لا توجد نتائج للبحث
-                </div>
-              )}
-              {filtered.map(star => (
-                <button
-                  key={star.id}
-                  onClick={() => handleStarClick(star)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 13,
-                    width: '100%', textAlign: 'right', padding: '13px 16px',
-                    marginBottom: 7, borderRadius: 14,
-                    cursor: 'pointer',
-                    background: selectedStar?.id === star.id
-                      ? 'rgba(78,141,156,0.14)'
-                      : 'rgba(255,255,255,0.02)',
-                    border: star.screen_active
-                      ? '1px solid rgba(133,199,154,0.4)'
-                      : '1px solid rgba(78,141,156,0.14)',
-                    transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
-                    boxShadow: selectedStar?.id === star.id ? '0 0 20px rgba(78,141,156,0.1)' : 'none',
-                  }}
-                  onMouseEnter={e => {
-                    if (selectedStar?.id !== star.id) {
-                      e.currentTarget.style.background = 'rgba(78,141,156,0.09)';
-                    }
-                    e.currentTarget.style.transform = 'translateX(-3px)';
-                  }}
-                  onMouseLeave={e => {
-                    if (selectedStar?.id !== star.id) {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                    }
-                    e.currentTarget.style.transform = 'translateX(0)';
-                  }}
-                >
-                  {/* أيقونة المؤسسة مع عداد الاتفاقيات */}
-                  <div style={{ position: 'relative' }}>
-                    <div style={{
-                      width: 45, height: 45, borderRadius: '50%',
-                      background: `radial-gradient(circle at 30% 30%, ${star.color || COLORS.teal}, ${COLORS.darkNavy})`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#fff', fontSize: '1.2rem',
-                      boxShadow: `0 0 15px ${star.color || COLORS.teal}`,
-                    }}>
-                      {(star.name_ar || star.name).charAt(0)}
-                    </div>
+//             {/* List */}
+//             <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 20px' }}>
+//               {filtered.length === 0 && (
+//                 <div style={{ 
+//                   textAlign: 'center', 
+//                   color: '#666', 
+//                   padding: '60px 20px',
+//                   background: 'rgba(0,0,0,0.2)',
+//                   borderRadius: 12,
+//                   border: `1px dashed ${COLORS.teal}`,
+//                 }}>
+//                   <span style={{ fontSize: '3rem', display: 'block', marginBottom: 15 }}>🌌</span>
+//                   لا توجد نتائج للبحث
+//                 </div>
+//               )}
+//               {filtered.map(star => (
+//                 <button
+//                   key={star.id}
+//                   onClick={() => handleStarClick(star)}
+//                   style={{
+//                     display: 'flex', alignItems: 'center', gap: 13,
+//                     width: '100%', textAlign: 'right', padding: '13px 16px',
+//                     marginBottom: 7, borderRadius: 14,
+//                     cursor: 'pointer',
+//                     background: selectedStar?.id === star.id
+//                       ? 'rgba(78,141,156,0.14)'
+//                       : 'rgba(255,255,255,0.02)',
+//                     border: star.screen_active
+//                       ? '1px solid rgba(133,199,154,0.4)'
+//                       : '1px solid rgba(78,141,156,0.14)',
+//                     transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+//                     boxShadow: selectedStar?.id === star.id ? '0 0 20px rgba(78,141,156,0.1)' : 'none',
+//                   }}
+//                   onMouseEnter={e => {
+//                     if (selectedStar?.id !== star.id) {
+//                       e.currentTarget.style.background = 'rgba(78,141,156,0.09)';
+//                     }
+//                     e.currentTarget.style.transform = 'translateX(-3px)';
+//                   }}
+//                   onMouseLeave={e => {
+//                     if (selectedStar?.id !== star.id) {
+//                       e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+//                     }
+//                     e.currentTarget.style.transform = 'translateX(0)';
+//                   }}
+//                 >
+//                   {/* أيقونة المؤسسة مع عداد الاتفاقيات */}
+//                   <div style={{ position: 'relative' }}>
+//                     <div style={{
+//                       width: 45, height: 45, borderRadius: '50%',
+//                       background: `radial-gradient(circle at 30% 30%, ${star.color || COLORS.teal}, ${COLORS.darkNavy})`,
+//                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+//                       color: '#fff', fontSize: '1.2rem',
+//                       boxShadow: `0 0 15px ${star.color || COLORS.teal}`,
+//                     }}>
+//                       {(star.name_ar || star.name).charAt(0)}
+//                     </div>
                     
-                    {/* عداد الاتفاقيات الصغير على الأيقونة */}
-                    {star.agreements && star.agreements.length > 0 && (
-                      <div style={{
-                        position: 'absolute',
-                        bottom: -2,
-                        left: -2,
-                        background: COLORS.teal,
-                        color: '#fff',
-                        borderRadius: '50%',
-                        width: 18,
-                        height: 18,
-                        fontSize: '0.82rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: `2px solid ${COLORS.darkNavy}`,
-                      }}>
-                        {star.agreements.length}
-                      </div>
-                    )}
-                  </div>
+//                     {/* عداد الاتفاقيات الصغير على الأيقونة */}
+//                     {star.agreements && star.agreements.length > 0 && (
+//                       <div style={{
+//                         position: 'absolute',
+//                         bottom: -2,
+//                         left: -2,
+//                         background: COLORS.teal,
+//                         color: '#fff',
+//                         borderRadius: '50%',
+//                         width: 18,
+//                         height: 18,
+//                         fontSize: '0.82rem',
+//                         display: 'flex',
+//                         alignItems: 'center',
+//                         justifyContent: 'center',
+//                         border: `2px solid ${COLORS.darkNavy}`,
+//                       }}>
+//                         {star.agreements.length}
+//                       </div>
+//                     )}
+//                   </div>
                   
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <div style={{
-                      fontWeight: 600, fontSize: '0.95rem',
-                      color: star.screen_active ? COLORS.softGreen : '#fff',
-                      marginBottom: 4,
-                    }}>
-                      {star.name_ar || star.name}
-                    </div>
-                    <div style={{ fontSize: '0.83rem', color: '#888' }}>
-                      {star.city}، {star.country}
-                    </div>
+//                   <div style={{ flex: 1, overflow: 'hidden' }}>
+//                     <div style={{
+//                       fontWeight: 600, fontSize: '0.95rem',
+//                       color: star.screen_active ? COLORS.softGreen : '#fff',
+//                       marginBottom: 4,
+//                     }}>
+//                       {star.name_ar || star.name}
+//                     </div>
+//                     <div style={{ fontSize: '0.83rem', color: '#888' }}>
+//                       {star.city}، {star.country}
+//                     </div>
                     
-                    {/* عرض حالة الشاشة والمؤسسة وعدد الاتفاقيات النشطة */}
-                    <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-                      {/* حالة الشاشة */}
-                      <StatusBadge
-                        active={star.screen_active}
-                        activeText="✨ شاشة نشطة"
-                        inactiveText="⚪ شاشة غير نشطة"
-                        activeColor={COLORS.softGreen}
-                      />
+//                     {/* عرض حالة الشاشة والمؤسسة وعدد الاتفاقيات النشطة */}
+//                     <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+//                       {/* حالة الشاشة */}
+//                       <StatusBadge
+//                         active={star.screen_active}
+//                         activeText="✨ شاشة نشطة"
+//                         inactiveText="⚪ شاشة غير نشطة"
+//                         activeColor={COLORS.softGreen}
+//                       />
 
-                      {/* حالة المؤسسة */}
-                      <StatusBadge
-                        active={star.is_active || false}
-                        activeText="🟢 مؤسسة نشطة"
-                        inactiveText="⚪ مؤسسة غير نشطة"
-                        activeColor={COLORS.softGreen}
-                      />
+//                       {/* حالة المؤسسة */}
+//                       <StatusBadge
+//                         active={star.is_active || false}
+//                         activeText="🟢 مؤسسة نشطة"
+//                         inactiveText="⚪ مؤسسة غير نشطة"
+//                         activeColor={COLORS.softGreen}
+//                       />
 
-                      {/* عدد الاتفاقيات النشطة */}
-                      {getActiveAgreementsCount(star) > 0 && (
-                        <span style={{
-                          background: `${COLORS.teal}20`,
-                          color: COLORS.teal,
-                          padding: '2px 8px',
-                          borderRadius: 20,
-                          fontSize: '0.85rem',
-                        }}>
-                          🔗 {getActiveAgreementsCount(star)} نشطة
-                        </span>
-                      )}
-                    </div>
-                  </div>
+//                       {/* عدد الاتفاقيات النشطة */}
+//                       {getActiveAgreementsCount(star) > 0 && (
+//                         <span style={{
+//                           background: `${COLORS.teal}20`,
+//                           color: COLORS.teal,
+//                           padding: '2px 8px',
+//                           borderRadius: 20,
+//                           fontSize: '0.85rem',
+//                         }}>
+//                           🔗 {getActiveAgreementsCount(star)} نشطة
+//                         </span>
+//                       )}
+//                     </div>
+//                   </div>
                   
-                  {/* نوع المؤسسة */}
-                  <span style={{
-                    fontSize: '0.85rem', padding: '4px 10px',
-                    borderRadius: 20,
-                    background: `${TYPE_COLORS[star.type] || COLORS.teal}20`,
-                    color: TYPE_COLORS[star.type] || COLORS.teal,
-                    border: `1px solid ${TYPE_COLORS[star.type] || COLORS.teal}40`,
-                  }}>
-                    {TYPE_LABELS[star.type] || star.type}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </aside>
+//                   {/* نوع المؤسسة */}
+//                   <span style={{
+//                     fontSize: '0.85rem', padding: '4px 10px',
+//                     borderRadius: 20,
+//                     background: `${TYPE_COLORS[star.type] || COLORS.teal}20`,
+//                     color: TYPE_COLORS[star.type] || COLORS.teal,
+//                     border: `1px solid ${TYPE_COLORS[star.type] || COLORS.teal}40`,
+//                   }}>
+//                     {TYPE_LABELS[star.type] || star.type}
+//                   </span>
+//                 </button>
+//               ))}
+//             </div>
+//           </>
+//         )}
+//       </aside>
 
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </>
-  );
-}
+//       <style>{`
+//         @keyframes spin {
+//           to { transform: rotate(360deg); }
+//         }
+//       `}</style>
+//     </>
+//   );
+// }
 
 // ============================================================
 // Star Popup — shows institution details when clicking a star
@@ -1964,9 +1964,9 @@ export default function HomePage() {
 
       {user && <QuickActions user={user} />}
 
-      {galaxyData && <StatsBar data={galaxyData} />}
+      {/* {galaxyData && <StatsBar data={galaxyData} />} */}
 
-      {galaxyData && (
+      {/* {galaxyData && (
         <InstitutionsPanel
           stars={galaxyData.stars}
           open={listOpen}
@@ -1978,7 +1978,7 @@ export default function HomePage() {
             setFocusStarId(star.id);
           }}
         />
-      )}
+      )} */}
 
       {selectedAgreementId && (
         <AgreementDetails
