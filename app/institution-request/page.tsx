@@ -101,7 +101,7 @@ export default function InstitutionRequestPage() {
       country: selectedName,
       city: '',
       dialCode: country?.dial ?? prev.dialCode,
-      phone: country ? country.dial + ' ' : prev.phone,
+      phone: '',
     }));
   };
 
@@ -137,7 +137,7 @@ export default function InstitutionRequestPage() {
           founded_year: formData.founded_year ? parseInt(formData.founded_year) : undefined,
           website: formData.website || undefined,
           email: formData.email,
-          phone: formData.phone || undefined,
+          phone: formData.phone ? `${formData.dialCode}${formData.phone}` : undefined,
           logo_url: formData.logo_url || undefined,
           description: formData.description || undefined,
           employees_count: formData.employees_count ? parseInt(formData.employees_count) : 0,
@@ -364,7 +364,7 @@ export default function InstitutionRequestPage() {
                   fontSize: '0.95rem',
                   whiteSpace: 'nowrap',
                   minWidth: 64,
-                }}>
+                }}>{formData.dialCode}
                 </div>
                 <input
                   type="tel"

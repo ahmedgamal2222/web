@@ -67,8 +67,8 @@ function CountryPicker({
           display: 'flex', alignItems: 'center', gap: 6,
           height: '100%', padding: '0 12px',
           background: 'rgba(79,195,247,0.07)',
-          border: 'none', borderRight: '1px solid rgba(79,195,247,0.2)',
-          borderRadius: '10px 0 0 10px',
+          border: 'none', borderLeft: '1px solid rgba(79,195,247,0.2)',
+          borderRadius: '0 10px 10px 0',
           color: '#e8f4fd', cursor: 'pointer', fontSize: '0.88rem',
           transition: 'background 0.18s', whiteSpace: 'nowrap',
           minWidth: 86,
@@ -83,7 +83,7 @@ function CountryPicker({
 
       {open && (
         <div style={{
-          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0,
+          position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
           width: 250, maxHeight: 280, overflowY: 'auto',
           background: 'rgba(8,12,36,0.99)',
           border: '1px solid rgba(79,195,247,0.25)',
@@ -465,7 +465,7 @@ export default function RegisterPage() {
                 transition: 'all 0.2s',
                 position: 'relative',
                 overflow: 'hidden',
-                direction: 'ltr',
+                direction: 'rtl',
               }}
                 onFocusCapture={e => {
                   const el = e.currentTarget as HTMLDivElement;
