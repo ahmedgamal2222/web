@@ -67,8 +67,8 @@ function CountryPicker({
           display: 'flex', alignItems: 'center', gap: 6,
           height: '100%', padding: '0 12px',
           background: 'rgba(79,195,247,0.07)',
-          border: 'none', borderLeft: '1px solid rgba(79,195,247,0.2)',
-          borderRadius: '0 10px 10px 0',
+          border: 'none', borderRight: '1px solid rgba(79,195,247,0.2)',
+          borderRadius: '10px 0 0 10px',
           color: '#e8f4fd', cursor: 'pointer', fontSize: '0.88rem',
           transition: 'background 0.18s', whiteSpace: 'nowrap',
           minWidth: 86,
@@ -83,7 +83,7 @@ function CountryPicker({
 
       {open && (
         <div style={{
-          position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
+          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0,
           width: 250, maxHeight: 280, overflowY: 'auto',
           background: 'rgba(8,12,36,0.99)',
           border: '1px solid rgba(79,195,247,0.25)',
@@ -414,12 +414,15 @@ export default function RegisterPage() {
             {/* Phone + country code */}
             <Field label="رقم الهاتف" icon="📱">
               <div style={{
-                display: 'flex', flexDirection: 'row-reverse',
+                display: 'flex', flexDirection: 'row',
+                alignItems: 'stretch',
                 border: '1px solid rgba(79,195,247,0.18)',
                 borderRadius: 10,
                 background: 'rgba(255,255,255,0.05)',
                 transition: 'all 0.2s',
                 position: 'relative',
+                overflow: 'hidden',
+                direction: 'ltr',
               }}
                 onFocusCapture={e => {
                   const el = e.currentTarget as HTMLDivElement;
@@ -434,17 +437,19 @@ export default function RegisterPage() {
                   el.style.boxShadow   = 'none';
                 }}
               >
+                <CountryPicker value={dialCode} onChange={setDialCode} />
                 <input
                   type="tel" placeholder="5X XXX XXXX"
                   value={form.phone} onChange={set('phone')}
                   style={{
                     flex: 1, padding: '13px 14px', background: 'transparent',
                     border: 'none', outline: 'none',
-                    color: '#e8f4fd', fontSize: '0.92rem', direction: 'ltr', minWidth: 0,
-                    borderRadius: '10px 0 0 10px',
+                    color: '#e8f4fd', fontSize: '0.95rem',
+                    direction: 'ltr', textAlign: 'left',
+                    letterSpacing: '0.04em',
+                    minWidth: 0,
                   }}
                 />
-                <CountryPicker value={dialCode} onChange={setDialCode} />
               </div>
             </Field>
 
