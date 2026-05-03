@@ -65,19 +65,19 @@ function CountryPicker({
         onClick={() => setOpen(o => !o)}
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          height: '100%', padding: '0 12px',
+          height: '100%', padding: '0 14px',
           background: 'rgba(79,195,247,0.07)',
           border: 'none', borderLeft: '1px solid rgba(79,195,247,0.2)',
           borderRadius: '0 10px 10px 0',
-          color: '#e8f4fd', cursor: 'pointer', fontSize: '0.88rem',
+          color: '#e8f4fd', cursor: 'pointer', fontSize: '0.85rem',
           transition: 'background 0.18s', whiteSpace: 'nowrap',
-          minWidth: 86,
+          minWidth: 110,
         }}
         onMouseEnter={e => (e.currentTarget.style.background = 'rgba(79,195,247,0.14)')}
         onMouseLeave={e => (e.currentTarget.style.background = 'rgba(79,195,247,0.07)')}
       >
         <span style={{ fontSize: '1.1rem' }}>{selected.flag}</span>
-        <span style={{ color: '#4fc3f7', fontWeight: 700 }}>{selected.dial}</span>
+        <span style={{ flex: 1, color: '#c8d6e5', fontSize: '0.82rem' }}>{selected.name}</span>
         <span style={{ fontSize: '0.55rem', color: '#5a7080' }}>▼</span>
       </button>
 
@@ -464,7 +464,6 @@ export default function RegisterPage() {
                 background: 'rgba(255,255,255,0.05)',
                 transition: 'all 0.2s',
                 position: 'relative',
-                overflow: 'hidden',
                 direction: 'rtl',
               }}
                 onFocusCapture={e => {
@@ -481,18 +480,25 @@ export default function RegisterPage() {
                 }}
               >
                 <CountryPicker value={dialCode} onChange={setDialCode} />
-                <input
-                  type="tel" placeholder="5X XXX XXXX"
-                  value={form.phone} onChange={set('phone')}
-                  style={{
-                    flex: 1, padding: '13px 14px', background: 'transparent',
-                    border: 'none', outline: 'none',
-                    color: '#e8f4fd', fontSize: '0.95rem',
-                    direction: 'ltr', textAlign: 'left',
-                    letterSpacing: '0.04em',
-                    minWidth: 0,
-                  }}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', flex: 1, direction: 'ltr' }}>
+                  <span style={{
+                    padding: '0 8px 0 10px',
+                    color: '#4fc3f7', fontWeight: 700, fontSize: '0.88rem',
+                    whiteSpace: 'nowrap', flexShrink: 0,
+                  }}>{dialCode}</span>
+                  <input
+                    type="tel" placeholder="5X XXX XXXX"
+                    value={form.phone} onChange={set('phone')}
+                    style={{
+                      flex: 1, padding: '13px 4px 13px 0', background: 'transparent',
+                      border: 'none', outline: 'none',
+                      color: '#e8f4fd', fontSize: '0.95rem',
+                      direction: 'ltr', textAlign: 'left',
+                      letterSpacing: '0.04em',
+                      minWidth: 0,
+                    }}
+                  />
+                </div>
               </div>
             </Field>
 

@@ -599,10 +599,10 @@ raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
       if (hits.length > 0) {
         const s = sortedStars[hits[0].index!];
         renderer.domElement.style.cursor = 'pointer';
-        if (tooltipRef.current && s) {
-          tooltipRef.current.style.display = 'block';
-          tooltipRef.current.style.left = (e.clientX - rect.left + 16) + 'px';
-          tooltipRef.current.style.top  = (e.clientY - rect.top  - 10) + 'px';
+        // if (tooltipRef.current && s) {
+        //   tooltipRef.current.style.display = 'block';
+        //   tooltipRef.current.style.left = (e.clientX - rect.left + 16) + 'px';
+        //   tooltipRef.current.style.top  = (e.clientY - rect.top  - 10) + 'px';
           // const agreements = (s.total_agreements || 0).toLocaleString('ar-SA');
           // const links      = (s.connections?.length || 0).toLocaleString('ar-SA');
           // const location   = [s.city, s.country].filter(Boolean).join('، ');
@@ -626,7 +626,7 @@ raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
           //   <span style="display:block;font-size:0.75rem;color:#8aa4bc">${typeAr}</span>
           //   ${location ? `<span style="display:block;font-size:0.75rem;color:#8aa4bc">📍 ${location}</span>` : ''}
           // `;
-        }
+        // }
       } else {
         if (!drag.active) renderer.domElement.style.cursor = 'grab';
         if (tooltipRef.current) tooltipRef.current.style.display = 'none';
