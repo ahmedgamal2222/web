@@ -645,8 +645,7 @@ raycaster.params.Points!.threshold = Math.max(4, sph.radius * 0.012);
         raycaster.setFromCamera(mouse, camera);
         const hits = raycaster.intersectObject(raySystem);
         if (hits.length > 0) {
-          // TODO: مؤقت — تم إخفاء الـ popup عند الضغط على النجمة
-          // onStarClickRef.current?.(sortedStars[hits[0].index!]);
+          onStarClickRef.current?.(sortedStars[hits[0].index!]);
         }
       }
     };
@@ -674,8 +673,7 @@ const onTouchEndClick = (e: TouchEvent) => {
   const hits = raycaster.intersectObject(raySystem);
 
   if (hits.length > 0) {
-    // TODO: مؤقت — تم إخفاء الـ popup عند الضغط على النجمة (touch)
-    // onStarClickRef.current?.(sortedStars[hits[0].index!]);
+    onStarClickRef.current?.(sortedStars[hits[0].index!]);
   }
 };
     const onResize = () => {
