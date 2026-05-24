@@ -415,7 +415,7 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
 
             {/* ══ Main Gauge SVG ══ */}
             <div style={{ width: '100%', maxWidth: 380 }}>
-              <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+              <svg viewBox={`0 0 ${VW} 195`} style={{ width: '100%', height: 'auto', display: 'block' }}>
                 <defs>
                   {/* Glow filters */}
                   <filter id="gGlow" x="-60%" y="-60%" width="220%" height="220%">
@@ -487,16 +487,24 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
                   );
                 })}
 
-                {/* ── Continuous glow overlay (animated fill edge) ── */}
-                {animScore > 1 && (
-                  <path
-                    d={filledArc(animScore)}
-                    fill="none" stroke={animTier.color} strokeWidth={5}
-                    strokeLinecap="round"
-                    opacity={0.5}
-                    filter="url(#gGlow)"
-                  />
-                )}
+                {/* ── Progress-tip cursor: bright mark at needle angle on arc ── */}
+                {animScore > 0 && animScore <= 100 && (() => {
+                  const a = Math.PI - (animScore / 100) * Math.PI;
+                  const r1 = R - SW / 2 - 4;
+                  const r2 = R + SW / 2 + 4;
+                  return (
+                    <line
+                      x1={(cx + r1 * Math.cos(a)).toFixed(2)}
+                      y1={(cy - r1 * Math.sin(a)).toFixed(2)}
+                      x2={(cx + r2 * Math.cos(a)).toFixed(2)}
+                      y2={(cy - r2 * Math.sin(a)).toFixed(2)}
+                      stroke={animTier.color} strokeWidth={5}
+                      strokeLinecap="round"
+                      opacity={0.95}
+                      filter="url(#gGlow)"
+                    />
+                  );
+                })()}
 
                 {/* ── Major tick marks ── */}
                 {[0, 20, 40, 60, 80, 100].map(v => {
@@ -576,21 +584,6 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
                   filter="url(#gGlowS)"
                 />
 
-                {/* ── Score display below hub ── */}
-                <text
-                  x={cx} y={cy + 46}
-                  textAnchor="middle"
-                  fill={animTier.color}
-                  fontSize="46" fontWeight="900"
-                  fontFamily="'Tajawal', sans-serif"
-                  filter="url(#gGlowS)"
-                >{animScore}</text>
-                <text
-                  x={cx} y={cy + 65}
-                  textAnchor="middle"
-                  fill="rgba(255,255,255,0.3)"
-                  fontSize="11.5" fontFamily="'Tajawal', sans-serif" fontWeight="500"
-                >من 100 نقطة</text>
 
                 {/* ── Tier labels (outside arc) ── */}
                 {tiers.map((tier, i) => {
@@ -613,9 +606,29 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
                   );
                 })}
               </svg>
+
+              {/* ── Score display (HTML, outside SVG to avoid overlap) ── */}
+              <div style={{
+                textAlign: 'center', marginTop: -10, marginBottom: 4,
+                position: 'relative', zIndex: 2,
+              }}>
+                <div style={{
+                  fontSize: '3.2rem', fontWeight: 900,
+                  fontFamily: "'Tajawal', sans-serif",
+                  color: animTier.color,
+                  letterSpacing: '-0.03em', lineHeight: 1,
+                  textShadow: `0 0 28px ${animTier.color}70, 0 0 8px ${animTier.color}40`,
+                  transition: 'color 0.3s, text-shadow 0.3s',
+                }}>{animScore}</div>
+                <div style={{
+                  fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)',
+                  marginTop: 4, fontFamily: "'Tajawal', sans-serif",
+                  letterSpacing: '0.06em', fontWeight: 500,
+                }}>من ١٠٠ نقطة</div>
+              </div>
             </div>
 
-            {/* ── Active tier badge ── */}
+            {/* ── Active tier badge ── */
             <div style={{
               marginTop: 6, marginBottom: 20,
               padding: '10px 28px', borderRadius: 40,
