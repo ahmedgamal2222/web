@@ -273,16 +273,13 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
       if (entry.isIntersecting && !hasAnimated) {
         setHasAnimated(true);
         observer.disconnect();
-        let start = 0;
-        const duration = 1400;
+        const duration = 1600;
         const startTime = performance.now();
         const animate = (now: number) => {
           const elapsed = now - startTime;
           const progress = Math.min(elapsed / duration, 1);
-          // ease-out cubic
           const eased = 1 - Math.pow(1 - progress, 3);
-          const current = Math.round(eased * score);
-          setAnimScore(current);
+          setAnimScore(Math.round(eased * score));
           if (progress < 1) requestAnimationFrame(animate);
         };
         requestAnimationFrame(animate);
@@ -294,24 +291,53 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
 
   // 5 tiers
   const tiers = [
-    { label: 'ضعيف جداً', labelEn: 'Very Poor', min: 0, max: 20, color: '#ef4444', bg: '#ef444418' },
-    { label: 'ضعيف',     labelEn: 'Poor',      min: 20, max: 40, color: '#f97316', bg: '#f9731618' },
-    { label: 'مقبول',     labelEn: 'Fair',      min: 40, max: 60, color: '#eab308', bg: '#eab30818' },
-    { label: 'جيد',      labelEn: 'Good',      min: 60, max: 80, color: '#22c55e', bg: '#22c55e18' },
-    { label: 'ممتاز',    labelEn: 'Excellent', min: 80, max: 100, color: '#10b981', bg: '#10b98118' },
+    { label: 'ضعيف جداً', min: 0,  max: 20,  color: '#ef4444' },
+    { label: 'ضعيف',      min: 20, max: 40,  color: '#f97316' },
+    { label: 'مقبول',     min: 40, max: 60,  color: '#eab308' },
+    { label: 'جيد',       min: 60, max: 80,  color: '#22c55e' },
+    { label: 'ممتاز',     min: 80, max: 100, color: '#10b981' },
   ];
-  const animTier = tiers.find(t => animScore >= t.min && animScore < t.max) || tiers[tiers.length - 1];
-  const realTier = tiers.find(t => score >= t.min && score < t.max) || tiers[tiers.length - 1];
+  const animTier = tiers.find(t => animScore >= t.min && animScore < t.max) ?? tiers[tiers.length - 1];
+  const realTier = tiers.find(t => score  >= t.min && score  < t.max) ?? tiers[tiers.length - 1];
 
-  // SVG gauge params
-  const cx = 160, cy = 140, r = 110, strokeW = 20;
-  const startAngle = Math.PI;
-  const totalAngle = Math.PI;
+  // ── SVG gauge constants ──
+  // ViewBox: 400×230 — enough room for outer labels without clipping
+  const VW = 400, VH = 230;
+  const cx = 200, cy = 175;   // center of gauge circle, pushed down so top labels don't clip
+  const R  = 118;              // arc radius
+  const SW = 15;               // stroke width of arc band
+  const GAP = 0.038;           // radian gap between segments (~2.2°)
 
-  const needleAngle = startAngle - (animScore / 100) * totalAngle;
-  const needleLen = r - 12;
-  const nx = cx + needleLen * Math.cos(needleAngle);
-  const ny = cy - needleLen * Math.sin(needleAngle);
+  // Returns the SVG path for one arc segment with gaps on both sides
+  function segPath(pMin: number, pMax: number, radius: number) {
+    const a1 = Math.PI - (pMin / 100) * Math.PI + GAP;
+    const a2 = Math.PI - (pMax / 100) * Math.PI - GAP;
+    const x1 = cx + radius * Math.cos(a1), y1 = cy - radius * Math.sin(a1);
+    const x2 = cx + radius * Math.cos(a2), y2 = cy - radius * Math.sin(a2);
+    const large = (pMax - pMin) > 50 ? 1 : 0;
+    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${radius} ${radius} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  }
+
+  // Continuous filled arc from 0 → pct (no gaps)
+  function filledArc(pct: number) {
+    if (pct <= 0) return '';
+    const a1 = Math.PI;
+    const a2 = Math.PI - (pct / 100) * Math.PI;
+    const x1 = cx + R * Math.cos(a1), y1 = cy - R * Math.sin(a1);
+    const x2 = cx + R * Math.cos(a2), y2 = cy - R * Math.sin(a2);
+    const large = pct > 50 ? 1 : 0;
+    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${R} ${R} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  }
+
+  // Needle tip
+  const needleAngle = Math.PI - (animScore / 100) * Math.PI;
+  const NL = R - 10;
+  const nx = cx + NL * Math.cos(needleAngle);
+  const ny = cy - NL * Math.sin(needleAngle);
+  // Needle counter-tail (small)
+  const tailAngle = needleAngle + Math.PI;
+  const tx = cx + 18 * Math.cos(tailAngle);
+  const ty = cy - 18 * Math.sin(tailAngle);
 
   const getRoleBadge = (role?: string) => {
     if (role === 'institution_admin') return { text: 'مدير', color: C.cyan, bg: `${C.cyan}18` };
@@ -325,48 +351,56 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
       position: 'relative', zIndex: 10,
     }}>
       <style>{`
-        @keyframes kpiPulse { 0%,100%{box-shadow:0 0 0 0 ${realTier.color}40} 50%{box-shadow:0 0 0 8px ${realTier.color}00} }
-        @keyframes kpiGlow { 0%,100%{opacity:0.5} 50%{opacity:1} }
-        @keyframes kpiFadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        .kpi-card-hover:hover { border-color: ${C.teal}55 !important; transform: translateY(-2px) !important; box-shadow: 0 8px 24px rgba(0,0,0,0.35) !important; }
+        @keyframes kpiPulse  { 0%,100%{box-shadow:0 0 0 0 ${realTier.color}45} 55%{box-shadow:0 0 0 10px ${realTier.color}00} }
+        @keyframes kpiGlow   { 0%,100%{opacity:0.45} 50%{opacity:1} }
+        @keyframes kpiFadeIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        .kpi-card-hover:hover { border-color:${C.teal}55 !important; transform:translateY(-2px) !important; box-shadow:0 8px 28px rgba(0,0,0,0.38) !important; }
+        .kpi-bar-row:hover    { background:rgba(255,255,255,0.032) !important; }
       `}</style>
       <div style={{
-        background: `linear-gradient(145deg, rgba(10,16,42,0.95), rgba(7,9,30,0.98))`,
-        borderRadius: 28, border: `1px solid ${C.border}`, backdropFilter: 'blur(20px)',
-        overflow: 'hidden', boxShadow: '0 8px 48px rgba(0,0,0,0.35)',
+        background: 'linear-gradient(150deg, rgba(11,17,44,0.98) 0%, rgba(7,9,30,0.99) 100%)',
+        borderRadius: 28, border: `1px solid ${C.border}`,
+        backdropFilter: 'blur(24px)',
+        overflow: 'hidden',
+        boxShadow: `0 16px 64px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.03)`,
       }}>
         {/* ── Header ── */}
         <div style={{
-          padding: '22px 30px 18px',
+          padding: '20px 30px 17px',
           borderBottom: `1px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: 'linear-gradient(90deg, rgba(78,141,156,0.05), transparent, rgba(124,77,255,0.05))',
+          background: `linear-gradient(90deg, ${realTier.color}08 0%, transparent 40%, rgba(124,77,255,0.06) 100%)`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
-              width: 44, height: 44, borderRadius: 14,
-              background: `linear-gradient(135deg, ${realTier.color}25, ${realTier.color}08)`,
-              border: `1px solid ${realTier.color}35`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+              width: 46, height: 46, borderRadius: 14,
+              background: `linear-gradient(135deg, ${realTier.color}28, ${realTier.color}0a)`,
+              border: `1.5px solid ${realTier.color}40`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem',
+              boxShadow: `0 4px 18px ${realTier.color}22`,
             }}>📊</div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>لوحة الأداء المؤسسي</h3>
-              <p style={{ margin: '3px 0 0', fontSize: '0.73rem', color: C.textMuted }}>مؤشر الجدارة والتأثير الحضاري — تقييم فعلي</p>
+              <h3 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>
+                لوحة الأداء المؤسسي
+              </h3>
+              <p style={{ margin: '3px 0 0', fontSize: '0.71rem', color: C.textMuted, letterSpacing: '0.02em' }}>
+                مؤشر الجدارة والتأثير الحضاري — تقييم فعلي
+              </p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
-              padding: '6px 16px', borderRadius: 30,
-              background: `${realTier.color}12`, border: `1px solid ${realTier.color}30`,
-              fontSize: '0.82rem', fontWeight: 800, color: realTier.color,
-              animation: 'kpiPulse 2.5s infinite',
-            }}>
-              {score}%
-            </div>
+              padding: '7px 20px', borderRadius: 30,
+              background: `linear-gradient(135deg, ${realTier.color}22, ${realTier.color}08)`,
+              border: `1.5px solid ${realTier.color}45`,
+              fontSize: '1.05rem', fontWeight: 900, color: realTier.color,
+              letterSpacing: '-0.02em',
+              animation: 'kpiPulse 2.8s infinite',
+            }}>{score}%</div>
             <div style={{
-              padding: '5px 14px', borderRadius: 30,
+              padding: '6px 15px', borderRadius: 30,
               background: institution.status === 'active' ? `${C.success}12` : institution.status === 'pending' ? `${C.warning}12` : `${C.danger}12`,
-              border: `1px solid ${institution.status === 'active' ? C.success : institution.status === 'pending' ? C.warning : C.danger}28`,
+              border: `1px solid ${institution.status === 'active' ? C.success : institution.status === 'pending' ? C.warning : C.danger}30`,
               fontSize: '0.76rem', fontWeight: 700,
               color: institution.status === 'active' ? C.success : institution.status === 'pending' ? C.warning : C.danger,
             }}>
@@ -375,179 +409,268 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 0 }}>
           {/* ── Left: Gauge + KPI Bars ── */}
-          <div style={{ padding: '32px 28px 24px', borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {/* Main Gauge */}
-            <div style={{ position: 'relative', marginBottom: 8 }}>
-              <svg width={320} height={190} viewBox="0 0 320 190" style={{ overflow: 'visible' }}>
+          <div style={{ padding: '28px 28px 26px', borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+            {/* ══ Main Gauge SVG ══ */}
+            <div style={{ width: '100%', maxWidth: 380 }}>
+              <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
                 <defs>
-                  <filter id="kpiGlow">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  {/* Glow filters */}
+                  <filter id="gGlow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="5" result="b" />
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
-                  <linearGradient id="needleGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={animTier.color} stopOpacity="0.3" />
-                    <stop offset="100%" stopColor={animTier.color} />
+                  <filter id="gGlowS" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="2.8" result="b" />
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                  <filter id="gShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.6)" />
+                  </filter>
+                  {/* Needle gradient */}
+                  <linearGradient id="nGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%"   stopColor={animTier.color} stopOpacity="0.1" />
+                    <stop offset="55%"  stopColor={animTier.color} stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
                   </linearGradient>
+                  {/* Hub radial gradient */}
+                  <radialGradient id="hubG" cx="50%" cy="40%" r="60%">
+                    <stop offset="0%"   stopColor="#1e2a52" />
+                    <stop offset="100%" stopColor="#080b20" />
+                  </radialGradient>
+                  {/* Per-tier gradients for glow segments */}
+                  {tiers.map((t, i) => (
+                    <linearGradient key={i} id={`tg${i}`} x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%"   stopColor={t.color} stopOpacity="0.6" />
+                      <stop offset="100%" stopColor={t.color} stopOpacity="1" />
+                    </linearGradient>
+                  ))}
                 </defs>
 
-                {/* Outer ambient ring */}
+                {/* ── Decorative outer track ring ── */}
+                <path
+                  d={segPath(0, 100, R + 16)}
+                  fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={1}
+                />
+                {/* ── Outer ambient glow ring (active tiers) ── */}
                 {tiers.map((tier, i) => {
-                  const segStart = startAngle - (tier.min / 100) * totalAngle;
-                  const segEnd = startAngle - (tier.max / 100) * totalAngle;
-                  const outerR = r + 8;
-                  const x1 = cx + outerR * Math.cos(segStart);
-                  const y1 = cy - outerR * Math.sin(segStart);
-                  const x2 = cx + outerR * Math.cos(segEnd);
-                  const y2 = cy - outerR * Math.sin(segEnd);
+                  const passed = animScore >= tier.max;
+                  const active = animScore >= tier.min && animScore < tier.max;
+                  if (!passed && !active) return null;
                   return (
-                    <path key={`outer-${i}`}
-                      d={`M ${x1} ${y1} A ${outerR} ${outerR} 0 0 1 ${x2} ${y2}`}
-                      fill="none" stroke={tier.color} strokeWidth={2} opacity={0.12}
+                    <path key={`ao${i}`}
+                      d={segPath(tier.min, tier.max, R + 10)}
+                      fill="none" stroke={tier.color} strokeWidth={3}
+                      strokeLinecap="round"
+                      opacity={active ? 0.55 : 0.25}
+                      filter={active ? 'url(#gGlow)' : undefined}
                     />
                   );
                 })}
 
-                {/* Background arc segments */}
+                {/* ── Arc segments (background) ── */}
                 {tiers.map((tier, i) => {
-                  const segStart = startAngle - (tier.min / 100) * totalAngle;
-                  const segEnd = startAngle - (tier.max / 100) * totalAngle;
-                  const x1 = cx + r * Math.cos(segStart);
-                  const y1 = cy - r * Math.sin(segStart);
-                  const x2 = cx + r * Math.cos(segEnd);
-                  const y2 = cy - r * Math.sin(segEnd);
-                  const isActive = animScore >= tier.min && animScore < tier.max;
-                  const isPassed = animScore >= tier.max;
+                  const passed = animScore >= tier.max;
+                  const active = animScore >= tier.min && animScore < tier.max;
                   return (
-                    <path key={i}
-                      d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
+                    <path key={`seg${i}`}
+                      d={segPath(tier.min, tier.max, R)}
                       fill="none"
-                      stroke={isPassed || isActive ? tier.color : `${tier.color}18`}
-                      strokeWidth={strokeW}
-                      strokeLinecap="butt"
-                      opacity={isActive ? 1 : isPassed ? 0.55 : 0.15}
-                      filter={isActive ? 'url(#kpiGlow)' : undefined}
+                      stroke={tier.color}
+                      strokeWidth={SW}
+                      strokeLinecap="round"
+                      opacity={passed ? 0.72 : active ? 1 : 0.11}
+                      filter={active ? 'url(#gGlow)' : undefined}
                     />
                   );
                 })}
 
-                {/* Active arc glow overlay */}
-                {(() => {
-                  const fillAngle = startAngle - (animScore / 100) * totalAngle;
-                  const sx = cx + r * Math.cos(startAngle);
-                  const sy = cy - r * Math.sin(startAngle);
-                  const ex = cx + r * Math.cos(fillAngle);
-                  const ey = cy - r * Math.sin(fillAngle);
-                  const largeArc = animScore > 50 ? 1 : 0;
-                  return animScore > 0 ? (
-                    <path
-                      d={`M ${sx} ${sy} A ${r} ${r} 0 ${largeArc} 1 ${ex} ${ey}`}
-                      fill="none" stroke={animTier.color} strokeWidth={3}
-                      opacity={0.4} filter="url(#kpiGlow)"
-                    />
-                  ) : null;
-                })()}
+                {/* ── Continuous glow overlay (animated fill edge) ── */}
+                {animScore > 1 && (
+                  <path
+                    d={filledArc(animScore)}
+                    fill="none" stroke={animTier.color} strokeWidth={5}
+                    strokeLinecap="round"
+                    opacity={0.5}
+                    filter="url(#gGlow)"
+                  />
+                )}
 
-                {/* Tick marks */}
+                {/* ── Major tick marks ── */}
                 {[0, 20, 40, 60, 80, 100].map(v => {
-                  const angle = startAngle - (v / 100) * totalAngle;
-                  const inner = r - strokeW / 2 - 4;
-                  const outer = r + strokeW / 2 + 4;
+                  const a = Math.PI - (v / 100) * Math.PI;
+                  const r1 = R - SW / 2 - 5, r2 = R + SW / 2 + 6;
                   return (
                     <line key={v}
-                      x1={cx + inner * Math.cos(angle)} y1={cy - inner * Math.sin(angle)}
-                      x2={cx + outer * Math.cos(angle)} y2={cy - outer * Math.sin(angle)}
-                      stroke="rgba(255,255,255,0.25)" strokeWidth={1.5}
+                      x1={cx + r1 * Math.cos(a)} y1={cy - r1 * Math.sin(a)}
+                      x2={cx + r2 * Math.cos(a)} y2={cy - r2 * Math.sin(a)}
+                      stroke="rgba(255,255,255,0.35)" strokeWidth={1.5} strokeLinecap="round"
+                    />
+                  );
+                })}
+                {/* Minor tick marks */}
+                {[10, 30, 50, 70, 90].map(v => {
+                  const a = Math.PI - (v / 100) * Math.PI;
+                  const r1 = R - SW / 2 - 2, r2 = R + SW / 2 + 3;
+                  return (
+                    <line key={v}
+                      x1={cx + r1 * Math.cos(a)} y1={cy - r1 * Math.sin(a)}
+                      x2={cx + r2 * Math.cos(a)} y2={cy - r2 * Math.sin(a)}
+                      stroke="rgba(255,255,255,0.15)" strokeWidth={1} strokeLinecap="round"
                     />
                   );
                 })}
 
-                {/* Needle shadow */}
-                <line x1={cx + 2} y1={cy + 2} x2={nx + 2} y2={ny + 2}
-                  stroke="rgba(0,0,0,0.3)" strokeWidth={4} strokeLinecap="round" />
-                {/* Needle */}
-                <line x1={cx} y1={cy} x2={nx} y2={ny}
-                  stroke="url(#needleGrad)" strokeWidth={3.5} strokeLinecap="round" />
-                {/* Center hub */}
-                <circle cx={cx} cy={cy} r={12} fill="rgba(7,9,30,0.95)" stroke={animTier.color} strokeWidth={3} />
-                <circle cx={cx} cy={cy} r={4} fill={animTier.color} />
-                {/* Center dot glow */}
-                <circle cx={cx} cy={cy} r={6} fill={animTier.color} opacity={0.15} />
+                {/* ── Tick value labels ── */}
+                {[0, 20, 40, 60, 80, 100].map(v => {
+                  const a = Math.PI - (v / 100) * Math.PI;
+                  const lr = R + SW / 2 + 20;
+                  return (
+                    <text key={v}
+                      x={(cx + lr * Math.cos(a)).toFixed(1)}
+                      y={(cy - lr * Math.sin(a) + 4).toFixed(1)}
+                      textAnchor="middle"
+                      fill="rgba(255,255,255,0.3)"
+                      fontSize="9.5" fontFamily="'Tajawal', sans-serif" fontWeight="500"
+                    >{v}</text>
+                  );
+                })}
 
-                {/* Score text */}
-                <text x={cx} y={cy + 42} textAnchor="middle" fill={animTier.color} fontSize="38" fontWeight="900" fontFamily="'Tajawal', sans-serif">{animScore}</text>
-                <text x={cx} y={cy + 60} textAnchor="middle" fill={C.textMuted} fontSize="12" fontFamily="'Tajawal', sans-serif">من 100 نقطة</text>
+                {/* ── Needle shadow ── */}
+                <line
+                  x1={cx + 1} y1={cy + 2}
+                  x2={nx + 1} y2={ny + 2}
+                  stroke="rgba(0,0,0,0.55)" strokeWidth={5} strokeLinecap="round"
+                />
+                {/* ── Needle tail ── */}
+                <line
+                  x1={cx} y1={cy} x2={tx} y2={ty}
+                  stroke={animTier.color} strokeWidth={2.5} strokeLinecap="round" opacity={0.45}
+                />
+                {/* ── Needle ── */}
+                <line
+                  x1={cx} y1={cy} x2={nx} y2={ny}
+                  stroke="url(#nGrad)" strokeWidth={3.5} strokeLinecap="round"
+                  filter="url(#gGlowS)"
+                />
+                {/* Needle tip dot */}
+                <circle cx={nx} cy={ny} r={2.5} fill="white" opacity={0.85} />
 
-                {/* Tier labels on arc */}
+                {/* ── Center hub ── */}
+                {/* Outer glow ring */}
+                <circle cx={cx} cy={cy} r={24} fill="none"
+                  stroke={animTier.color} strokeWidth={0.8} opacity={0.35}
+                />
+                {/* Hub body */}
+                <circle cx={cx} cy={cy} r={18}
+                  fill="url(#hubG)"
+                  stroke={animTier.color} strokeWidth={2.2}
+                  filter="url(#gShadow)"
+                />
+                {/* Hub inner glow */}
+                <circle cx={cx} cy={cy} r={8} fill={animTier.color} opacity={0.12} />
+                {/* Hub center dot */}
+                <circle cx={cx} cy={cy} r={5.5} fill={animTier.color}
+                  filter="url(#gGlowS)"
+                />
+
+                {/* ── Score display below hub ── */}
+                <text
+                  x={cx} y={cy + 46}
+                  textAnchor="middle"
+                  fill={animTier.color}
+                  fontSize="46" fontWeight="900"
+                  fontFamily="'Tajawal', sans-serif"
+                  filter="url(#gGlowS)"
+                >{animScore}</text>
+                <text
+                  x={cx} y={cy + 65}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,0.3)"
+                  fontSize="11.5" fontFamily="'Tajawal', sans-serif" fontWeight="500"
+                >من 100 نقطة</text>
+
+                {/* ── Tier labels (outside arc) ── */}
                 {tiers.map((tier, i) => {
-                  const midAngle = startAngle - ((tier.min + tier.max) / 2 / 100) * totalAngle;
-                  const labelR = r + 30;
-                  const lx = cx + labelR * Math.cos(midAngle);
-                  const ly = cy - labelR * Math.sin(midAngle);
+                  const midPct = (tier.min + tier.max) / 2;
+                  const a = Math.PI - (midPct / 100) * Math.PI;
+                  const lr = R + SW / 2 + 35;
+                  const lx = cx + lr * Math.cos(a);
+                  const ly = cy - lr * Math.sin(a);
                   const isActive = score >= tier.min && score < tier.max;
                   return (
-                    <text key={i} x={lx} y={ly} textAnchor="middle"
-                      fill={isActive ? tier.color : `${C.textMuted}50`}
-                      fontSize={isActive ? '9' : '8'}
-                      fontWeight={isActive ? 800 : 500}
+                    <text key={i}
+                      x={lx.toFixed(1)} y={(ly + 4).toFixed(1)}
+                      textAnchor="middle"
+                      fill={isActive ? tier.color : 'rgba(255,255,255,0.18)'}
+                      fontSize={isActive ? 10 : 9}
+                      fontWeight={isActive ? 700 : 400}
                       fontFamily="'Tajawal', sans-serif"
-                    >
-                      {tier.label}
-                    </text>
+                      filter={isActive ? 'url(#gGlowS)' : undefined}
+                    >{tier.label}</text>
                   );
                 })}
               </svg>
             </div>
 
-            {/* Active tier badge */}
+            {/* ── Active tier badge ── */}
             <div style={{
-              marginTop: 18, marginBottom: 20,
+              marginTop: 6, marginBottom: 20,
               padding: '10px 28px', borderRadius: 40,
               background: `linear-gradient(135deg, ${realTier.color}18, ${realTier.color}06)`,
-              border: `1.5px solid ${realTier.color}45`,
+              border: `1.5px solid ${realTier.color}50`,
               fontSize: '0.92rem', fontWeight: 800, color: realTier.color,
               display: 'flex', alignItems: 'center', gap: 12,
-              boxShadow: `0 4px 20px ${realTier.color}20`,
+              boxShadow: `0 4px 24px ${realTier.color}28`,
               animation: 'kpiFadeIn 0.9s ease-out',
             }}>
               <span style={{
-                width: 11, height: 11, borderRadius: '50%', background: realTier.color,
-                display: 'inline-block', boxShadow: `0 0 10px ${realTier.color}, 0 0 20px ${realTier.color}60`,
-                animation: 'kpiGlow 2s infinite',
+                width: 10, height: 10, borderRadius: '50%', background: realTier.color,
+                display: 'inline-block',
+                boxShadow: `0 0 10px ${realTier.color}, 0 0 22px ${realTier.color}60`,
+                animation: 'kpiGlow 2.2s infinite',
               }} />
-              {realTier.label} — {realTier.labelEn}
+              {realTier.label}
+              <span style={{ width: 1, height: 16, background: `${realTier.color}40`, flexShrink: 0 }} />
+              <span style={{ fontSize: '0.76rem', fontWeight: 500, opacity: 0.7 }}>التقييم الكلي</span>
             </div>
 
             {/* ── KPI Breakdown Bars ── */}
-            <div style={{ width: '100%', marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: C.textMuted, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 16, height: 16, borderRadius: 5, background: `${C.teal}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>📋</span>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ fontSize: '0.73rem', fontWeight: 700, color: C.textMuted, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 18, height: 18, borderRadius: 6, background: `${C.teal}18`, border: `1px solid ${C.teal}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.62rem' }}>📋</span>
                 تفاصيل التقييم
               </div>
               {kpis.map((kpi, i) => {
                 const pct = Math.round(kpi.achieved * 100);
-                const barColor = pct >= 80 ? '#10b981' : pct >= 50 ? '#eab308' : pct > 0 ? '#f97316' : '#ef4444';
+                const barColor = pct >= 80 ? '#10b981' : pct >= 60 ? '#22c55e' : pct >= 40 ? '#eab308' : pct > 0 ? '#f97316' : '#ef4444';
                 return (
-                  <div key={kpi.key} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px',
-                    borderRadius: 10, background: 'rgba(255,255,255,0.02)',
+                  <div key={kpi.key} className="kpi-bar-row" style={{
+                    display: 'grid',
+                    gridTemplateColumns: '22px 84px 1fr 36px',
+                    alignItems: 'center',
+                    gap: 8, padding: '8px 11px',
+                    borderRadius: 10, background: 'rgba(255,255,255,0.018)',
                     border: `1px solid ${C.border}`, transition: 'all 0.2s',
-                    animation: `kpiFadeIn 0.5s ease-out ${i * 0.08}s both`,
+                    animation: `kpiFadeIn 0.5s ease-out ${i * 0.07}s both`,
                   }}>
-                    <span style={{ fontSize: '0.85rem', width: 22, textAlign: 'center' }}>{kpi.icon}</span>
-                    <span style={{ fontSize: '0.75rem', color: C.textMuted, fontWeight: 600, width: 90, flexShrink: 0 }}>{kpi.label}</span>
-                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '0.9rem', textAlign: 'center' }}>{kpi.icon}</span>
+                    <span style={{ fontSize: '0.74rem', color: C.textMuted, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kpi.label}</span>
+                    <div style={{ height: 7, borderRadius: 4, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                       <div style={{
-                        height: '100%', borderRadius: 3,
-                        background: `linear-gradient(90deg, ${barColor}88, ${barColor})`,
+                        height: '100%', borderRadius: 4,
+                        background: `linear-gradient(90deg, ${barColor}65, ${barColor})`,
                         width: hasAnimated ? `${pct}%` : '0%',
-                        transition: 'width 1.2s cubic-bezier(0.25,0.46,0.45,0.94)',
-                        boxShadow: pct > 0 ? `0 0 6px ${barColor}40` : 'none',
+                        transition: `width 1.35s cubic-bezier(0.25,0.46,0.45,0.94) ${i * 0.07}s`,
+                        boxShadow: pct > 0 ? `0 0 8px ${barColor}55, 0 0 16px ${barColor}25` : 'none',
                       }} />
                     </div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: barColor, width: 32, textAlign: 'left' }}>{pct}%</span>
-                    <span style={{ fontSize: '0.65rem', color: C.textMuted, width: 60, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kpi.detail}</span>
+                    <span style={{
+                      fontSize: '0.73rem', fontWeight: 800, color: barColor,
+                      textAlign: 'right', letterSpacing: '-0.02em',
+                    }}>{pct}%</span>
                   </div>
                 );
               })}
