@@ -628,7 +628,7 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
               </div>
             </div>
 
-            {/* ── Active tier badge ── */
+            {/* ── Active tier badge ── */}
             <div style={{
               marginTop: 6, marginBottom: 20,
               padding: '10px 28px', borderRadius: 40,
