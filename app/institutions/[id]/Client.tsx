@@ -302,8 +302,8 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
 
   // ── SVG gauge constants ──
   // ViewBox: 400×230 — enough room for outer labels without clipping
-  const VW = 400, VH = 230;
-  const cx = 200, cy = 175;   // center of gauge circle, pushed down so top labels don't clip
+  const VW = 400, VH = 240;
+  const cx = 200, cy = 192;   // center of gauge circle — pushed down to give top tier labels ~36px margin
   const R  = 118;              // arc radius
   const SW = 15;               // stroke width of arc band
   const GAP = 0.038;           // radian gap between segments (~2.2°)
@@ -415,7 +415,7 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
 
             {/* ══ Main Gauge SVG ══ */}
             <div style={{ width: '100%', maxWidth: 380 }}>
-              <svg viewBox={`0 0 ${VW} 195`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+              <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
                 <defs>
                   {/* Glow filters */}
                   <filter id="gGlow" x="-60%" y="-60%" width="220%" height="220%">
@@ -531,20 +531,21 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
                   );
                 })}
 
-                {/* ── Tick value labels ── */}
-                {[0, 20, 40, 60, 80, 100].map(v => {
-                  const a = Math.PI - (v / 100) * Math.PI;
-                  const lr = R + SW / 2 + 20;
-                  return (
-                    <text key={v}
-                      x={(cx + lr * Math.cos(a)).toFixed(1)}
-                      y={(cy - lr * Math.sin(a) + 4).toFixed(1)}
-                      textAnchor="middle"
-                      fill="rgba(255,255,255,0.3)"
-                      fontSize="9.5" fontFamily="'Tajawal', sans-serif" fontWeight="500"
-                    >{v}</text>
-                  );
-                })}
+                {/* ── Arc endpoint labels (0 and 100) — placed below arc ends, no overlap with tier labels ── */}
+                <text
+                  x={(cx - R - 12).toFixed(1)}
+                  y={(cy + 24).toFixed(1)}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,0.28)"
+                  fontSize="10" fontFamily="'Tajawal', sans-serif" fontWeight="600"
+                >0</text>
+                <text
+                  x={(cx + R + 12).toFixed(1)}
+                  y={(cy + 24).toFixed(1)}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,0.28)"
+                  fontSize="10" fontFamily="'Tajawal', sans-serif" fontWeight="600"
+                >100</text>
 
                 {/* ── Needle shadow ── */}
                 <line
@@ -609,7 +610,7 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
 
               {/* ── Score display (HTML, outside SVG to avoid overlap) ── */}
               <div style={{
-                textAlign: 'center', marginTop: -10, marginBottom: 4,
+                textAlign: 'center', marginTop: 6, marginBottom: 4,
                 position: 'relative', zIndex: 2,
               }}>
                 <div style={{
