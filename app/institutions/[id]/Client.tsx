@@ -293,7 +293,7 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
   const tiers = [
     { label: 'ضعيف جداً', min: 0,  max: 20,  color: '#ef4444' },
     { label: 'ضعيف',      min: 20, max: 40,  color: '#f97316' },
-    { label: 'مقبول',     min: 40, max: 60,  color: '#eab308' },
+    { label: 'مقبول',     min: 40, max: 60,  color: '#f59e0b' },
     { label: 'جيد',       min: 60, max: 80,  color: '#22c55e' },
     { label: 'ممتاز',     min: 80, max: 100, color: '#10b981' },
   ];
@@ -418,8 +418,8 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
               <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
                 <defs>
                   {/* Glow filters */}
-                  <filter id="gGlow" x="-60%" y="-60%" width="220%" height="220%">
-                    <feGaussianBlur stdDeviation="5" result="b" />
+                  <filter id="gGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="b" />
                     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
                   <filter id="gGlowS" x="-40%" y="-40%" width="180%" height="180%">
@@ -464,7 +464,7 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
                       d={segPath(tier.min, tier.max, R + 10)}
                       fill="none" stroke={tier.color} strokeWidth={3}
                       strokeLinecap="round"
-                      opacity={active ? 0.55 : 0.25}
+                      opacity={active ? 0.70 : 0.20}
                       filter={active ? 'url(#gGlow)' : undefined}
                     />
                   );
@@ -482,7 +482,6 @@ function KPIDashboard({ institution, agreementsCount }: { institution: Instituti
                       strokeWidth={SW}
                       strokeLinecap="round"
                       opacity={passed ? 0.72 : active ? 1 : 0.11}
-                      filter={active ? 'url(#gGlow)' : undefined}
                     />
                   );
                 })}
