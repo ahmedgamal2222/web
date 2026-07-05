@@ -92,6 +92,13 @@ export default function GalaxyCanvas({
     let w = container.clientWidth;
     let h = container.clientHeight;
 
+    // ── Safari / WebKit detection (includes iOS Safari) ──────
+    const isSafari =
+      typeof navigator !== 'undefined' &&
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    // Reduce particle counts on Safari to avoid WebGL context loss
+    const particleScale = isSafari ? 0.25 : 1;
+
     // ====== Pinch-to-zoom (touch zoom) support ======
     let lastTouchDist = 0;
     let pinchZooming = false;
@@ -137,13 +144,38 @@ export default function GalaxyCanvas({
     camera.lookAt(0, 0, 0);
 
     // ── Renderer ─────────────────────────────────────────────
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: !isSafari,           // antialias off on Safari saves GPU memory
+        alpha: false,
+        powerPreference: 'default',     // avoid forcing high-performance GPU on Safari
+        failIfMajorPerformanceCaveat: false,
+      });
+    } catch {
+      // WebGL not available (e.g. private browsing with disabled WebGL)
+      return;
+    }
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSafari ? 1 : 2));
     renderer.setClearColor(0x000005, 1);
     renderer.toneMapping         = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
+
+    // ── WebGL context loss/restore handling ──────────────────
+    let contextLost = false;
+    const onContextLost = (e: Event) => {
+      e.preventDefault();           // required to allow context restoration
+      contextLost = true;
+      cancelAnimationFrame(animId);
+    };
+    const onContextRestored = () => {
+      contextLost = false;
+      animate();
+    };
+    renderer.domElement.addEventListener('webglcontextlost', onContextLost, false);
+    renderer.domElement.addEventListener('webglcontextrestored', onContextRestored, false);
     renderer.domElement.style.cursor      = 'grab';
     renderer.domElement.style.touchAction = 'manipulation';
     renderer.domElement.style.position    = 'absolute';
@@ -155,7 +187,7 @@ export default function GalaxyCanvas({
 
     // ── Background Star Field ─────────────────────────────────
     {
-      const count   = backgroundStarsCount;
+      const count   = Math.floor(backgroundStarsCount * particleScale);
       const sfPos   = new Float32Array(count * 3);
       const sfCol   = new Float32Array(count * 3);
       const sfSz    = new Float32Array(count);
@@ -188,7 +220,7 @@ export default function GalaxyCanvas({
     }
 
     // ── Milky Way ─────────────────────────────────────────────
-    const ARMS = 5, PER_ARM = 3500, CORE_N = 4000;
+    const ARMS = 5, PER_ARM = Math.floor(3500 * particleScale), CORE_N = Math.floor(4000 * particleScale);
     const mwTotal = ARMS * PER_ARM + CORE_N;
     const mwPos   = new Float32Array(mwTotal * 3);
     const mwCol   = new Float32Array(mwTotal * 3);
@@ -258,7 +290,7 @@ export default function GalaxyCanvas({
       { pos: [250, -40,  -40] as const, hex: 0xab47bc, size: 55 },
     ];
     nebulaeData.forEach(({ pos, hex, size }) => {
-      const count = 800;
+      const count = Math.floor(800 * particleScale);
       const nPos  = new Float32Array(count * 3);
       const nCol  = new Float32Array(count * 3);
       const col   = new THREE.Color(hex);
@@ -700,6 +732,7 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
+      if (contextLost) return;           // skip render while context is lost
       const time = clock.getElapsedTime();
 
       // Rotate milky way slowly
@@ -766,6 +799,8 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
     // ── Cleanup ───────────────────────────────────────────────
     return () => {
       cancelAnimationFrame(animId);
+      renderer.domElement.removeEventListener('webglcontextlost', onContextLost);
+      renderer.domElement.removeEventListener('webglcontextrestored', onContextRestored);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup',   onPointerUp);
