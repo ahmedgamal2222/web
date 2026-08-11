@@ -106,6 +106,10 @@ export default function ScreenPage() {
   const [selectedPulse, setSelectedPulse] = useState<PulseItem | null>(null);
   const [adCountdown, setAdCountdown] = useState(5);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const [showScreenPlusMenu, setShowScreenPlusMenu] = useState(false);
+  const [socialBarVisible, setSocialBarVisible] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showTweetModal, setShowTweetModal] = useState(false);
   const [playlistIdx, setPlaylistIdx] = useState(0);
   const playlistTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const ytPlayerRef = useRef<any>(null);
@@ -373,6 +377,31 @@ export default function ScreenPage() {
     }, 1000);
     return () => clearInterval(tick);
   }, [currentAd]);
+
+  // ─── شريط سوشيال ميديا شفاف: يظهر/يختفي بتحريك الماوس ─────────────────
+  useEffect(() => {
+    let hideTimer: any;
+    const show = () => { setSocialBarVisible(true); clearTimeout(hideTimer); };
+    const hide = () => { hideTimer = setTimeout(() => setSocialBarVisible(false), 2000); };
+    window.addEventListener('mousemove', show);
+    window.addEventListener('mouseleave', hide);
+    return () => {
+      window.removeEventListener('mousemove', show);
+      window.removeEventListener('mouseleave', hide);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
+  // ─── إغلاق القائمة المنسدلة عند النقر خارجها ─────────────────
+  useEffect(() => {
+    if (!showScreenPlusMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.screen-plus-menu')) setShowScreenPlusMenu(false);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [showScreenPlusMenu]);
 
   // ─── صوت المجرة — يُهيَّأ ويعمل فوراً عند أول تفاعل ─────────────────
   useEffect(() => {
@@ -918,24 +947,182 @@ const stopSpaceSound = () => {
           border: 1px solid rgba(255,255,255,0.1);
           align-self: center;
         }
-        .news-ticker {
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 48px;
-          background: rgba(0,0,0,0.88);
-          border-top: 1px solid rgba(255,215,0,0.25);
-          display: flex; align-items: center;
-          overflow: hidden;
-        }
-        .news-items {
+
+        /* ─── شريط سوشيال ميديا شفاف ─── */
+        .screen-social-bar {
+          position: fixed;
+          bottom: 36px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 120;
+          max-width: 85%;
+          width: fit-content;
+          background: rgba(8,5,32,0.72);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(79,195,247,0.18);
+          border-radius: 50px;
+          padding: 10px 22px;
           display: flex;
-          animation: ticker 40s linear infinite;
+          align-items: center;
+          gap: 18px;
+          opacity: 0;
+          transition: opacity 0.5s ease, transform 0.5s ease;
+          transform: translateX(-50%) translateY(20px);
+          pointer-events: none;
+        }
+        .screen-social-bar.visible {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+          pointer-events: auto;
+        }
+        .screen-social-bar a {
+          color: rgba(255,255,255,0.85);
+          text-decoration: none;
+          font-size: 1.1rem;
+          padding: 6px 10px;
+          border-radius: 50%;
+          transition: all 0.25s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .screen-social-bar a:hover {
+          background: rgba(255,255,255,0.12);
+          transform: translateY(-2px);
+        }
+
+        /* ─── زر القائمة (+) ─── */
+        .screen-plus-menu {
+          position: fixed;
+          top: 16px;
+          left: 16px;
+          z-index: 120;
+        }
+        .screen-plus-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,215,0,0.6);
+          background: rgba(10,15,30,0.85);
+          backdrop-filter: blur(12px);
+          color: #FFD700;
+          font-size: 1.4rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.25s;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .screen-plus-btn:hover {
+          border-color: #FFD700;
+          box-shadow: 0 6px 28px rgba(255,215,0,0.3);
+          transform: scale(1.08);
+        }
+        .screen-plus-dropdown {
+          position: absolute;
+          top: 52px;
+          left: 0;
+          background: rgba(10,15,30,0.95);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,215,0,0.3);
+          border-radius: 16px;
+          padding: 8px;
+          min-width: 220px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+        .screen-plus-dropdown button {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          border: none;
+          border-radius: 10px;
+          background: transparent;
+          color: #e8f4fd;
+          font-size: 0.88rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: "'Tajawal', sans-serif";
+          text-align: right;
+        }
+        .screen-plus-dropdown button:hover {
+          background: rgba(255,215,0,0.1);
+          color: #FFD700;
+        }
+
+        /* ─── بث مباشر أحمر فوق الفيديو ─── */
+        .q1-live-overlay {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .q1-live-badge {
+          background: #e03030;
+          color: white;
+          padding: 5px 14px;
+          border-radius: 20px;
+          font-size: 0.82rem;
+          font-weight: 800;
+          box-shadow: 0 2px 10px rgba(255,68,68,0.5);
+          animation: livePulse 1.8s ease-in-out infinite;
+        }
+        .q1-live-dot {
+          width: 9px;
+          height: 9px;
+          background: white;
+          border-radius: 50%;
+          animation: blink 1s infinite;
+        }
+        .q1-institution-name-overlay {
+          background: rgba(0,0,0,0.75);
+          backdrop-filter: blur(8px);
+          color: #FFD700;
+          padding: 5px 14px;
+          border-radius: 20px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          border: 1px solid rgba(255,215,0,0.3);
+          max-width: 300px;
+          overflow: hidden;
+          text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .news-item { padding: 0 32px; color: #FFD700; font-size: 1rem; font-weight: 600; }
-        @keyframes ticker {
-          0%   { transform: translateX(100vw); }
-          100% { transform: translateX(-100%); }
+
+        /* ─── أيقونة اللوكيشن في الربع 2 ─── */
+        .q2-location-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 20;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,215,0,0.5);
+          background: rgba(10,15,30,0.85);
+          backdrop-filter: blur(12px);
+          color: #FFD700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.25s;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        .q2-location-btn:hover {
+          border-color: #FFD700;
+          box-shadow: 0 6px 24px rgba(255,215,0,0.35);
+          transform: scale(1.1);
         }
 
         /* ─── شريط نبض المجرة (مثل الجزيرة) ─── */
@@ -1032,6 +1219,187 @@ const stopSpaceSound = () => {
         @keyframes blink {
           0%,100% { opacity: 1; }
           50%      { opacity: 0.3; }
+        }
+
+        /* ─── شريط سوشيال ميديا شفاف ─── */
+        .screen-social-bar {
+          position: fixed;
+          bottom: 36px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 120;
+          max-width: 85%;
+          width: fit-content;
+          background: rgba(8,5,32,0.72);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(79,195,247,0.18);
+          border-radius: 50px;
+          padding: 10px 22px;
+          display: flex;
+          align-items: center;
+          gap: 18;
+          opacity: 0;
+          transition: opacity 0.5s ease, transform 0.5s ease;
+          transform: translateX(-50%) translateY(20px);
+          pointer-events: none;
+        }
+        .screen-social-bar.visible {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+          pointer-events: auto;
+        }
+        .screen-social-bar a {
+          color: rgba(255,255,255,0.85);
+          text-decoration: none;
+          font-size: 1.1rem;
+          padding: 6px 10px;
+          border-radius: 50%;
+          transition: all 0.25s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .screen-social-bar a:hover {
+          background: rgba(255,255,255,0.12);
+          transform: translateY(-2px);
+        }
+
+        /* ─── زر القائمة (+) ─── */
+        .screen-plus-menu {
+          position: fixed;
+          top: 16px;
+          left: 16px;
+          z-index: 120;
+        }
+        .screen-plus-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,215,0,0.6);
+          background: rgba(10,15,30,0.85);
+          backdrop-filter: blur(12px);
+          color: #FFD700;
+          font-size: 1.4rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.25s;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .screen-plus-btn:hover {
+          border-color: #FFD700;
+          box-shadow: 0 6px 28px rgba(255,215,0,0.3);
+          transform: scale(1.08);
+        }
+        .screen-plus-dropdown {
+          position: absolute;
+          top: 52px;
+          left: 0;
+          background: rgba(10,15,30,0.95);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,215,0,0.3);
+          border-radius: 16px;
+          padding: 8px;
+          min-width: 220px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+        .screen-plus-dropdown button {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          border: none;
+          border-radius: 10px;
+          background: transparent;
+          color: #e8f4fd;
+          font-size: 0.88rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: "'Tajawal', sans-serif";
+          text-align: right;
+        }
+        .screen-plus-dropdown button:hover {
+          background: rgba(255,215,0,0.1);
+          color: #FFD700;
+        }
+
+        /* ─── بث مباشر أحمر فوق الفيديو ─── */
+        .q1-live-overlay {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .q1-live-badge {
+          background: #e03030;
+          color: white;
+          padding: 5px 14px;
+          border-radius: 20px;
+          font-size: 0.82rem;
+          font-weight: 800;
+          box-shadow: 0 2px 10px rgba(255,68,68,0.5);
+          animation: livePulse 1.8s ease-in-out infinite;
+        }
+        .q1-live-dot {
+          width: 9px;
+          height: 9px;
+          background: white;
+          border-radius: 50%;
+          animation: blink 1s infinite;
+        }
+        .q1-institution-name-overlay {
+          background: rgba(0,0,0,0.75);
+          backdrop-filter: blur(8px);
+          color: #FFD700;
+          padding: 5px 14px;
+          border-radius: 20px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          border: 1px solid rgba(255,215,0,0.3);
+          max-width: 300px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        @keyframes livePulse {
+          0%,100% { box-shadow: 0 0 10px rgba(255,68,68,0.5); }
+          50%      { box-shadow: 0 0 22px rgba(255,68,68,0.85), 0 0 40px rgba(255,68,68,0.22); }
+        }
+
+        /* ─── أيقونة اللوكيشن في الربع 2 ─── */
+        .q2-location-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 20;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,215,0,0.5);
+          background: rgba(10,15,30,0.85);
+          backdrop-filter: blur(12px);
+          color: #FFD700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.25s;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        .q2-location-btn:hover {
+          border-color: #FFD700;
+          box-shadow: 0 6px 24px rgba(255,215,0,0.35);
+          transform: scale(1.1);
         }
         .empty-state {
           display: flex; flex-direction: column;
@@ -1507,6 +1875,43 @@ const stopSpaceSound = () => {
 
       `}</style>
 
+      {/* زر القائمة (+) */}
+      <div className="screen-plus-menu">
+        <button
+          className="screen-plus-btn"
+          onClick={() => setShowScreenPlusMenu(v => !v)}
+          title="القائمة"
+        >
+          {showScreenPlusMenu ? '✕' : '+'}
+        </button>
+        {showScreenPlusMenu && (
+          <div className="screen-plus-dropdown">
+            <button onClick={() => { window.location.href = `/admin/ads?institution_id=${resolvedId}`; }}>
+              <span>📢</span> إعلان جديد
+            </button>
+            <button onClick={() => setShowVideoModal(true)}>
+              <span>🎥</span> مقترح فيديو
+            </button>
+            <button onClick={() => setShowTweetModal(true)}>
+              <span>🐦</span> تغريدة
+            </button>
+            <button onClick={() => window.location.href = '/admin/ads/credits'}>
+              <span>💰</span> تعبئة رصيد
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* شريط سوشيال ميديا شفاف */}
+      <div className={`screen-social-bar${socialBarVisible ? ' visible' : ''}`}>
+        <a href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ" target="_blank" rel="noopener noreferrer" title="YouTube">▶</a>
+        <a href="https://www.instagram.com/hadmajcom/" target="_blank" rel="noopener noreferrer" title="Instagram">◉</a>
+        <a href="https://www.tiktok.com/@hadmajcom" target="_blank" rel="noopener noreferrer" title="TikTok">♪</a>
+        <a href="https://x.com/hadmajcom" target="_blank" rel="noopener noreferrer" title="X">✕</a>
+        <a href="https://www.facebook.com/hadmajcom" target="_blank" rel="noopener noreferrer" title="Facebook">f</a>
+        <a href="https://www.linkedin.com/company/hadmajcom" target="_blank" rel="noopener noreferrer" title="LinkedIn">in</a>
+      </div>
+
       {/* شريط المؤسسة */}
       <div className="institution-info">
         <span className="institution-name">{institution?.name_ar || institution?.name}</span>
@@ -1546,6 +1951,18 @@ const stopSpaceSound = () => {
 
           {/* ─ منطقة الفيديو ─ */}
           <div className="q1-video-wrap">
+            {/* بث مباشر أحمر فوق الفيديو */}
+            {liveLecture && (
+              <div className="q1-live-overlay">
+                <span className="q1-live-badge">
+                  <span className="q1-live-dot" />
+                  بث مباشر
+                </span>
+                <span className="q1-institution-name-overlay">
+                  {institution?.name_ar || institution?.name}
+                </span>
+              </div>
+            )}
             {displayLecture ? (
               liveLecture && displayLecture.cf_live_input_id ? (
                 <iframe
@@ -1702,6 +2119,20 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
+        {/* أيقونة اللوكيشن */}
+        <button
+          className="q2-location-btn"
+          onClick={() => {
+            const id = Number(resolvedId);
+            setFocusStarId(prev => prev === id ? undefined : id);
+          }}
+          title="الذهاب إلى موقع المؤسسة في المجرة"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        </button>
         {/* <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
@@ -1976,6 +2407,106 @@ const stopSpaceSound = () => {
 
       {/* بوب-أب تفاصيل النبضة */}
       {selectedPulse && <PulseDetailPopup item={selectedPulse} onClose={() => setSelectedPulse(null)} />}
+
+      {/* مودال مقترح فيديو */}
+      {showVideoModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowVideoModal(false)}>
+          <div style={{ background: '#0f1626', borderRadius: 20, padding: 28, maxWidth: 520, width: '100%', border: '1px solid rgba(255,215,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 18px', color: '#FFD700', fontSize: '1.1rem', fontWeight: 800 }}>🎥 مقترح فيديو جديد</h3>
+            <VideoProposalForm institutionId={resolvedId} onClose={() => setShowVideoModal(false)} onSuccess={() => { setShowVideoModal(false); alert('تم إرسال المقترح بنجاح وسيتم مراجعته'); }} />
+          </div>
+        </div>
+      )}
+
+      {/* مودال تغريدة */}
+      {showTweetModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowTweetModal(false)}>
+          <div style={{ background: '#0f1626', borderRadius: 20, padding: 28, maxWidth: 520, width: '100%', border: '1px solid rgba(255,215,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 18px', color: '#FFD700', fontSize: '1.1rem', fontWeight: 800 }}>🐦 تغريدة جديدة</h3>
+            <TweetForm institutionId={resolvedId} onClose={() => setShowTweetModal(false)} onSuccess={() => { setShowTweetModal(false); alert('تم نشر التغريدة بنجاح'); }} />
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// ── نموذج مقترح فيديو ─────────────────────────────────────────
+function VideoProposalForm({ institutionId, onClose, onSuccess }: { institutionId: string; onClose: () => void; onSuccess: () => void }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/video-proposals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ institution_id: Number(institutionId), title, description, video_url: videoUrl }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'فشل إرسال المقترح');
+      onSuccess();
+    } catch (ex: any) {
+      alert(ex.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الفيديو" required style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none' }} />
+      <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="وصف الفيديو" rows={3} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
+      <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="رابط الفيديو (YouTube/Vimeo/Cloudflare)" required style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none' }} />
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#8aa4bc', cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
+        <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري الإرسال...' : 'إرسال المقترح'}</button>
+      </div>
+    </form>
+  );
+}
+
+// ── نموذج تغريدة ─────────────────────────────────────────────
+function TweetForm({ institutionId, onClose, onSuccess }: { institutionId: string; onClose: () => void; onSuccess: () => void }) {
+  const [content, setContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (content.length > 500) { alert('الحد الأقصى 500 حرف'); return; }
+    setSubmitting(true);
+    try {
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/pulse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ content, category: 'tweet', institution_id: Number(institutionId) }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'فشل نشر التغريدة');
+      onSuccess();
+    } catch (ex: any) {
+      alert(ex.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="ماذا يحدث في مؤسستكم؟" rows={4} required maxLength={500} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.75rem', color: '#8aa4bc' }}>{content.length}/500</span>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#8aa4bc', cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
+          <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري النشر...' : 'نشر'}</button>
+        </div>
+      </div>
+    </form>
   );
 }

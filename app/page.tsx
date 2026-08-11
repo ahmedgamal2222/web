@@ -1988,68 +1988,28 @@ export default function HomePage() {
           .support-fab { width: 50px !important; height: 50px !important; bottom: 18px !important; left: 18px !important; }
           .support-fab svg { width: 22px !important; height: 22px !important; }
         }
-        @keyframes footer-glow {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
-        }
-        .social-link {
-          display: flex; align-items: center; justify-content: center;
-          width: 46px; height: 46px; border-radius: 50%;
-          transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-          border: 1.5px solid rgba(255,255,255,0.12);
-          background: rgba(255,255,255,0.04);
-          text-decoration: none;
-        }
-        .social-link:hover {
-          transform: translateY(-4px) scale(1.12);
-          border-color: rgba(255,255,255,0.35);
-          background: rgba(255,255,255,0.1);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        }
-        @media (max-width: 480px) {
-          .site-footer { padding: 24px 16px 20px !important; }
-        }
       `}</style>
     </main>
 
-    {/* ── Transparent Animated Social Bar ── */}
+    {/* ── Transparent Social Bar ── */}
     <SocialBar />
-
-    {/* ── Moving Ticker Bar ── */}
-    <MovingTicker />
 
     </div>
   );
 }
 
 function SocialBar() {
-  const [visible, setVisible] = useState(false);
-  const timerRef = useRef<any>(null);
-
-  const show = () => {
-    setVisible(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-  };
-  const hide = () => {
-    timerRef.current = setTimeout(() => setVisible(false), 2000);
-  };
-
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
-
   return (
     <div
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      onTouchStart={show}
       style={{
         position: 'fixed',
-        bottom: 36,
+        bottom: 24,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 200,
-        maxWidth: '85%',
+        maxWidth: '50%',
         width: 'fit-content',
-        background: 'rgba(8,5,32,0.75)',
+        background: 'rgba(8,5,32,0.72)',
         backdropFilter: 'blur(18px)',
         WebkitBackdropFilter: 'blur(18px)',
         border: '1px solid rgba(79,195,247,0.18)',
@@ -2058,10 +2018,6 @@ function SocialBar() {
         display: 'flex',
         alignItems: 'center',
         gap: 18,
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 0.5s ease, transform 0.5s ease',
-        transform: `translateX(-50%) translateY(${visible ? '0' : '20px'})`,
-        pointerEvents: visible ? 'auto' : 'none',
         direction: 'ltr',
       }}
     >
@@ -2071,47 +2027,6 @@ function SocialBar() {
       <a href="https://x.com/hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', fontSize: '1.2rem' }} title="X">✕</a>
       <a href="https://www.facebook.com/hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#1877f2', textDecoration: 'none', fontSize: '1.2rem' }} title="Facebook">f</a>
       <a href="https://www.linkedin.com/company/hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#0a66c2', textDecoration: 'none', fontSize: '1.2rem' }} title="LinkedIn">in</a>
-    </div>
-  );
-}
-
-function MovingTicker() {
-  const text = '✦ المجرة الحضارية — منصة المؤسسات الحضارية العالمية — معاً نزداد توهجاً ✦ ';
-  const repeated = text.repeat(6);
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      zIndex: 199,
-      background: 'rgba(5,3,18,0.92)',
-      borderTop: '1px solid rgba(79,195,247,0.12)',
-      overflow: 'hidden',
-      height: 32,
-      display: 'flex',
-      alignItems: 'center',
-      direction: 'rtl',
-      fontFamily: "'Tajawal', sans-serif",
-    }}>
-      <div style={{
-        display: 'flex',
-        whiteSpace: 'nowrap',
-        animation: 'ticker-scroll 35s linear infinite',
-        color: 'rgba(79,195,247,0.7)',
-        fontSize: '0.8rem',
-        fontWeight: 600,
-        letterSpacing: '0.03em',
-      }}>
-        <span>{repeated}</span>
-        <span>{repeated}</span>
-      </div>
-      <style>{`
-        @keyframes ticker-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
     </div>
   );
 }
