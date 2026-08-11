@@ -7,6 +7,7 @@ import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
+import GalaxyLogo from '@/components/GalaxyLogo';
 
 const GalaxyCanvas = dynamic(() => import('@/components/GalaxyCanvas'), { ssr: false });
 
@@ -37,68 +38,6 @@ const TYPE_COLORS: Record<string, string> = {
   developmental: '#FFDAC1',
   default: COLORS.teal,
 };
-
-// ============================================================
-// Logo Component
-// ============================================================
-function GalaxyLogo() {
-  return (
-    <div className="galaxy-logo" style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', userSelect: 'none' }}>
-      <div style={{ position: 'relative', width: 54, height: 54, flexShrink: 0 }}>
-        <svg width="54" height="54" viewBox="0 0 54 54" fill="none">
-          <defs>
-            <radialGradient id="rg_core" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="#EDF7BD" />
-              <stop offset="42%"  stopColor="#85C79A" />
-              <stop offset="100%" stopColor="#4E8D9C" />
-            </radialGradient>
-            <radialGradient id="rg_halo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stopColor="#4E8D9C" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#4E8D9C" stopOpacity="0" />
-            </radialGradient>
-            <filter id="f_glow" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="2.8" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          {/* Ambient halo */}
-          <circle cx="27" cy="27" r="26" fill="url(#rg_halo)" />
-          {/* Outer orbital ring */}
-          <ellipse cx="27" cy="27" rx="24.5" ry="9.5"
-            stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3"
-            fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
-          {/* Inner orbital ring */}
-          <ellipse cx="27" cy="27" rx="18" ry="6.5"
-            stroke="#85C79A" strokeWidth="0.65" strokeDasharray="2 4"
-            fill="none" opacity="0.45" transform="rotate(40 27 27)" />
-          {/* Star core */}
-          <path
-            d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z"
-            fill="url(#rg_core)" filter="url(#f_glow)"
-          />
-          {/* Bright nucleus */}
-          <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
-          <circle cx="25.2" cy="25.2" r="1.2" fill="white" opacity="0.5" />
-        </svg>
-      </div>
-      <div>
-        <div className="logo-title" style={{
-          fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2, letterSpacing: '1px',
-          background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}>
-          المجرة الحضارية
-        </div>
-        <div className="logo-subtitle" style={{
-          fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif"
-        }}>
-   كوكبة المؤسسات المضيئة
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ============================================================
 // User Menu Component
@@ -311,6 +250,24 @@ function TopBar({
       </nav> */}
 
       <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link
+          href="/events"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '8px 20px',
+            background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.1))',
+            border: '1px solid rgba(255,215,0,0.4)',
+            borderRadius: 40,
+            color: '#FFD700',
+            fontSize: '0.88rem',
+            textDecoration: 'none',
+            fontWeight: 700,
+            transition: 'all 0.25s',
+          }}
+        >
+          <span>🚀</span>
+          <span>الانطلاقات</span>
+        </Link>
 
         {/* Institutions toggle
         <button
@@ -2055,99 +2012,106 @@ export default function HomePage() {
       `}</style>
     </main>
 
-    {/* ── Site Footer (outside main so overflow:hidden doesn't hide it) ── */}
-    <footer
-      className="site-footer"
+    {/* ── Transparent Animated Social Bar ── */}
+    <SocialBar />
+
+    {/* ── Moving Ticker Bar ── */}
+    <MovingTicker />
+
+    </div>
+  );
+}
+
+function SocialBar() {
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<any>(null);
+
+  const show = () => {
+    setVisible(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+  const hide = () => {
+    timerRef.current = setTimeout(() => setVisible(false), 2000);
+  };
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  return (
+    <div
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onTouchStart={show}
       style={{
-        position: 'relative', zIndex: 10,
-        padding: '36px 24px 28px',
-        background: 'linear-gradient(180deg, rgba(5,3,18,0.0) 0%, rgba(10,6,30,0.97) 35%, rgba(5,3,18,1) 100%)',
-        borderTop: '1px solid rgba(79,195,247,0.1)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
-        direction: 'rtl', fontFamily: "'Tajawal', sans-serif",
+        position: 'fixed',
+        bottom: 36,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 200,
+        maxWidth: '85%',
+        width: 'fit-content',
+        background: 'rgba(8,5,32,0.75)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
+        border: '1px solid rgba(79,195,247,0.18)',
+        borderRadius: 50,
+        padding: '10px 22px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 18,
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.5s ease, transform 0.5s ease',
+        transform: `translateX(-50%) translateY(${visible ? '0' : '20px'})`,
+        pointerEvents: visible ? 'auto' : 'none',
+        direction: 'ltr',
       }}
     >
-      {/* Glowing separator */}
+      <a href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ" target="_blank" rel="noopener noreferrer" style={{ color: '#ff4444', textDecoration: 'none', fontSize: '1.2rem' }} title="YouTube">▶</a>
+      <a href="https://www.instagram.com/hadmajcom/" target="_blank" rel="noopener noreferrer" style={{ color: '#e6683c', textDecoration: 'none', fontSize: '1.2rem' }} title="Instagram">◉</a>
+      <a href="https://www.tiktok.com/@hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', fontSize: '1.2rem' }} title="TikTok">♪</a>
+      <a href="https://x.com/hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', fontSize: '1.2rem' }} title="X">✕</a>
+      <a href="https://www.facebook.com/hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#1877f2', textDecoration: 'none', fontSize: '1.2rem' }} title="Facebook">f</a>
+      <a href="https://www.linkedin.com/company/hadmajcom" target="_blank" rel="noopener noreferrer" style={{ color: '#0a66c2', textDecoration: 'none', fontSize: '1.2rem' }} title="LinkedIn">in</a>
+    </div>
+  );
+}
+
+function MovingTicker() {
+  const text = '✦ المجرة الحضارية — منصة المؤسسات الحضارية العالمية — معاً نزداد توهجاً ✦ ';
+  const repeated = text.repeat(6);
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 199,
+      background: 'rgba(5,3,18,0.92)',
+      borderTop: '1px solid rgba(79,195,247,0.12)',
+      overflow: 'hidden',
+      height: 32,
+      display: 'flex',
+      alignItems: 'center',
+      direction: 'rtl',
+      fontFamily: "'Tajawal', sans-serif",
+    }}>
       <div style={{
-        width: '100%', maxWidth: 480,
-        height: 1,
-        background: 'linear-gradient(90deg, transparent, rgba(79,195,247,0.4) 30%, rgba(133,199,154,0.4) 70%, transparent)',
-        animation: 'footer-glow 3s ease-in-out infinite',
-        marginBottom: 4,
-      }} />
-
-      {/* Social icons row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-
-        {/* YouTube */}
-        <a
-          href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ"
-          target="_blank" rel="noopener noreferrer"
-          className="social-link"
-          title="قناة يوتيوب المجرة الحضارية"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444">
-            <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81zM9.75 15.52V8.48L15.5 12l-5.75 3.52z"/>
-          </svg>
-        </a>
-
-        {/* Instagram */}
-        <a
-          href="https://www.instagram.com/hadmajcom/"
-          target="_blank" rel="noopener noreferrer"
-          className="social-link"
-          title="انستغرام المجرة الحضارية"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <defs>
-              <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#f09433"/>
-                <stop offset="25%" stopColor="#e6683c"/>
-                <stop offset="50%" stopColor="#dc2743"/>
-                <stop offset="75%" stopColor="#cc2366"/>
-                <stop offset="100%" stopColor="#bc1888"/>
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-grad)" strokeWidth="2"/>
-            <circle cx="12" cy="12" r="5" stroke="url(#ig-grad)" strokeWidth="2"/>
-            <circle cx="17.5" cy="6.5" r="1.2" fill="url(#ig-grad)"/>
-          </svg>
-        </a>
-
-        {/* TikTok */}
-        <a
-          href="https://www.tiktok.com/@hadmajcom?lang=en"
-          target="_blank" rel="noopener noreferrer"
-          className="social-link"
-          title="تيك توك المجرة الحضارية"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.21a8.18 8.18 0 0 0 4.78 1.52V7.28a4.85 4.85 0 0 1-1.01-.59z"/>
-          </svg>
-        </a>
-
-        {/* X (Twitter) */}
-        <a
-          href="https://x.com/hadmajcom"
-          target="_blank" rel="noopener noreferrer"
-          className="social-link"
-          title="منصة X المجرة الحضارية"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.731-8.835L2.25 2.25h6.964l4.263 5.636 5.767-5.636zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-          </svg>
-        </a>
-      </div>
-
-      {/* Copyright */}
-      <p style={{
-        margin: 0, fontSize: '0.78rem',
-        color: 'rgba(150,170,200,0.5)',
-        letterSpacing: '0.04em',
+        display: 'flex',
+        whiteSpace: 'nowrap',
+        animation: 'ticker-scroll 35s linear infinite',
+        color: 'rgba(79,195,247,0.7)',
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        letterSpacing: '0.03em',
       }}>
-        © {new Date().getFullYear()} المجرة الحضارية — جميع الحقوق محفوظة
-      </p>
-    </footer>
+        <span>{repeated}</span>
+        <span>{repeated}</span>
+      </div>
+      <style>{`
+        @keyframes ticker-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   );
 }

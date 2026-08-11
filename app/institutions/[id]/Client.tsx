@@ -1196,6 +1196,100 @@ function AdCreateModal({ institutionId, onClose, onSuccess }: {
   );
 }
 
+// ── Video Proposal Modal ──────────────────────────────────────
+function VideoProposalModal({ institutionId, onClose, onSuccess }: {
+  institutionId: string; onClose: () => void; onSuccess: () => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/video-proposals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ institution_id: Number(institutionId), title, description, video_url: videoUrl }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'فشل إرسال المقترح');
+      onSuccess();
+    } catch (ex: any) {
+      alert(ex.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ background: C.bgCard, borderRadius: 20, padding: 28, maxWidth: 520, width: '100%', border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ margin: '0 0 18px', color: C.text, fontSize: '1.1rem', fontWeight: 800 }}>🎥 مقترح فيديو جديد</h3>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الفيديو" required style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.04)', color: C.text, fontSize: '0.9rem', outline: 'none' }} />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="وصف الفيديو" rows={3} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.04)', color: C.text, fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
+          <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="رابط الفيديو (YouTube/Vimeo/Cloudflare)" required style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.04)', color: C.text, fontSize: '0.9rem', outline: 'none' }} />
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.textMuted, cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
+            <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${C.teal}, ${C.navy})`, color: C.mint, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري الإرسال...' : 'إرسال المقترح'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Tweet Create Modal ────────────────────────────────────────
+function TweetCreateModal({ institutionId, onClose, onSuccess }: {
+  institutionId: string; onClose: () => void; onSuccess: () => void;
+}) {
+  const [content, setContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (content.length > 500) { alert('الحد الأقصى 500 حرف'); return; }
+    setSubmitting(true);
+    try {
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/pulse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ content, category: 'tweet', institution_id: Number(institutionId) }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'فشل نشر التغريدة');
+      onSuccess();
+    } catch (ex: any) {
+      alert(ex.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ background: C.bgCard, borderRadius: 20, padding: 28, maxWidth: 520, width: '100%', border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ margin: '0 0 18px', color: C.text, fontSize: '1.1rem', fontWeight: 800 }}>🐦 تغريدة جديدة</h3>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="ماذا يحدث في مؤسستكم؟" rows={4} required maxLength={500} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.04)', color: C.text, fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: C.textMuted }}>{content.length}/500</span>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'transparent', color: C.textMuted, cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
+              <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${C.teal}, ${C.green})`, color: C.bg, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري النشر...' : 'نشر'}</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Announcements ─────────────────────────────────────────────
 type AnnouncementTab = 'all' | 'events' | 'news';
 
@@ -1206,6 +1300,10 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
   const [showAdModal, setShowAdModal] = useState(false);
   const [adDone, setAdDone] = useState(false);
   const [adBalance, setAdBalance] = useState<number | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoDone, setVideoDone] = useState(false);
+  const [showTweetModal, setShowTweetModal] = useState(false);
+  const [tweetDone, setTweetDone] = useState(false);
   const canCreate = isOwner || isAdmin;
 
   useEffect(() => {
@@ -1276,6 +1374,29 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
                 fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 3px 10px rgba(249,168,37,0.28)',
               }}>📢 إعلان جديد</button>
             )}
+            {canCreate && (
+              <Link href={`/news/create${institutionId ? `?institution_id=${institutionId}&category=announcement` : ''}`} style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 30,
+                background: `linear-gradient(135deg, ${C.teal}, ${C.navy})`, color: C.mint,
+                textDecoration: 'none', fontSize: '0.78rem', fontWeight: 700,
+                boxShadow: `0 3px 10px rgba(78,141,156,0.22)`,
+              }}>📢 إعلان</Link>
+            )}
+            {canCreate && (
+              <button onClick={() => setShowVideoModal(true)} style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 30,
+                background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`, color: C.mint,
+                border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+                boxShadow: `0 3px 10px rgba(78,141,156,0.22)`,
+              }}>🎥 فيديو</button>
+            )}
+            {canCreate && (
+              <button onClick={() => setShowTweetModal(true)} style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 30,
+                background: `linear-gradient(135deg, ${C.teal}, ${C.green})`, color: C.bg,
+                border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+              }}>🐦 تغريدة</button>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 2 }}>
@@ -1337,6 +1458,20 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
         institutionId={institutionId}
         onClose={() => setShowAdModal(false)}
         onSuccess={() => { setShowAdModal(false); setAdDone(true); setTimeout(() => setAdDone(false), 6000); }}
+      />
+    )}
+    {showVideoModal && institutionId && (
+      <VideoProposalModal
+        institutionId={institutionId}
+        onClose={() => setShowVideoModal(false)}
+        onSuccess={() => { setShowVideoModal(false); setVideoDone(true); setTimeout(() => setVideoDone(false), 6000); }}
+      />
+    )}
+    {showTweetModal && institutionId && (
+      <TweetCreateModal
+        institutionId={institutionId}
+        onClose={() => setShowTweetModal(false)}
+        onSuccess={() => { setShowTweetModal(false); setTweetDone(true); setTimeout(() => setTweetDone(false), 6000); }}
       />
     )}
     </>

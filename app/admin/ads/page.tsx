@@ -144,10 +144,11 @@ export default function AdminAdsPage() {
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'فشل إنشاء الإعلان');
+      const msg = data.data?.is_admin ? '✓ تم إنشاء الإعلان بنجاح (مجاني - بدون رصيد)' : '✓ تم إنشاء الإعلان بنجاح';
       setShowCreate(false);
       setForm(emptyForm);
       setImagePreview('');
-      setSuccessMsg('✓ تم إنشاء الإعلان بنجاح');
+      setSuccessMsg(msg);
       setTimeout(() => setSuccessMsg(''), 3000);
       loadAll();
     } catch (ex: any) {

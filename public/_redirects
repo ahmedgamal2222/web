@@ -3,6 +3,9 @@
 # Each route needs both variants: with and without trailing slash
 # (next.config has trailingSlash:true so browsers always end up on the /slug/ form)
 
+/api/auth/google  /google-auth-callback.html  200
+/api/auth/google/ /google-auth-callback.html  200
+
 /institutions/:id/agreements/  /institutions/default/agreements/  200
 /institutions/:id/agreements   /institutions/default/agreements/  200
 /institutions/:id/employees/   /institutions/default/employees/   200

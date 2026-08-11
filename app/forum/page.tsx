@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import GalaxyLogo from '@/components/GalaxyLogo';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
@@ -55,24 +56,6 @@ interface Reply {
   avatar_url?: string;
   institution_name_ar?: string;
   created_at: string;
-}
-
-function GalaxyLogo() {
-  return (
-    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', userSelect: 'none' }}>
-      <svg width="42" height="42" viewBox="0 0 54 54" fill="none">
-        <defs><radialGradient id="rg_forum" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#EDF7BD" /><stop offset="42%" stopColor="#85C79A" /><stop offset="100%" stopColor="#4E8D9C" /></radialGradient></defs>
-        <circle cx="27" cy="27" r="26" fill="rgba(78,141,156,0.1)" />
-        <ellipse cx="27" cy="27" rx="24.5" ry="9.5" stroke="#4E8D9C" strokeWidth="0.85" strokeDasharray="4 3" fill="none" opacity="0.6" transform="rotate(-22 27 27)" />
-        <path d="M27 7.5 L29.8 18.5 L41.5 20.5 L33 29 L35.5 41 L27 34.5 L18.5 41 L21 29 L12.5 20.5 L24.2 18.5 Z" fill="url(#rg_forum)" />
-        <circle cx="27" cy="27" r="3.4" fill="white" opacity="0.92" />
-      </svg>
-      <div>
-        <div style={{ fontSize: '1.4rem', fontWeight: 800, background: 'linear-gradient(90deg, #4fc3f7, #ffffff, #7c4dff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '1px', fontFamily: "'Tajawal', sans-serif" }}>المجرة الحضارية</div>
-        <div style={{ fontSize: '0.72rem', color: '#8aa4bc', display: 'block', marginTop: -2, fontFamily: "'Tajawal', sans-serif" }}>كوكبة المؤسسات المضيئة</div>
-      </div>
-    </Link>
-  );
 }
 
 function timeAgo(dateStr: string): string {

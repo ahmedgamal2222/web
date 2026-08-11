@@ -301,6 +301,35 @@ CREATE TABLE IF NOT EXISTS weight_history (
   FOREIGN KEY (institution_id) REFERENCES institutions(id)
 );
 
+-- جدول مقترحات الفيديو
+CREATE TABLE IF NOT EXISTS video_proposals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  institution_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  video_url TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  reviewed_by INTEGER,
+  reviewed_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (institution_id) REFERENCES institutions(id)
+);
+
+-- جدول تتبع زيارات الموقع
+CREATE TABLE IF NOT EXISTS site_visits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT,
+  ip_address TEXT,
+  user_agent TEXT,
+  page_url TEXT,
+  referrer TEXT,
+  country TEXT,
+  city TEXT,
+  device_type TEXT,
+  visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- إنشاء الفهارس لتحسين الأداء
 CREATE INDEX idx_institutions_type ON institutions(type);
 CREATE INDEX idx_institutions_country ON institutions(country);

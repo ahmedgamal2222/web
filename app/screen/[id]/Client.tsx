@@ -113,6 +113,7 @@ export default function ScreenPage() {
   const isVideoMutedRef = useRef(true);
   const ytDestroyedRef = useRef(false);
   const [ytApiReady, setYtApiReady] = useState(false);
+  const [focusStarId, setFocusStarId] = useState<number | undefined>(undefined);
 
   // مزامنة ref مع state
   useEffect(() => { isVideoMutedRef.current = isVideoMuted; }, [isVideoMuted]);
@@ -1512,11 +1513,6 @@ const stopSpaceSound = () => {
         {' — الشاشة الحضارية'}
       </div>
 
-      <div className="screen-status">
-        <span className="status-dot" />
-        البث المباشر - نشط
-      </div>
-
       {/* الربع 1: بث المحاضرات */}
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
@@ -1645,10 +1641,8 @@ const stopSpaceSound = () => {
                     <span className="vol-bar" />
                     <span className="vol-bar" />
                     <span className="vol-bar" />
-                    <span className="vol-bar" />
                   </span>
                 ) : null}
-                <span className="vol-label">{isVideoMuted ? 'تشغيل الصوت' : 'كتم الصوت'}</span>
               </button>
             )}
           </div>
@@ -1758,6 +1752,7 @@ const stopSpaceSound = () => {
               autoRotate={true}
               backgroundStarsCount={15000}
               highlightStarId={Number(resolvedId)}
+              focusStarId={focusStarId}
             />
           ) : (
             <>
@@ -1888,6 +1883,59 @@ const stopSpaceSound = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* زر الذهاب لموقع المؤسسة في المجرة */}
+      {galaxyData && (
+        <button
+          onClick={() => {
+            const id = Number(resolvedId);
+            setFocusStarId(prev => prev === id ? undefined : id);
+          }}
+          title="الذهاب إلى موقع المؤسسة في المجرة"
+          style={{
+            position: 'fixed',
+            bottom: pulse.length > 0 ? 44 : 24,
+            left: 16,
+            zIndex: 110,
+            background: 'rgba(10, 15, 30, 0.88)',
+            backdropFilter: 'blur(12px)',
+            border: '1.5px solid rgba(255,215,0,0.5)',
+            borderRadius: '50%',
+            width: 48,
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: '#FFD700',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.15)',
+            transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+            outline: 'none',
+            transform: focusStarId === Number(resolvedId) ? 'scale(1.1)' : 'scale(1)',
+            borderColor: focusStarId === Number(resolvedId) ? '#FFD700' : 'rgba(255,215,0,0.5)',
+            boxShadow: focusStarId === Number(resolvedId)
+              ? '0 6px 28px rgba(255,215,0,0.35), 0 0 24px rgba(255,215,0,0.25)'
+              : '0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.15)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.12)';
+            e.currentTarget.style.borderColor = '#FFD700';
+            e.currentTarget.style.boxShadow = '0 6px 28px rgba(255,215,0,0.3), 0 0 24px rgba(255,215,0,0.25)';
+          }}
+          onMouseLeave={(e) => {
+            if (focusStarId !== Number(resolvedId)) {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.borderColor = 'rgba(255,215,0,0.5)';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.15)';
+            }
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        </button>
       )}
 
       {/* Backdrop — إغلاق الربع المكبَّر بالنقر خارجه */}
