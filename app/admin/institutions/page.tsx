@@ -317,6 +317,34 @@ export default function AdminInstitutionsPage() {
     }
   }
 
+  async function handleExcelUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/institutions/upload-excel`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'فشل رفع الملف');
+
+      alert(data.message + '\n\nتم إنشاء ' + data.data.created + ' مؤسسة');
+      await load();
+      await loadCountries();
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setLoading(false);
+      if (e.target) (e.target as HTMLInputElement).value = '';
+    }
+  }
+
   const stats = useMemo(() => ({
     total:    allInstitutions.length,
     active:   allInstitutions.filter(i => i.status === 'active').length,
@@ -354,6 +382,20 @@ export default function AdminInstitutionsPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
+          <label style={{
+            background: `linear-gradient(135deg, ${C.teal}, ${C.darkNavy})`, color: C.lightMint,
+            border: 'none', borderRadius: 40, padding: '10px 22px',
+            cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            📤 رفع Excel
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleExcelUpload}
+              style={{ display: 'none' }}
+            />
+          </label>
           <Link
             href="/admin/requests"
             style={{

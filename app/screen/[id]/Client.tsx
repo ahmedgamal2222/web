@@ -1125,6 +1125,36 @@ const stopSpaceSound = () => {
           transform: scale(1.1);
         }
 
+        /* ─── علامات الإضافة (+) فوق الأرباع ─── */
+        .quad-plus-btn {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          z-index: 20;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,215,0,0.6);
+          background: rgba(10,15,30,0.85);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          color: #FFD700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+          font-weight: 700;
+          transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+        .quad-plus-btn:hover {
+          border-color: #FFD700;
+          box-shadow: 0 4px 20px rgba(255,215,0,0.35), 0 0 30px rgba(255,215,0,0.15);
+          transform: scale(1.15) rotate(90deg);
+          background: rgba(255,215,0,0.15);
+        }
+
         /* ─── شريط نبض المجرة (مثل الجزيرة) ─── */
         .pulse-ticker-bar {
           position: fixed;
@@ -1875,43 +1905,6 @@ const stopSpaceSound = () => {
 
       `}</style>
 
-      {/* زر القائمة (+) */}
-      <div className="screen-plus-menu">
-        <button
-          className="screen-plus-btn"
-          onClick={() => setShowScreenPlusMenu(v => !v)}
-          title="القائمة"
-        >
-          {showScreenPlusMenu ? '✕' : '+'}
-        </button>
-        {showScreenPlusMenu && (
-          <div className="screen-plus-dropdown">
-            <button onClick={() => { window.location.href = `/admin/ads?institution_id=${resolvedId}`; }}>
-              <span>📢</span> إعلان جديد
-            </button>
-            <button onClick={() => setShowVideoModal(true)}>
-              <span>🎥</span> مقترح فيديو
-            </button>
-            <button onClick={() => setShowTweetModal(true)}>
-              <span>🐦</span> تغريدة
-            </button>
-            <button onClick={() => window.location.href = '/admin/ads/credits'}>
-              <span>💰</span> تعبئة رصيد
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* شريط سوشيال ميديا شفاف */}
-      <div className={`screen-social-bar${socialBarVisible ? ' visible' : ''}`}>
-        <a href="https://www.youtube.com/channel/UCBZTcMlLq7UQOaLKPRVj2iQ" target="_blank" rel="noopener noreferrer" title="YouTube">▶</a>
-        <a href="https://www.instagram.com/hadmajcom/" target="_blank" rel="noopener noreferrer" title="Instagram">◉</a>
-        <a href="https://www.tiktok.com/@hadmajcom" target="_blank" rel="noopener noreferrer" title="TikTok">♪</a>
-        <a href="https://x.com/hadmajcom" target="_blank" rel="noopener noreferrer" title="X">✕</a>
-        <a href="https://www.facebook.com/hadmajcom" target="_blank" rel="noopener noreferrer" title="Facebook">f</a>
-        <a href="https://www.linkedin.com/company/hadmajcom" target="_blank" rel="noopener noreferrer" title="LinkedIn">in</a>
-      </div>
-
       {/* شريط المؤسسة */}
       <div className="institution-info">
         <span className="institution-name">{institution?.name_ar || institution?.name}</span>
@@ -1947,6 +1940,11 @@ const stopSpaceSound = () => {
             >
               {expandedQuadrant === 1 ? '⊡' : '⊞'}
             </button>
+            <button
+              onClick={() => window.location.href = `/admin/lectures?institution_id=${resolvedId}`}
+              title="إضافة محاضرة"
+              className="quad-plus-btn"
+            >+</button>
           </div>
 
           {/* ─ منطقة الفيديو ─ */}
@@ -2133,6 +2131,11 @@ const stopSpaceSound = () => {
             <circle cx="12" cy="10" r="3" />
           </svg>
         </button>
+        <button
+          onClick={() => window.location.href = `/admin/institutions?country=${institution?.country || ''}`}
+          title="إدارة المؤسسات"
+          className="quad-plus-btn"
+        >+</button>
         {/* <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
@@ -2200,6 +2203,11 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 3 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">💫 نبض المجرة</div>
+        <button
+          onClick={() => setShowTweetModal(true)}
+          title="إضافة تغريدة"
+          className="quad-plus-btn"
+        >+</button>
         <div className="pulse-list">
           {pulse.length > 0 ? pulse.map((item) => (
             <div
@@ -2234,6 +2242,11 @@ const stopSpaceSound = () => {
         <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
           {expandedQuadrant === 4 ? '⊡' : '⊞'}
         </button>
+        <button
+          onClick={() => window.location.href = `/admin/ads?institution_id=${resolvedId}`}
+          title="إضافة إعلان"
+          className="quad-plus-btn"
+        >+</button>
         {currentAd ? (
           <div key={currentAd.id} className="ad-full">
             {/* عداد تنازلي دائري */}

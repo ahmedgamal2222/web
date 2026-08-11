@@ -349,6 +349,25 @@ function TopBar({
             >
               تسجيل
             </Link>
+
+            <Link
+              href="/screen/default"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 20px',
+                background: 'rgba(255,215,0,0.12)',
+                border: '1px solid rgba(255,215,0,0.5)',
+                borderRadius: 40,
+                color: '#FFD700',
+                fontSize: '0.88rem',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'all 0.25s',
+                letterSpacing: '0.02em',
+              }}
+            >
+              📺 الشاشة الحضارية
+            </Link>
           </div>
         )}
       </div>
