@@ -11,8 +11,6 @@ function getSessionId() {
   return '';
 }
 
-import GalaxyLogo from '@/components/GalaxyLogo';
-
 const NAV_LINKS = [
   { href: '/pulse', label:'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±' }, { href:'/campaigns', label:'Ø§Ù„Ø­Ù…Ù„Ø§Øª' },
   { href:'/marketplace', label:'Ø§Ù„Ø³ÙˆÙ‚ Ø§Ù„Ø±Ù‚Ù…ÙŠ', active:true }, { href:'/cloud', label:'â˜ï¸ Ø§Ù„Ø³Ø­Ø§Ø¨Ø©' },
