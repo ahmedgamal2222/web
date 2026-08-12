@@ -100,6 +100,8 @@ export default function ScreenPage() {
   const [user, setUser] = useState<any>(null);
   const [editingPulseId, setEditingPulseId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
+  const [selectedPulseId, setSelectedPulseId] = useState<number | null>(null);
+  const [hoveredPulseId, setHoveredPulseId] = useState<number | null>(null);
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -1333,6 +1335,10 @@ const stopSpaceSound = () => {
           70% { box-shadow: 0 0 0 12px rgba(224, 48, 48, 0); }
           100% { box-shadow: 0 0 0 0 rgba(224, 48, 48, 0); }
         }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
 
         /* ─── شريط سوشيال ميديا شفاف ─── */
         .screen-social-bar {
@@ -2062,8 +2068,6 @@ const stopSpaceSound = () => {
 
       {/* شريط المؤسسة */}
       <div className="institution-info" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <span className="institution-name">{institution?.name_ar || institution?.name}</span>
-        {' — الشاشة الحضارية'}
         {balance !== null && (
           <span style={{
             background: 'rgba(255,215,0,0.15)',
@@ -2103,10 +2107,7 @@ const stopSpaceSound = () => {
             <div className="q1-center-group">
               {displayLecture && (
                 <div className="q1-title-row">
-                  <span className="q1-title-text">{displayLecture.title}</span>
-                  {displayLecture ? (
-                    <span className="badge-live-dot-only" title="بث مباشر"><span className="badge-live-dot" /></span>
-                  ) : null}
+                  <span className="badge-live-dot-only" title="بث مباشر"><span className="badge-live-dot" /></span>
                 </div>
               )}
             </div>
@@ -2357,12 +2358,16 @@ const stopSpaceSound = () => {
             const isAdminUser = user?.role === 'admin';
             const canEdit = isPulse && (isAdminUser || item.application_user_id === user?.id);
             const isEditing = editingPulseId === item.id;
+            const showActions = canEdit && (selectedPulseId === item.id || hoveredPulseId === item.id);
 
             return (
               <div
                 key={`${item.type}-${item.id}`}
                 className={`feed-item feed-${item.type}`}
-                style={{ cursor: 'pointer', position: 'relative' }}
+                style={{ cursor: canEdit ? 'pointer' : 'default', position: 'relative' }}
+                onClick={() => canEdit && setSelectedPulseId(prev => prev === item.id ? null : item.id)}
+                onMouseEnter={() => canEdit && setHoveredPulseId(item.id)}
+                onMouseLeave={() => setHoveredPulseId(null)}
               >
                 {isEditing ? (
                   <div style={{ padding: '8px 6px', borderBottom: '1px solid rgba(255,215,0,0.12)' }}>
@@ -2373,8 +2378,8 @@ const stopSpaceSound = () => {
                       style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(0,0,0,0.4)', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'vertical' }}
                     />
                     <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                      <button onClick={async () => { await updatePulse(item.id, { content: editingText }); setEditingPulseId(null); loadPulse(); }} style={{ padding: '4px 14px', borderRadius: 6, border: 'none', background: '#4E8D9C', color: 'white', fontSize: '0.78rem', cursor: 'pointer' }}>💾 حفظ</button>
-                      <button onClick={() => setEditingPulseId(null)} style={{ padding: '4px 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#aaa', fontSize: '0.78rem', cursor: 'pointer' }}>إلغاء</button>
+                      <button onClick={async (e) => { e.stopPropagation(); await updatePulse(item.id, { content: editingText }); setEditingPulseId(null); setSelectedPulseId(null); loadPulse(); }} style={{ padding: '4px 14px', borderRadius: 6, border: 'none', background: '#4E8D9C', color: 'white', fontSize: '0.78rem', cursor: 'pointer' }}>💾 حفظ</button>
+                      <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(null); }} style={{ padding: '4px 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#aaa', fontSize: '0.78rem', cursor: 'pointer' }}>إلغاء</button>
                     </div>
                   </div>
                 ) : (
@@ -2385,10 +2390,10 @@ const stopSpaceSound = () => {
                       {item.subtitle && <span className="feed-subtitle" style={{ fontSize: '0.78rem', color: '#FFD700', opacity: 0.8 }}>{item.subtitle}</span>}
                       {item.is_featured && <span style={{ fontSize: '0.7rem', color: '#FFD700' }}>⭐</span>}
                     </div>
-                    {canEdit && (
-                      <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4, zIndex: 5 }}>
+                    {showActions && (
+                      <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4, zIndex: 5, animation: 'fadeIn 0.2s ease' }}>
                         <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(item.id); setEditingText(item.content); }} style={{ background: 'rgba(78,141,156,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(78,141,156,0.4)', borderRadius: 8, color: '#4E8D9C', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>✏️</button>
-                        <button onClick={(e) => { e.stopPropagation(); if (confirm('حذف هذا العنصر؟')) { deletePulse(item.id).then(() => { setPulse(pulse.filter(p => p.id !== item.id)); }); } }} style={{ background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 8, color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>🗑️</button>
+                        <button onClick={(e) => { e.stopPropagation(); if (confirm('حذف هذا العنصر؟')) { deletePulse(item.id).then(() => { setPulse(pulse.filter(p => p.id !== item.id)); setSelectedPulseId(null); }); } }} style={{ background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 8, color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>🗑️</button>
                       </div>
                     )}
                   </>
