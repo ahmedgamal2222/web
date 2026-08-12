@@ -1144,7 +1144,7 @@ const stopSpaceSound = () => {
            left: 56px;
           z-index: 20;
           display: flex;
-          align-items: center;
+          align-items: right;
           gap: 10px;
         }
         .q1-live-badge {
@@ -1164,20 +1164,7 @@ const stopSpaceSound = () => {
           border-radius: 50%;
           animation: blink 1s infinite;
         }
-        .q1-institution-name-overlay {
-          background: rgba(0,0,0,0.75);
-          backdrop-filter: blur(8px);
-          color: #FFD700;
-          padding: 5px 14px;
-          border-radius: 20px;
-          font-size: 0.82rem;
-          font-weight: 700;
-          border: 1px solid rgba(255,215,0,0.3);
-          max-width: 300px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+     
 
         /* ─── أيقونة اللوكيشن في الربع 2 ─── */
         .q2-location-btn {
