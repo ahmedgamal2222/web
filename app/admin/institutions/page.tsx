@@ -326,9 +326,12 @@ export default function AdminInstitutionsPage() {
 
     try {
       setLoading(true);
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
       const res = await fetch(`${API_BASE}/api/institutions/upload-excel`, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers: {
+          'X-Session-ID': sid,
+        },
         body: formData,
       });
       const data = await res.json();

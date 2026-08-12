@@ -871,10 +871,10 @@ function AboutSection({ institution }: { institution: Institution }) {
 }
 
 // ── Ad Create Modal ───────────────────────────────────────────
-const PRICE_PER_DAY = 10; // $10 per day
-const GLOBAL_SURCHARGE = 5; // +$5/day for global targeting
+export const PRICE_PER_DAY = 10; // $10 per day
+export const GLOBAL_SURCHARGE = 5; // +$5/day for global targeting
 
-function AdCreateModal({ institutionId, onClose, onSuccess }: {
+export function AdCreateModal({ institutionId, onClose, onSuccess }: {
   institutionId: string; onClose: () => void; onSuccess: () => void;
 }) {
   const [form, setForm] = useState({
@@ -1054,11 +1054,18 @@ function AdCreateModal({ institutionId, onClose, onSuccess }: {
               <p style={{ color: C.danger, marginBottom: 18, fontWeight: 600, fontSize: '0.9rem' }}>
                 رصيدك غير كافٍ (${balance?.toFixed(0)} / ${cost} مطلوب)
               </p>
-              <a href="https://paypal.me/hadmaj?amount=30" target="_blank" rel="noopener noreferrer" style={{
-                display: 'inline-block', background: '#0070ba', color: 'white',
-                padding: '11px 26px', borderRadius: 30, textDecoration: 'none',
-                fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 4px 16px rgba(0,112,186,0.35)',
-              }}>💳 شحن رصيد – 30$ عبر PayPal</a>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link href="/admin/ads/credits" style={{
+                  display: 'inline-block', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a',
+                  padding: '11px 26px', borderRadius: 30, textDecoration: 'none',
+                  fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 4px 16px rgba(255,215,0,0.35)',
+                }}>💰 تعبئة الرصيد</Link>
+                <a href="https://paypal.me/hadmaj?amount=30" target="_blank" rel="noopener noreferrer" style={{
+                  display: 'inline-block', background: '#0070ba', color: 'white',
+                  padding: '11px 26px', borderRadius: 30, textDecoration: 'none',
+                  fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 4px 16px rgba(0,112,186,0.35)',
+                }}>💳 شحن عبر PayPal</a>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1823,6 +1830,67 @@ export default function InstitutionClient() {
   const isOwner = Number(currentUser?.institution_id) === institution.id;
   const isAdmin = currentUser?.role === 'admin';
 
+  function BalanceCard({ institutionId }: { institutionId: string }) {
+    const [balance, setBalance] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      fetch(`${API_BASE}/api/ads/credits/${institutionId}`, { headers: { 'X-Session-ID': localStorage.getItem('sessionId') || '' } })
+        .then(r => r.json())
+        .then(d => { if (d.success) setBalance(d.balance); else setBalance(0); })
+        .catch(() => setBalance(0))
+        .finally(() => setLoading(false));
+    }, [institutionId]);
+
+    return (
+      <div style={{
+        maxWidth: 1240, margin: '0 auto 0', padding: '0 20px',
+        position: 'relative', zIndex: 10,
+      }}>
+        <div style={{
+          background: `linear-gradient(135deg, rgba(255,215,0,0.12) 0%, rgba(40,28,89,0.95) 100%)`,
+          borderRadius: 24, border: `1.5px solid rgba(255,215,0,0.3)`,
+          padding: '22px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 16,
+          boxShadow: `0 8px 32px rgba(255,215,0,0.12)`,
+          backdropFilter: 'blur(12px)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 16,
+              background: `linear-gradient(135deg, #FFD700, #FFA500)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.6rem', boxShadow: `0 4px 20px rgba(255,215,0,0.35)`,
+            }}>💰</div>
+            <div>
+              <div style={{ fontSize: '0.85rem', color: '#FFD700', fontWeight: 700, marginBottom: 4 }}>
+                رصيد الإعلانات
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: 900, color: '#FFD700', letterSpacing: '-0.02em' }}>
+                {loading ? 'جاري التحميل...' : `$${balance ?? 0}`}
+              </div>
+            </div>
+          </div>
+          <Link href="/admin/ads/credits" style={{
+            padding: '12px 28px', borderRadius: 30,
+            background: `linear-gradient(135deg, #FFD700, #FFA500)`,
+            color: '#0a0a1a', textDecoration: 'none',
+            fontWeight: 800, fontSize: '0.95rem',
+            boxShadow: `0 4px 16px rgba(255,215,0,0.3)`,
+            transition: 'all 0.2s',
+            whiteSpace: 'nowrap',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px rgba(255,215,0,0.45)`; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 4px 16px rgba(255,215,0,0.3)`; }}
+          >
+            تعبئة الرصيد
+          </Link>
+        </div>
+      </div>
+    );
+
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text, direction: 'rtl', fontFamily: "'Tajawal', 'Cairo', sans-serif" }}>
       <style>{`
@@ -1839,6 +1907,7 @@ export default function InstitutionClient() {
         <PageHeader />
         <HeroSection institution={institution} />
         <StatsGrid institution={institution} agreementsCount={agreements.length} />
+        {(isOwner || isAdmin) && <BalanceCard institutionId={id} />}
         <KPIDashboard institution={institution} agreementsCount={agreements.length} />
         <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 20px 60px', display: 'grid', gridTemplateColumns: '210px 1fr', gap: 22, alignItems: 'flex-start' }}>
           <div style={{ position: 'sticky', top: 80, height: 'fit-content' }}>

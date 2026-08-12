@@ -777,3 +777,86 @@ export async function updateUserInterests(interests: string[]): Promise<boolean>
   });
   return res.ok;
 }
+
+// ============================================================
+// 💡 Suggestions APIs
+// ============================================================
+
+export interface Suggestion {
+  id: number;
+  institution_id: number;
+  title: string;
+  description?: string;
+  video_url: string;
+  lecture_id?: number;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewed_by?: number;
+  reviewed_at?: string;
+  created_at: string;
+  institution_name?: string;
+  lecture_title?: string;
+}
+
+export async function createSuggestion(payload: {
+  institution_id: number;
+  title: string;
+  description?: string;
+  video_url: string;
+  lecture_id?: number;
+}): Promise<{ id: number }> {
+  const res = await fetchWithRetry<{ success: boolean; data: { id: number }; message: string }>(
+    `${API_BASE}/api/suggestions`,
+    { method: 'POST', body: JSON.stringify(payload) }
+  );
+  if (!res.success) throw new Error((res as any).message || 'فشل إنشاء الاقتراح');
+  return res.data;
+}
+
+export async function fetchSuggestions(params?: { status?: string; page?: number; limit?: number }): Promise<{ data: Suggestion[]; total: number }> {
+  const q = new URLSearchParams();
+  if (params?.status) q.set('status', params.status);
+  if (params?.page) q.set('page', String(params.page));
+  if (params?.limit) q.set('limit', String(params.limit));
+
+  const res = await fetch(`${API_BASE}/api/suggestions?${q}`, { headers: getAuthHeaders() });
+  if (!res.ok) return { data: [], total: 0 };
+  const json = await res.json() as any;
+  return { data: json.data ?? [], total: json.total ?? 0 };
+}
+
+export async function approveSuggestion(id: number): Promise<{ success: boolean; message: string }> {
+  const res = await fetchWithRetry<{ success: boolean; message: string }>(
+    `${API_BASE}/api/suggestions/${id}/approve`,
+    { method: 'POST' }
+  );
+  return res;
+}
+
+export async function rejectSuggestion(id: number): Promise<{ success: boolean; message: string }> {
+  const res = await fetchWithRetry<{ success: boolean; message: string }>(
+    `${API_BASE}/api/suggestions/${id}/reject`,
+    { method: 'POST' }
+  );
+  return res;
+}
+
+export async function fetchAdCreditBalance(): Promise<{ success: boolean; balance: number; institution_id: number }> {
+  const session = getSessionId();
+  if (!session) return { success: false, balance: 0, institution_id: 0 };
+  try {
+    const res = await fetch(`${API_BASE}/api/ads/credits/balance`, {
+      headers: { 'X-Session-ID': session },
+    });
+    if (!res.ok) return { success: false, balance: 0, institution_id: 0 };
+    return await res.json();
+  } catch {
+    return { success: false, balance: 0, institution_id: 0 };
+  }
+}
+
+export async function fetchAdCredits(institutionId: number | string): Promise<{ success: boolean; balance: number; transactions: any[] }> {
+  const res = await fetchWithRetry<{ success: boolean; balance: number; transactions: any[] }>(
+    `${API_BASE}/api/ads/credits/${institutionId}`
+  );
+  return res;
+}

@@ -336,6 +336,13 @@ export default function AdminDashboard() {
           color="#6366F1"
           link="/admin/support"
         />
+        <StatCard
+          title="الاقتراحات"
+          value="💡"
+          icon="💡"
+          color="#FFD700"
+          link="/admin/suggestions"
+        />
       </div>
 
       {/* أقسام سريعة */}

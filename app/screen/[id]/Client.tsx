@@ -6,6 +6,7 @@ import type { PulseItem } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
 import PulseDetailPopup from '@/components/PulseDetailPopup';
+import { AdCreateModal } from '@/app/institutions/[id]/Client';
 
 // ─── Relative time in Arabic ────────────────────────────────────────────────
 function timeAgoAr(dateStr: string): string {
@@ -119,6 +120,7 @@ export default function ScreenPage() {
   const ytDestroyedRef = useRef(false);
   const [ytApiReady, setYtApiReady] = useState(false);
   const [focusStarId, setFocusStarId] = useState<number | undefined>(undefined);
+  const [balance, setBalance] = useState<number | null>(null);
 
   // مزامنة ref مع state
   useEffect(() => { isVideoMutedRef.current = isVideoMuted; }, [isVideoMuted]);
@@ -284,6 +286,16 @@ export default function ScreenPage() {
     }).catch(() => {});
 
     return () => { clearInterval(pulseInterval); clearInterval(heartbeatInterval); };
+  }, [authenticated, resolvedId]);
+
+  // Fetch balance for institution owner
+  useEffect(() => {
+    if (!authenticated || !resolvedId || resolvedId === 'tv') return;
+    const sid = localStorage.getItem('sessionId') || '';
+    fetch(`${API_BASE}/api/ads/credits/balance`, { headers: { 'X-Session-ID': sid } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setBalance(d.balance); })
+      .catch(() => {});
   }, [authenticated, resolvedId]);
 
   // متابعة حالة التسجيل عندما يكون CF يعالج الفيديو بعد انتهاء البث
@@ -628,38 +640,39 @@ const stopSpaceSound = () => {
             width: 100vw; height: 100vh;
             background: #0a0a1a;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
             direction: rtl;
           }
-          .auth-container {
+          .auth-navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 64px;
+            background: rgba(10,10,26,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,215,0,0.25);
             display: flex;
-            width: 100%;
-            max-width: 900px;
-            padding: 20px;
-            gap: 40px;
             align-items: center;
             justify-content: center;
+            z-index: 100;
           }
-          .auth-brand {
-            flex: 1;
-            text-align: right;
-            padding: 20px;
-          }
-          .auth-brand h1 {
+          .auth-navbar h1 {
             color: #FFD700;
-            font-size: 2.2rem;
+            font-size: 1.4rem;
             font-weight: 900;
-            margin: 0 0 12px;
-            letter-spacing: 0.5px;
-            text-shadow: 0 0 30px rgba(255,215,0,0.3);
-          }
-          .auth-brand p {
-            color: rgba(255,255,255,0.6);
-            font-size: 1rem;
             margin: 0;
-            line-height: 1.6;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+          }
+          .auth-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            margin-top: 64px;
           }
           .auth-box {
             background: rgba(255,255,255,0.05);
@@ -668,7 +681,6 @@ const stopSpaceSound = () => {
             padding: 40px;
             width: 380px;
             text-align: center;
-            flex-shrink: 0;
           }
           .auth-box h2 { color: #FFD700; margin-bottom: 8px; }
           .auth-box p  { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
@@ -712,11 +724,10 @@ const stopSpaceSound = () => {
           button:disabled { opacity: 0.6; cursor: default; }
         `}</style>
 
+        <div className="auth-navbar">
+          <h1>✦ الشاشة الحضارية ✦</h1>
+        </div>
         <div className="auth-container">
-          <div className="auth-brand">
-            <h1>✦ الشاشة الحضارية ✦</h1>
-            <p>منصة العرض الرقمي الذكية<br />للمؤسسات التعليمية والثقافية</p>
-          </div>
           <div className="auth-box">
             <h2>تسجيل الدخول</h2>
             <p>أدخل رمز المرور الخاص بالمؤسسة</p>
@@ -1988,20 +1999,34 @@ const stopSpaceSound = () => {
       `}</style>
 
       {/* شريط المؤسسة */}
-      <div className="institution-info">
+      <div className="institution-info" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <span className="institution-name">{institution?.name_ar || institution?.name}</span>
         {' — الشاشة الحضارية'}
+        {balance !== null && (
+          <span style={{
+            background: 'rgba(255,215,0,0.15)',
+            border: '1px solid rgba(255,215,0,0.4)',
+            color: '#FFD700',
+            padding: '3px 12px',
+            borderRadius: 20,
+            fontSize: '0.78rem',
+            fontWeight: 800,
+            whiteSpace: 'nowrap',
+          }}>
+            ${balance}
+          </span>
+        )}
       </div>
 
       {/* الربع 1: بث المحاضرات */}
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
-          {/* ─ شريط علوي: البادج + المشاهدين + زر التكبير ─ */}
+          {/* ─ شريط علوي: البادج + المشاهدين + أزرار الإجراءات ─ */}
           <div className="q1-topbar">
             <div className="q1-badge-group">
               {liveLecture ? (
-                <span className="badge-live"><span className="badge-live-dot" />بث مباشر</span>
+                <span className="badge-live" style={{ background: '#e03030', color: 'white' }}><span className="badge-live-dot" />بث مباشر</span>
               ) : displayLecture ? (
                 displayLecture.stream_type === 'external' || parseExternalVideoUrl(displayLecture.stream_url || '') ? (
                   <span className="badge-recorded">🎥 بث خارجي</span>
@@ -2015,18 +2040,20 @@ const stopSpaceSound = () => {
                 <span className="q1-viewers-pill">👁️ {liveLecture.viewer_count} مشاهد</span>
               )}
             </div>
-            <button
-              className="q-expand-btn q-expand-inline"
-              onClick={() => setExpandedQuadrant(expandedQuadrant === 1 ? null : 1)}
-              title={expandedQuadrant === 1 ? 'تصغير' : 'تكبير'}
-            >
-              {expandedQuadrant === 1 ? '⊡' : '⊞'}
-            </button>
-            <button
-              onClick={() => setShowVideoModal(true)}
-              title="مقترحات الفيديو"
-              className="q1-inline-plus"
-            >+</button>
+            <div className="q1-action-group">
+              <button
+                className="q-expand-btn"
+                onClick={() => setExpandedQuadrant(expandedQuadrant === 1 ? null : 1)}
+                title={expandedQuadrant === 1 ? 'تصغير' : 'تكبير'}
+              >
+                {expandedQuadrant === 1 ? '⊡' : '⊞'}
+              </button>
+              <button
+                onClick={() => setShowVideoModal(true)}
+                title="مقترحات الفيديو"
+                className="quad-plus-btn"
+              >+</button>
+            </div>
           </div>
 
           {/* ─ منطقة الفيديو ─ */}
@@ -2195,31 +2222,26 @@ const stopSpaceSound = () => {
         onMouseEnter={startSpaceSound}
         onMouseLeave={stopSpaceSound}
       >
-        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 2 ? null : 2)} title={expandedQuadrant === 2 ? 'تصغير' : 'تكبير'}>
-          {expandedQuadrant === 2 ? '⊡' : '⊞'}
-        </button>
+        <div className="q-action-group">
+          <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 2 ? null : 2)} title={expandedQuadrant === 2 ? 'تصغير' : 'تكبير'}>
+            {expandedQuadrant === 2 ? '⊡' : '⊞'}
+          </button>
+          <button
+            className="q2-location-btn"
+            onClick={() => {
+              const id = Number(resolvedId);
+              setFocusStarId(prev => prev === id ? undefined : id);
+            }}
+            title="الذهاب إلى موقع المؤسسة في المجرة"
+            style={{ position: 'static', top: 'unset', left: 'unset', transform: 'none' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+          </button>
+        </div>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
-        {/* أيقونة اللوكيشن في.center */}
-        <button
-          className="q2-location-btn"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 20,
-          }}
-          onClick={() => {
-            const id = Number(resolvedId);
-            setFocusStarId(prev => prev === id ? undefined : id);
-          }}
-          title="الذهاب إلى موقع المؤسسة في المجرة"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-        </button>
         {/* <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
@@ -2478,12 +2500,7 @@ const stopSpaceSound = () => {
 
       {/* مودال إنشاء إعلان */}
       {showAdModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowAdModal(false)}>
-          <div style={{ background: '#0f1626', borderRadius: 20, padding: 28, maxWidth: 520, width: '100%', border: '1px solid rgba(255,215,0,0.3)' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 18px', color: '#FFD700', fontSize: '1.1rem', fontWeight: 800 }}>📢 إنشاء إعلان جديد</h3>
-            <AdCreationForm institutionId={resolvedId} onClose={() => setShowAdModal(false)} onSuccess={() => { setShowAdModal(false); alert('تم إنشاء الإعلان بنجاح'); }} />
-          </div>
-        </div>
+        <AdCreateModal institutionId={resolvedId} onClose={() => setShowAdModal(false)} onSuccess={() => { setShowAdModal(false); }} />
       )}
     </div>
   );
@@ -2524,46 +2541,6 @@ function VideoProposalForm({ institutionId, onClose, onSuccess }: { institutionI
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
         <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#8aa4bc', cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
         <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري الإرسال...' : 'إرسال المقترح'}</button>
-      </div>
-    </form>
-  );
-}
-
-// ── نموذج إنشاء إعلان ─────────────────────────────────────────
-function AdCreationForm({ institutionId, onClose, onSuccess }: { institutionId: string; onClose: () => void; onSuccess: () => void }) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
-      const res = await fetch(`${API_BASE}/api/ads`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
-        body: JSON.stringify({ institution_id: Number(institutionId), title, content, image_url: imageUrl }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'فشل إنشاء الإعلان');
-      onSuccess();
-    } catch (ex: any) {
-      alert(ex.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الإعلان" required style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none' }} />
-      <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="محتوى الإعلان" rows={3} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
-      <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="رابط الصورة (اختياري)" style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none' }} />
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#8aa4bc', cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
-        <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري الإنشاء...' : 'إنشاء الإعلان'}</button>
       </div>
     </form>
   );
