@@ -1716,7 +1716,7 @@ const stopSpaceSound = () => {
           z-index: 20;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 12px;
         }
         .q-action-group .q-expand-btn {
           position: static !important;
@@ -1788,14 +1788,14 @@ const stopSpaceSound = () => {
         }
         .q1-topbar {
           display: flex; align-items: center;
-          justify-content: space-between;
+          justify-content: flex-start;
           padding: 9px 14px;
           background: rgba(6,6,18,0.97);
           backdrop-filter: blur(8px);
           border-bottom: 1px solid rgba(255,215,0,0.25);
           flex-shrink: 0;
           min-height: 48px;
-          gap: 10px;
+          gap: 12px;
           direction: rtl;
           z-index: 10;
         }
@@ -2028,11 +2028,11 @@ const stopSpaceSound = () => {
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
-          {/* ─ شريط علوي: البادج + المشاهدين + أزرار الإجراءات ─ */}
+          {/* ─ شريط علوي: بادج البث + أزرار الإجراءات ─ */}
           <div className="q1-topbar">
             <div className="q1-badge-group">
               {displayLecture ? (
-                <span className="badge-live" style={{ background: '#e03030', color: 'white' }}><span className="badge-live-dot" />بث مباشر</span>
+                <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}><span className="badge-live-dot" />بث مباشر</span>
               ) : (
                 <span className="q1-no-stream">📺 لا يوجد بث حالياً</span>
               )}
@@ -2042,17 +2042,17 @@ const stopSpaceSound = () => {
             </div>
             <div className="q1-action-group">
               <button
+                onClick={() => setShowVideoModal(true)}
+                title="مقترحات الفيديو"
+                className="quad-plus-btn"
+              >+</button>
+              <button
                 className="q-expand-btn"
                 onClick={() => setExpandedQuadrant(expandedQuadrant === 1 ? null : 1)}
                 title={expandedQuadrant === 1 ? 'تصغير' : 'تكبير'}
               >
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
-              <button
-                onClick={() => setShowVideoModal(true)}
-                title="مقترحات الفيديو"
-                className="quad-plus-btn"
-              >+</button>
             </div>
           </div>
 

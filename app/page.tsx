@@ -269,43 +269,24 @@ function TopBar({
           <span>الانطلاقات</span>
         </Link>
 
-        {/* Institutions toggle
-        <button
-          onClick={onToggleList}
-          aria-pressed={listOpen}
+        <Link
+          href="/screen/default"
           style={{
-            display: 'flex', alignItems: 'center', gap: 8,
+            display: 'flex', alignItems: 'center', gap: 7,
             padding: '8px 20px',
-            background: listOpen
-              ? 'linear-gradient(135deg, rgba(78,141,156,0.3), rgba(133,199,154,0.15))'
-              : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${listOpen ? 'rgba(133,199,154,0.6)' : 'rgba(255,255,255,0.1)'}`,
+            background: 'rgba(255,215,0,0.12)',
+            border: '1px solid rgba(255,215,0,0.5)',
             borderRadius: 40,
-            color: listOpen ? '#85C79A' : '#bbb',
+            color: '#FFD700',
             fontSize: '0.88rem',
-            cursor: 'pointer',
+            textDecoration: 'none',
             fontWeight: 600,
-            letterSpacing: '0.01em',
-            transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
-            boxShadow: listOpen ? '0 0 18px rgba(133,199,154,0.2)' : 'none',
+            transition: 'all 0.25s',
+            letterSpacing: '0.02em',
           }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-          <span className="inst-btn-label">المؤسسات</span>
-          <span style={{
-            background: listOpen ? 'rgba(133,199,154,0.25)' : 'rgba(255,255,255,0.08)',
-            color: listOpen ? '#85C79A' : '#aaa',
-            padding: '2px 9px',
-            borderRadius: 20,
-            fontSize: '0.82rem',
-            fontWeight: 700,
-          }}>
-            {starCount}
-          </span>
-        </button> */}
+          📺 الشاشة الحضارية
+        </Link>
 
         {user ? (
           <UserMenu user={user} onLogout={onLogout} />
@@ -348,25 +329,6 @@ function TopBar({
               }}
             >
               تسجيل
-            </Link>
-
-            <Link
-              href="/screen/default"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 7,
-                padding: '8px 20px',
-                background: 'rgba(255,215,0,0.12)',
-                border: '1px solid rgba(255,215,0,0.5)',
-                borderRadius: 40,
-                color: '#FFD700',
-                fontSize: '0.88rem',
-                textDecoration: 'none',
-                fontWeight: 600,
-                transition: 'all 0.25s',
-                letterSpacing: '0.02em',
-              }}
-            >
-              📺 الشاشة الحضارية
             </Link>
           </div>
         )}
