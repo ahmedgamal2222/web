@@ -769,6 +769,23 @@ export async function fetchPulse(params?: { limit?: number; offset?: number; fea
   return { data: json.data ?? [], total: json.total ?? 0, interests: json.interests, ai_news: json.ai_news };
 }
 
+export async function updatePulse(id: number, data: { content?: string; url?: string | null; image_url?: string | null; is_visible?: boolean; is_featured?: boolean; category?: string }): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/api/pulse/${id}`, {
+    method: 'PATCH',
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.ok;
+}
+
+export async function deletePulse(id: number): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/api/pulse/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  return res.ok;
+}
+
 export async function updateUserInterests(interests: string[]): Promise<boolean> {
   const res = await fetch(`${API_BASE}/api/users/interests`, {
     method: 'PUT',

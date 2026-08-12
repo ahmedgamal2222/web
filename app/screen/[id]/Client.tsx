@@ -97,6 +97,9 @@ export default function ScreenPage() {
   const [agreements, setAgreements] = useState<any[]>([]);
   const [pulse, setPulse] = useState<PulseItem[]>([]);
   const [galaxyData, setGalaxyData] = useState<GalaxyData | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [editingPulseId, setEditingPulseId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -153,6 +156,12 @@ export default function ScreenPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (isTvMode) return; // وضع TV يتطلب دائماً كلمة مرور الشاشة
+
+    // تحميل بيانات المستخدم
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) setUser(JSON.parse(userStr));
+    } catch {}
 
     // ── تخطي المصادقة للمستخدمين المسجلين تلقائياً ───────────────
     try {
@@ -262,6 +271,10 @@ export default function ScreenPage() {
       } finally {
         setDataLoading(false);
       }
+    };
+
+    const loadPulse = () => {
+      fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
     };
 
     loadData();
@@ -799,7 +812,7 @@ const stopSpaceSound = () => {
   // YouTube يُشغّل عبر YT.Player API — باقي المنصات عبر iframe
   const currentYtVideoId = currentDisplayEmbed ? extractYtVideoId(currentDisplayEmbed) : null;
 
-  // دمج الأخبار + الفعاليات + الاتفاقيات في تدفق موحّد مرتّب زمنياً
+  // دمج الأخبار + الفعاليات + الاتفاقيات + النبضات في تدفق موحّد مرتّب زمنياً
   const combinedFeed = [
     ...news.map((n: any) => ({
       type: 'news' as const,
@@ -832,6 +845,18 @@ const stopSpaceSound = () => {
       image_url: null,
       icon: '🤝',
       subtitle: a.status === 'active' ? 'اتفاقية نشطة' : a.status === 'signed' ? 'تم توقيع الاتفاقية' : 'اتفاقية جديدة',
+    })),
+    ...pulse.map((p: any) => ({
+      type: 'pulse' as const,
+      id: p.id,
+      date: p.pulse_date,
+      title: p.content,
+      content: p.content,
+      image_url: p.image_url,
+      icon: '💫',
+      subtitle: null,
+      is_featured: p.is_featured,
+      application_user_id: p.application_user_id,
     })),
   ]
     .filter(item => item.date)
@@ -1685,6 +1710,7 @@ const stopSpaceSound = () => {
         }
         .feed-event .feed-title { color: #87CEEB; }
         .feed-agreement .feed-title { color: #90EE90; }
+        .feed-pulse .feed-title { color: #FFD700; }
         /* ── ربع مكبَّر ── */
         .quadrant.expanded {
           position: fixed !important;
@@ -2302,7 +2328,7 @@ const stopSpaceSound = () => {
         </div>
       </div>
 
-      {/* الربع 3: نبض المجرة */}
+      {/* الربع 3: نبض المجرة — التدفق المدمج */}
       <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}>
         <div className="q-action-group">
           <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
@@ -2316,29 +2342,54 @@ const stopSpaceSound = () => {
         </div>
         <div className="q-header">💫 نبض المجرة</div>
         <div className="pulse-list">
-          {pulse.length > 0 ? pulse.map((item) => (
-            <div
-              key={item.id}
-              className={`pulse-item${item.is_featured ? ' featured' : ''}`}
-              onClick={() => setSelectedPulse(item)}
-            >
-              <div className="pulse-dot" />
-              <div className="pulse-body">
-                <div className="pulse-content">{item.content}</div>
-                <div className="pulse-time">
-                  {timeAgoAr(item.pulse_date)}
-                </div>
+          {combinedFeed.length > 0 ? combinedFeed.map((item) => {
+            const isPulse = item.type === 'pulse';
+            const isAdminUser = user?.role === 'admin';
+            const canEdit = isPulse && (isAdminUser || item.application_user_id === user?.id);
+            const isEditing = editingPulseId === item.id;
+
+            return (
+              <div
+                key={`${item.type}-${item.id}`}
+                className={`feed-item feed-${item.type}`}
+                style={{ cursor: 'pointer', position: 'relative' }}
+              >
+                {isEditing ? (
+                  <div style={{ padding: '8px 6px', borderBottom: '1px solid rgba(255,215,0,0.12)' }}>
+                    <textarea
+                      value={editingText}
+                      onChange={e => setEditingText(e.target.value)}
+                      rows={2}
+                      style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(0,0,0,0.4)', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'vertical' }}
+                    />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                      <button onClick={async () => { await updatePulse(item.id, { content: editingText }); setEditingPulseId(null); loadPulse(); }} style={{ padding: '4px 14px', borderRadius: 6, border: 'none', background: '#4E8D9C', color: 'white', fontSize: '0.78rem', cursor: 'pointer' }}>💾 حفظ</button>
+                      <button onClick={() => setEditingPulseId(null)} style={{ padding: '4px 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#aaa', fontSize: '0.78rem', cursor: 'pointer' }}>إلغاء</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="feed-top">
+                      <span className="feed-icon">{item.icon}</span>
+                      <span className="feed-title" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'white' }}>{item.title}</span>
+                      {item.subtitle && <span className="feed-subtitle" style={{ fontSize: '0.78rem', color: '#FFD700', opacity: 0.8 }}>{item.subtitle}</span>}
+                      {item.is_featured && <span style={{ fontSize: '0.7rem', color: '#FFD700' }}>⭐</span>}
+                    </div>
+                    {canEdit && (
+                      <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4 }}>
+                        <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(item.id); setEditingText(item.content); }} style={{ background: 'rgba(78,141,156,0.3)', border: 'none', borderRadius: 4, color: '#4E8D9C', fontSize: '0.7rem', cursor: 'pointer', padding: '2px 6px' }}>✏️</button>
+                        <button onClick={(e) => { e.stopPropagation(); if (confirm('حذف هذا العنصر؟')) { deletePulse(item.id).then(() => { setPulse(pulse.filter(p => p.id !== item.id)); }); } }} style={{ background: 'rgba(239,68,68,0.3)', border: 'none', borderRadius: 4, color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer', padding: '2px 6px' }}>🗑️</button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-              {item.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.image_url} alt="" className="pulse-img" />
-              )}
-            </div>
-          )) : (
+            );
+          }) : (
             <div className="empty-state" style={{ height: '100%' }}>
               <span style={{ fontSize: '2.5rem' }}>💗</span>
-              <span style={{ fontSize: '1rem', fontWeight: 600 }}>لا توجد نبضات حتى الآن</span>
-              <span style={{ fontSize: '0.85rem', opacity: 0.45 }}>ستظهر الأنشطة تلقائياً</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>لا توجد أنشطة حتى الآن</span>
+              <span style={{ fontSize: '0.85rem', opacity: 0.45 }}>ستظهر الأخبار والفعاليات والنبضات هنا</span>
             </div>
           )}
         </div>

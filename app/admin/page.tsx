@@ -295,6 +295,13 @@ export default function AdminDashboard() {
           link="/admin/news"
         />
         <StatCard
+          title="نبض المجرة"
+          value="💫"
+          icon="💫"
+          color={C.gold}
+          link="/admin/pulse"
+        />
+        <StatCard
           title="الحملات المشتركة"
           value={stats.total_campaigns}
           icon="🚀"
