@@ -110,6 +110,7 @@ export default function ScreenPage() {
   const [socialBarVisible, setSocialBarVisible] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showTweetModal, setShowTweetModal] = useState(false);
+  const [showAdModal, setShowAdModal] = useState(false);
   const [playlistIdx, setPlaylistIdx] = useState(0);
   const playlistTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const ytPlayerRef = useRef<any>(null);
@@ -632,13 +633,42 @@ const stopSpaceSound = () => {
             color: white;
             direction: rtl;
           }
+          .auth-container {
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+          }
+          .auth-brand {
+            flex: 1;
+            text-align: right;
+            padding: 20px;
+          }
+          .auth-brand h1 {
+            color: #FFD700;
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 0 0 12px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 30px rgba(255,215,0,0.3);
+          }
+          .auth-brand p {
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            margin: 0;
+            line-height: 1.6;
+          }
           .auth-box {
             background: rgba(255,255,255,0.05);
             border: 2px solid #FFD700;
             border-radius: 20px;
             padding: 40px;
-            width: 400px;
+            width: 380px;
             text-align: center;
+            flex-shrink: 0;
           }
           .auth-box h2 { color: #FFD700; margin-bottom: 8px; }
           .auth-box p  { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
@@ -682,25 +712,31 @@ const stopSpaceSound = () => {
           button:disabled { opacity: 0.6; cursor: default; }
         `}</style>
 
-        <div className="auth-box">
-          <h2>✦ الشاشة الحضارية ✦</h2>
-          <p>أدخل رمز المرور الخاص بالمؤسسة</p>
+        <div className="auth-container">
+          <div className="auth-brand">
+            <h1>✦ الشاشة الحضارية ✦</h1>
+            <p>منصة العرض الرقمي الذكية<br />للمؤسسات التعليمية والثقافية</p>
+          </div>
+          <div className="auth-box">
+            <h2>تسجيل الدخول</h2>
+            <p>أدخل رمز المرور الخاص بالمؤسسة</p>
 
-          <form onSubmit={handleAuthenticate}>
-            {error && <div className="auth-error">{error}</div>}
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="****"
-              maxLength={6}
-              autoFocus
-              required
-            />
-            <button type="submit" disabled={authLoading}>
-              {authLoading ? 'جاري التحقق...' : 'دخول'}
-            </button>
-          </form>
+            <form onSubmit={handleAuthenticate}>
+              {error && <div className="auth-error">{error}</div>}
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="****"
+                maxLength={6}
+                autoFocus
+                required
+              />
+              <button type="submit" disabled={authLoading}>
+                {authLoading ? 'جاري التحقق...' : 'دخول'}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     );
@@ -1657,6 +1693,22 @@ const stopSpaceSound = () => {
           padding: 0;
         }
         .q-expand-btn:hover { background: rgba(255,215,0,0.2); color: #FFD700; border-color: #FFD700; }
+        .q-action-group {
+          position: absolute;
+          top: 12px; left: 12px;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .q-action-group .q-expand-btn {
+          position: static;
+          top: unset; left: unset;
+        }
+        .q-action-group .quad-plus-btn {
+          position: static;
+          top: unset; left: unset;
+        }
         /* Backdrop خلف الربع المكبَّر */
         .expand-backdrop {
           position: fixed; inset: 0;
@@ -1748,6 +1800,36 @@ const stopSpaceSound = () => {
           position: static !important;
           top: unset !important; left: unset !important;
           flex-shrink: 0;
+        }
+        .q1-action-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .q1-inline-plus {
+          position: static !important;
+          top: unset !important; left: unset !important;
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          border: 2px solid rgba(255,215,0,0.6);
+          background: rgba(10,15,30,0.85);
+          backdrop-filter: blur(12px);
+          color: #FFD700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+          font-weight: 700;
+          transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+        .q1-inline-plus:hover {
+          border-color: #FFD700;
+          box-shadow: 0 4px 20px rgba(255,215,0,0.35), 0 0 30px rgba(255,215,0,0.15);
+          transform: scale(1.15) rotate(90deg);
+          background: rgba(255,215,0,0.15);
         }
         .q1-video-wrap {
           flex: 1;
@@ -1940,15 +2022,10 @@ const stopSpaceSound = () => {
             >
               {expandedQuadrant === 1 ? '⊡' : '⊞'}
             </button>
-            {liveLecture && (
-              <span className="badge-live" style={{ marginRight: 8, flexShrink: 0 }}>
-                <span className="badge-live-dot" />بث مباشر
-              </span>
-            )}
             <button
               onClick={() => setShowVideoModal(true)}
               title="مقترحات الفيديو"
-              className="quad-plus-btn"
+              className="q1-inline-plus"
             >+</button>
           </div>
 
@@ -2122,16 +2199,23 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
-        {/* أيقونة اللوكيشن */}
+        {/* أيقونة اللوكيشن في.center */}
         <button
           className="q2-location-btn"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 20,
+          }}
           onClick={() => {
             const id = Number(resolvedId);
             setFocusStarId(prev => prev === id ? undefined : id);
           }}
           title="الذهاب إلى موقع المؤسسة في المجرة"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
@@ -2199,15 +2283,17 @@ const stopSpaceSound = () => {
 
       {/* الربع 3: نبض المجرة */}
       <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}>
-        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
-          {expandedQuadrant === 3 ? '⊡' : '⊞'}
-        </button>
+        <div className="q-action-group">
+          <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
+            {expandedQuadrant === 3 ? '⊡' : '⊞'}
+          </button>
+          <button
+            onClick={() => setShowTweetModal(true)}
+            title="إضافة تغريدة"
+            className="quad-plus-btn"
+          >+</button>
+        </div>
         <div className="q-header">💫 نبض المجرة</div>
-        <button
-          onClick={() => setShowTweetModal(true)}
-          title="إضافة تغريدة"
-          className="quad-plus-btn"
-        >+</button>
         <div className="pulse-list">
           {pulse.length > 0 ? pulse.map((item) => (
             <div
@@ -2239,14 +2325,16 @@ const stopSpaceSound = () => {
 
       {/* الربع 4: إعلانات — عرض إعلان واحد في كل مرة */}
       <div className={`quadrant${expandedQuadrant === 4 ? ' expanded' : ''}`}>
-        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
-          {expandedQuadrant === 4 ? '⊡' : '⊞'}
-        </button>
-        <button
-          onClick={() => setShowAdModal(true)}
-          title="إنشاء إعلان"
-          className="quad-plus-btn"
-        >+</button>
+        <div className="q-action-group">
+          <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
+            {expandedQuadrant === 4 ? '⊡' : '⊞'}
+          </button>
+          <button
+            onClick={() => setShowAdModal(true)}
+            title="إنشاء إعلان"
+            className="quad-plus-btn"
+          >+</button>
+        </div>
         {currentAd ? (
           <div key={currentAd.id} className="ad-full">
             {/* عداد تنازلي دائري */}
@@ -2318,8 +2406,8 @@ const stopSpaceSound = () => {
           <div className="pulse-ticker-label">⚡ نبض المجرة</div>
           <div className="pulse-ticker-track">
             <div className="pulse-ticker-scroll">
-              {[...pulse, ...pulse].map((item, i) => (
-                <span key={`${item.id}-${i}`} className="pulse-ticker-item">
+              {pulse.map((item, i) => (
+                <span key={item.id} className="pulse-ticker-item">
                   {item.content}
                   <span className="pulse-ticker-sep">◆</span>
                 </span>
@@ -2327,59 +2415,6 @@ const stopSpaceSound = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* زر الذهاب لموقع المؤسسة في المجرة */}
-      {galaxyData && (
-        <button
-          onClick={() => {
-            const id = Number(resolvedId);
-            setFocusStarId(prev => prev === id ? undefined : id);
-          }}
-          title="الذهاب إلى موقع المؤسسة في المجرة"
-          style={{
-            position: 'fixed',
-            bottom: pulse.length > 0 ? 44 : 24,
-            left: 16,
-            zIndex: 110,
-            background: 'rgba(10, 15, 30, 0.88)',
-            backdropFilter: 'blur(12px)',
-            border: '1.5px solid rgba(255,215,0,0.5)',
-            borderRadius: '50%',
-            width: 48,
-            height: 48,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#FFD700',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.15)',
-            transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
-            outline: 'none',
-            transform: focusStarId === Number(resolvedId) ? 'scale(1.1)' : 'scale(1)',
-            borderColor: focusStarId === Number(resolvedId) ? '#FFD700' : 'rgba(255,215,0,0.5)',
-            boxShadow: focusStarId === Number(resolvedId)
-              ? '0 6px 28px rgba(255,215,0,0.35), 0 0 24px rgba(255,215,0,0.25)'
-              : '0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.15)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.12)';
-            e.currentTarget.style.borderColor = '#FFD700';
-            e.currentTarget.style.boxShadow = '0 6px 28px rgba(255,215,0,0.3), 0 0 24px rgba(255,215,0,0.25)';
-          }}
-          onMouseLeave={(e) => {
-            if (focusStarId !== Number(resolvedId)) {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.borderColor = 'rgba(255,215,0,0.5)';
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5), 0 0 15px rgba(255,215,0,0.15)';
-            }
-          }}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-        </button>
       )}
 
       {/* Backdrop — إغلاق الربع المكبَّر بالنقر خارجه */}
@@ -2440,6 +2475,16 @@ const stopSpaceSound = () => {
           </div>
         </div>
       )}
+
+      {/* مودال إنشاء إعلان */}
+      {showAdModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowAdModal(false)}>
+          <div style={{ background: '#0f1626', borderRadius: 20, padding: 28, maxWidth: 520, width: '100%', border: '1px solid rgba(255,215,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 18px', color: '#FFD700', fontSize: '1.1rem', fontWeight: 800 }}>📢 إنشاء إعلان جديد</h3>
+            <AdCreationForm institutionId={resolvedId} onClose={() => setShowAdModal(false)} onSuccess={() => { setShowAdModal(false); alert('تم إنشاء الإعلان بنجاح'); }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2479,6 +2524,46 @@ function VideoProposalForm({ institutionId, onClose, onSuccess }: { institutionI
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
         <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#8aa4bc', cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
         <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري الإرسال...' : 'إرسال المقترح'}</button>
+      </div>
+    </form>
+  );
+}
+
+// ── نموذج إنشاء إعلان ─────────────────────────────────────────
+function AdCreationForm({ institutionId, onClose, onSuccess }: { institutionId: string; onClose: () => void; onSuccess: () => void }) {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/ads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
+        body: JSON.stringify({ institution_id: Number(institutionId), title, content, image_url: imageUrl }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'فشل إنشاء الإعلان');
+      onSuccess();
+    } catch (ex: any) {
+      alert(ex.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الإعلان" required style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none' }} />
+      <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="محتوى الإعلان" rows={3} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
+      <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="رابط الصورة (اختياري)" style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,255,255,0.04)', color: '#e8f4fd', fontSize: '0.9rem', outline: 'none' }} />
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onClose} style={{ padding: '8px 18px', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#8aa4bc', cursor: 'pointer', fontSize: '0.85rem' }}>إلغاء</button>
+        <button type="submit" disabled={submitting} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #FFD700, #FFA000)', color: '#0a0a1a', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>{submitting ? 'جاري الإنشاء...' : 'إنشاء الإعلان'}</button>
       </div>
     </form>
   );
