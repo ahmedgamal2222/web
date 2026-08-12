@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GalaxyData, GalaxyStar, Agreement } from '@/lib/types';
-import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE, fetchInstitutionTypes, fetchMyInstitutionRequests, MyInstitutionRequest } from '@/lib/api';
+import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE, fetchInstitutionTypes, fetchMyInstitutionRequests, MyInstitutionRequest, fetchSiteSettings } from '@/lib/api';
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -179,40 +179,39 @@ function TopBar({
   listOpen,
   user,
   onLogout,
+  siteSettings,
 }: {
   starCount: number;
   onToggleList: () => void;
   listOpen: boolean;
   user: any;
   onLogout: () => void;
+  siteSettings: any;
 }) {
+  const primaryColor = siteSettings?.primary_color || '#FFD700';
+  const secondaryColor = siteSettings?.secondary_color || '#4E8D9C';
+  let navbarLinks: NavbarLink[] = [];
+  try {
+    navbarLinks = siteSettings?.navbar_links ? JSON.parse(siteSettings.navbar_links) : [];
+  } catch {}
+
   return (
     <header className="topbar" style={{
       position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 32px',
       height: 76,
-      background: 'linear-gradient(180deg, rgba(5,4,20,0.97) 0%, rgba(5,4,20,0.85) 65%, rgba(5,4,20,0) 100%)',
+      background: `linear-gradient(180deg, ${siteSettings?.background_color || 'rgba(5,4,20,0.97)'} 0%, ${siteSettings?.background_color || 'rgba(5,4,20,0.85)'} 65%, transparent 100%)`,
       backdropFilter: 'blur(22px)',
       WebkitBackdropFilter: 'blur(22px)',
-      borderBottom: '1px solid rgba(78,141,156,0.2)',
-      boxShadow: '0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(133,199,154,0.08)',
+      borderBottom: `1px solid ${secondaryColor}33`,
+      boxShadow: `0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 ${primaryColor}15`,
     }}>
       <GalaxyLogo />
 
       {/* ── Global Nav ── */}
-      {/* <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        {([
-          { href: '/pulse',        icon: '📰', label: '💫 نبض المجرة' },
-          // { href: '/campaigns',   icon: '🚀', label: 'الحملات' },
-          // { href: '/marketplace', icon: '🛒', label: 'السوق' },
-          // { href: '/cloud',       icon: '☁️', label: 'SAAS' },
-          // { href: '/services',    icon: '🛠️', label: 'الخدمات' },
-
-          ...(user?.institution_id
-            ? [{ href: `/screen/${user.institution_id}`, icon: '📺', label: 'الشاشة الحضارية' }]
-            : [{ href: 'https://tv.hadmaj.com', icon: '📺', label: 'الشاشة الحضارية' }]),
-        ] as Array<{ href: string; icon: string; label: string }>).map(link => (
+      <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {navbarLinks.filter((l: any) => l.visible !== false).map((link: NavbarLink) => (
           <Link
             key={link.href}
             href={link.href}
@@ -221,10 +220,10 @@ function TopBar({
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '7px 14px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
+              background: `${primaryColor}08`,
+              border: `1px solid ${primaryColor}25`,
               borderRadius: 40,
-              color: '#9ca3af',
+              color: `${primaryColor}cc`,
               fontSize: '0.82rem',
               textDecoration: 'none',
               fontWeight: 600,
@@ -233,21 +232,21 @@ function TopBar({
               whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLAnchorElement).style.color = '#EDF7BD';
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(237,247,189,0.25)';
-              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(237,247,189,0.06)';
+              (e.currentTarget as HTMLAnchorElement).style.color = primaryColor;
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = `${primaryColor}50`;
+              (e.currentTarget as HTMLAnchorElement).style.background = `${primaryColor}18`;
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLAnchorElement).style.color = '#9ca3af';
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.07)';
-              (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.03)';
+              (e.currentTarget as HTMLAnchorElement).style.color = `${primaryColor}cc`;
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = `${primaryColor}25`;
+              (e.currentTarget as HTMLAnchorElement).style.background = `${primaryColor}08`;
             }}
           >
             <span style={{ fontSize: '0.9rem' }}>{link.icon}</span>
             <span className="topbar-nav-label">{link.label}</span>
           </Link>
         ))}
-      </nav> */}
+      </nav>
 
       <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <Link
@@ -1620,6 +1619,7 @@ export default function HomePage() {
   const [popupStar, setPopupStar] = useState<GalaxyStar | null>(null);
   const [user, setUser] = useState<any>(null);
   const [focusStarId, setFocusStarId] = useState<number | undefined>(undefined);
+  const [siteSettings, setSiteSettings] = useState<any>(null);
   const mountedRef = useRef(true);
 
   // التحقق من تسجيل الدخول
@@ -1665,6 +1665,13 @@ export default function HomePage() {
       mountedRef.current = false;
     };
   }, []);;
+
+  // تحميل إعدادات الموقع
+  useEffect(() => {
+    fetchSiteSettings().then(settings => {
+      if (settings) setSiteSettings(settings);
+    });
+  }, []);
 
   const handleStarClick = (star: GalaxyStar) => setPopupStar(star);
 
@@ -1890,6 +1897,7 @@ export default function HomePage() {
         listOpen={listOpen}
         user={user}
         onLogout={handleLogout}
+        siteSettings={siteSettings}
       />
 
       {user && <QuickActions user={user} />}

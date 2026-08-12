@@ -594,6 +594,39 @@ export async function fetchGalaxyDataWithCache(): Promise<GalaxyData> {
 }
 
 // ============================================================
+// ⚙️ Site Settings
+// ============================================================
+
+export interface SiteSettings {
+  id: number;
+  site_name: string;
+  site_tagline: string;
+  logo_url: string | null;
+  primary_color: string;
+  secondary_color: string;
+  background_color: string;
+  text_color: string;
+  navbar_links: string;
+  social_links: string;
+  footer_text: string;
+  custom_css: string | null;
+  updated_at: string;
+}
+
+export async function fetchSiteSettings(): Promise<SiteSettings | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/site-settings`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.success ? data.settings : null;
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================
 // 🖼️ Image Upload to R2
 // ============================================================
 

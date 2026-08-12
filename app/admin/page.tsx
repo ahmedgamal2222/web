@@ -303,6 +303,13 @@ export default function AdminDashboard() {
           link="/admin/pulse"
         />
         <StatCard
+          title="إعدادات الموقع"
+          value="⚙️"
+          icon="⚙️"
+          color="#6366f1"
+          link="/admin/settings"
+        />
+        <StatCard
           title="الحملات المشتركة"
           value={stats.total_campaigns}
           icon="🚀"
