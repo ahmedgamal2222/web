@@ -1846,7 +1846,7 @@ const stopSpaceSound = () => {
         .q1-action-group {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 10px;
           flex-shrink: 0;
         }
         .q1-inline-plus {
@@ -2247,25 +2247,22 @@ const stopSpaceSound = () => {
         onMouseEnter={startSpaceSound}
         onMouseLeave={stopSpaceSound}
       >
-        <div className="q-action-group">
-          <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 2 ? null : 2)} title={expandedQuadrant === 2 ? 'تصغير' : 'تكبير'}>
-            {expandedQuadrant === 2 ? '⊡' : '⊞'}
-          </button>
-          <button
-            className="q2-location-btn"
-            onClick={() => {
-              const id = Number(resolvedId);
-              setFocusStarId(prev => prev === id ? undefined : id);
-            }}
-            title="الذهاب إلى موقع المؤسسة في المجرة"
-            style={{ position: 'static', top: 'unset', left: 'unset', transform: 'none' }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-          </button>
-        </div>
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 2 ? null : 2)} title={expandedQuadrant === 2 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 2 ? '⊡' : '⊞'}
+        </button>
+        <button
+          className="q2-location-btn"
+          onClick={() => {
+            const id = Number(resolvedId);
+            setFocusStarId(prev => prev === id ? undefined : id);
+          }}
+          title="الذهاب إلى موقع المؤسسة في المجرة"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        </button>
         <div className="q-header">✦ موقع المؤسسة في المجرة ✦</div>
         {/* <style jsx global>{`
           @keyframes galaxyBtnPulse {
@@ -2330,16 +2327,15 @@ const stopSpaceSound = () => {
 
       {/* الربع 3: نبض المجرة — التدفق المدمج */}
       <div className={`quadrant${expandedQuadrant === 3 ? ' expanded' : ''}`}>
-        <div className="q-action-group">
-          <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
-            {expandedQuadrant === 3 ? '⊡' : '⊞'}
-          </button>
-          <button
-            onClick={() => setShowTweetModal(true)}
-            title="إضافة تغريدة"
-            className="quad-plus-btn"
-          >+</button>
-        </div>
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 3 ? null : 3)} title={expandedQuadrant === 3 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 3 ? '⊡' : '⊞'}
+        </button>
+        <button
+          onClick={() => setShowTweetModal(true)}
+          title="إضافة تغريدة"
+          className="quad-plus-btn"
+          style={{ bottom: 12, top: 'auto' }}
+        >+</button>
         <div className="q-header">💫 نبض المجرة</div>
         <div className="pulse-list">
           {combinedFeed.length > 0 ? combinedFeed.map((item) => {
@@ -2397,16 +2393,15 @@ const stopSpaceSound = () => {
 
       {/* الربع 4: إعلانات — عرض إعلان واحد في كل مرة */}
       <div className={`quadrant${expandedQuadrant === 4 ? ' expanded' : ''}`}>
-        <div className="q-action-group">
-          <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
-            {expandedQuadrant === 4 ? '⊡' : '⊞'}
-          </button>
-          <button
-            onClick={() => setShowAdModal(true)}
-            title="إنشاء إعلان"
-            className="quad-plus-btn"
-          >+</button>
-        </div>
+        <button className="q-expand-btn" onClick={() => setExpandedQuadrant(expandedQuadrant === 4 ? null : 4)} title={expandedQuadrant === 4 ? 'تصغير' : 'تكبير'}>
+          {expandedQuadrant === 4 ? '⊡' : '⊞'}
+        </button>
+        <button
+          onClick={() => setShowAdModal(true)}
+          title="إنشاء إعلان"
+          className="quad-plus-btn"
+          style={{ bottom: 12, top: 'auto' }}
+        >+</button>
         {currentAd ? (
           <div key={currentAd.id} className="ad-full">
             {/* عداد تنازلي دائري */}
