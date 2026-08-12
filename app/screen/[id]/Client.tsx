@@ -1711,12 +1711,11 @@ const stopSpaceSound = () => {
         }
         .q-expand-btn:hover { background: rgba(255,215,0,0.2); color: #FFD700; border-color: #FFD700; }
         .q-action-group {
-          position: absolute;
-          top: 12px; left: 12px;
-          z-index: 20;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
+          z-index: 20;
+          flex-shrink: 0;
         }
         .q-action-group .q-expand-btn {
           position: static !important;
@@ -1788,7 +1787,7 @@ const stopSpaceSound = () => {
         }
         .q1-topbar {
           display: flex; align-items: center;
-          justify-content: flex-start;
+          justify-content: space-between;
           padding: 9px 14px;
           background: rgba(6,6,18,0.97);
           backdrop-filter: blur(8px);
@@ -2030,16 +2029,6 @@ const stopSpaceSound = () => {
 
           {/* ─ شريط علوي: بادج البث + أزرار الإجراءات ─ */}
           <div className="q1-topbar">
-            <div className="q1-badge-group">
-              {displayLecture ? (
-                <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}><span className="badge-live-dot" />بث مباشر</span>
-              ) : (
-                <span className="q1-no-stream">📺 لا يوجد بث حالياً</span>
-              )}
-              {liveLecture?.viewer_count !== undefined && liveLecture.viewer_count > 0 && (
-                <span className="q1-viewers-pill">👁️ {liveLecture.viewer_count} مشاهد</span>
-              )}
-            </div>
             <div className="q1-action-group">
               <button
                 onClick={() => setShowVideoModal(true)}
@@ -2053,6 +2042,16 @@ const stopSpaceSound = () => {
               >
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
+            </div>
+            <div className="q1-badge-group">
+              {displayLecture ? (
+                <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}><span className="badge-live-dot" />بث مباشر</span>
+              ) : (
+                <span className="q1-no-stream">📺 لا يوجد بث حالياً</span>
+              )}
+              {liveLecture?.viewer_count !== undefined && liveLecture.viewer_count > 0 && (
+                <span className="q1-viewers-pill">👁️ {liveLecture.viewer_count} مشاهد</span>
+              )}
             </div>
           </div>
 
