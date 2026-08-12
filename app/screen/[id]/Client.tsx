@@ -858,7 +858,6 @@ const stopSpaceSound = () => {
       icon: '💫',
       subtitle: null,
       is_featured: p.is_featured,
-      application_user_id: p.application_user_id,
     })),
   ]
     .filter(item => item.date)
@@ -2067,28 +2066,36 @@ const stopSpaceSound = () => {
       `}</style>
 
       {/* شريط المؤسسة */}
-      <div className="institution-info" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        {balance !== null && Number(balance) > 0 && (
-          <span style={{
-            background: 'rgba(255,215,0,0.15)',
-            border: '1px solid rgba(255,215,0,0.4)',
-            color: '#FFD700',
-            padding: '3px 12px',
-            borderRadius: 20,
-            fontSize: '0.78rem',
-            fontWeight: 800,
-            whiteSpace: 'nowrap',
-          }}>
-            ${Number(balance).toFixed(0)}
-          </span>
-        )}
-      </div>
+      {(institution?.name_ar || institution?.name || (balance !== null && Number(balance) > 0)) && (
+        <div className="institution-info" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {institution?.name_ar || institution?.name ? (
+            <>
+              <span className="institution-name">{institution?.name_ar || institution?.name}</span>
+              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>— الشاشة الحضارية</span>
+            </>
+          ) : null}
+          {balance !== null && Number(balance) > 0 && (
+            <span style={{
+              background: 'rgba(255,215,0,0.15)',
+              border: '1px solid rgba(255,215,0,0.4)',
+              color: '#FFD700',
+              padding: '3px 12px',
+              borderRadius: 20,
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              whiteSpace: 'nowrap',
+            }}>
+              ${Number(balance).toFixed(0)}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* الربع 1: بث المحاضرات */}
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
-          {/* ─ شريط علوي: أزرار الإجراءات فقط ─ */}
+          {/* ─ شريط علوي: أزرار + بادج بث شرطي ─ */}
           <div className="q1-topbar">
             <div className="q1-action-group">
               <button
@@ -2104,6 +2111,13 @@ const stopSpaceSound = () => {
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
             </div>
+            {liveLecture && (
+              <div className="q1-badge-group">
+                <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}>
+                  <span className="badge-live-dot" />بث مباشر
+                </span>
+              </div>
+            )}
           </div>
 
           {/* ─ منطقة الفيديو ─ */}
