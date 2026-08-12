@@ -1940,9 +1940,14 @@ const stopSpaceSound = () => {
             >
               {expandedQuadrant === 1 ? '⊡' : '⊞'}
             </button>
+            {liveLecture && (
+              <span className="badge-live" style={{ marginRight: 8, flexShrink: 0 }}>
+                <span className="badge-live-dot" />بث مباشر
+              </span>
+            )}
             <button
-              onClick={() => window.location.href = `/admin/lectures?institution_id=${resolvedId}`}
-              title="إضافة محاضرة"
+              onClick={() => setShowVideoModal(true)}
+              title="مقترحات الفيديو"
               className="quad-plus-btn"
             >+</button>
           </div>
@@ -2131,11 +2136,6 @@ const stopSpaceSound = () => {
             <circle cx="12" cy="10" r="3" />
           </svg>
         </button>
-        <button
-          onClick={() => window.location.href = `/admin/institutions?country=${institution?.country || ''}`}
-          title="إدارة المؤسسات"
-          className="quad-plus-btn"
-        >+</button>
         {/* <style jsx global>{`
           @keyframes galaxyBtnPulse {
             0%,100% { box-shadow: 0 6px 32px 0 rgba(255,215,0,0.25), 0 1.5px 0 0 #fff inset; transform: scale(1); }
@@ -2243,8 +2243,8 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 4 ? '⊡' : '⊞'}
         </button>
         <button
-          onClick={() => window.location.href = `/admin/ads?institution_id=${resolvedId}`}
-          title="إضافة إعلان"
+          onClick={() => setShowAdModal(true)}
+          title="إنشاء إعلان"
           className="quad-plus-btn"
         >+</button>
         {currentAd ? (
