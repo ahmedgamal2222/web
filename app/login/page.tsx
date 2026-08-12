@@ -160,7 +160,7 @@ export default function LoginPage() {
          <button
            type="button"
            onClick={() => {
-             window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=974559978030-n1mofmr4g1ffgf5l4jt8332ivsq78qkl.apps.googleusercontent.com&redirect_uri=https://hadmaj.com/api/auth/google&response_type=id_token&scope=profile+email';
+              window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=489531170664-o83f2l22il51i77i1sqjnm62iiid2pl6.apps.googleusercontent.com&redirect_uri=https://hadmaj.com/api/auth/google&response_type=id_token&scope=profile+email';
            }}
            style={{
              width: '100%',

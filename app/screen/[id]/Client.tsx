@@ -1139,7 +1139,7 @@ const stopSpaceSound = () => {
         .q1-live-overlay {
           position: absolute;
           top: 12px;
-          right: 12px;
+           left: 56px;
           z-index: 20;
           display: flex;
           align-items: center;
@@ -1181,7 +1181,7 @@ const stopSpaceSound = () => {
         .q2-location-btn {
           position: absolute;
           top: 12px;
-          right: 12px;
+           left: 56px;
           z-index: 20;
           width: 40px;
           height: 40px;
@@ -1207,7 +1207,7 @@ const stopSpaceSound = () => {
         .quad-plus-btn {
           position: absolute;
           top: 12px;
-          left: 12px;
+          left: 56px;
           z-index: 20;
           width: 32px;
           height: 32px;
@@ -1328,6 +1328,11 @@ const stopSpaceSound = () => {
           0%,100% { opacity: 1; }
           50%      { opacity: 0.3; }
         }
+        @keyframes livePulseRing {
+          0% { box-shadow: 0 0 0 0 rgba(224, 48, 48, 0.7); }
+          70% { box-shadow: 0 0 0 12px rgba(224, 48, 48, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(224, 48, 48, 0); }
+        }
 
         /* ─── شريط سوشيال ميديا شفاف ─── */
         .screen-social-bar {
@@ -1442,7 +1447,7 @@ const stopSpaceSound = () => {
         .q1-live-overlay {
           position: absolute;
           top: 12px;
-          right: 12px;
+           left: 56px;
           z-index: 20;
           display: flex;
           align-items: center;
@@ -1488,7 +1493,7 @@ const stopSpaceSound = () => {
         .q2-location-btn {
           position: absolute;
           top: 12px;
-          right: 12px;
+           left: 56px;
           z-index: 20;
           width: 40px;
           height: 40px;
@@ -1526,6 +1531,17 @@ const stopSpaceSound = () => {
         .badge-live-dot {
           width: 8px; height: 8px; background: white;
           border-radius: 50%; animation: blink 1s infinite;
+        }
+        .badge-live-dot-only {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 32px; height: 32px; border-radius: 50%;
+          background: #e03030;
+          box-shadow: 0 0 0 0 rgba(224, 48, 48, 0.7);
+          animation: livePulseRing 2s infinite;
+        }
+        .badge-live-dot-only .badge-live-dot {
+          width: 10px; height: 10px;
+          animation: blink 1s infinite;
         }
         .badge-recorded {
           display: inline-flex; align-items: center; gap: 6px;
@@ -2055,6 +2071,13 @@ const stopSpaceSound = () => {
 
           {/* ─ شريط علوي: بادج البث + أزرار الإجراءات ─ */}
           <div className="q1-topbar">
+            <div className="q1-badge-group">
+              {displayLecture ? (
+                <span className="badge-live-dot-only" title="بث مباشر"><span className="badge-live-dot" /></span>
+              ) : (
+                <span className="q1-no-stream">📺</span>
+              )}
+            </div>
             <div className="q1-action-group">
               <button
                 onClick={() => setShowVideoModal(true)}
@@ -2068,16 +2091,6 @@ const stopSpaceSound = () => {
               >
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
-            </div>
-            <div className="q1-badge-group">
-              {displayLecture ? (
-                <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}><span className="badge-live-dot" />بث مباشر</span>
-              ) : (
-                <span className="q1-no-stream">📺 لا يوجد بث حالياً</span>
-              )}
-              {liveLecture?.viewer_count !== undefined && liveLecture.viewer_count > 0 && (
-                <span className="q1-viewers-pill">👁️ {liveLecture.viewer_count} مشاهد</span>
-              )}
             </div>
           </div>
 
@@ -2334,7 +2347,6 @@ const stopSpaceSound = () => {
           onClick={() => setShowTweetModal(true)}
           title="إضافة تغريدة"
           className="quad-plus-btn"
-          style={{ bottom: 12, top: 'auto' }}
         >+</button>
         <div className="q-header">💫 نبض المجرة</div>
         <div className="pulse-list">
@@ -2372,9 +2384,9 @@ const stopSpaceSound = () => {
                       {item.is_featured && <span style={{ fontSize: '0.7rem', color: '#FFD700' }}>⭐</span>}
                     </div>
                     {canEdit && (
-                      <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4 }}>
-                        <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(item.id); setEditingText(item.content); }} style={{ background: 'rgba(78,141,156,0.3)', border: 'none', borderRadius: 4, color: '#4E8D9C', fontSize: '0.7rem', cursor: 'pointer', padding: '2px 6px' }}>✏️</button>
-                        <button onClick={(e) => { e.stopPropagation(); if (confirm('حذف هذا العنصر؟')) { deletePulse(item.id).then(() => { setPulse(pulse.filter(p => p.id !== item.id)); }); } }} style={{ background: 'rgba(239,68,68,0.3)', border: 'none', borderRadius: 4, color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer', padding: '2px 6px' }}>🗑️</button>
+                      <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4, zIndex: 5 }}>
+                        <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(item.id); setEditingText(item.content); }} style={{ background: 'rgba(78,141,156,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(78,141,156,0.4)', borderRadius: 8, color: '#4E8D9C', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>✏️</button>
+                        <button onClick={(e) => { e.stopPropagation(); if (confirm('حذف هذا العنصر؟')) { deletePulse(item.id).then(() => { setPulse(pulse.filter(p => p.id !== item.id)); }); } }} style={{ background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 8, color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>🗑️</button>
                       </div>
                     )}
                   </>
@@ -2400,7 +2412,6 @@ const stopSpaceSound = () => {
           onClick={() => setShowAdModal(true)}
           title="إنشاء إعلان"
           className="quad-plus-btn"
-          style={{ bottom: 12, top: 'auto' }}
         >+</button>
         {currentAd ? (
           <div key={currentAd.id} className="ad-full">

@@ -12,6 +12,7 @@ const COLORS = {
   teal: '#4E8D9C',
   darkNavy: '#281C59',
 };
+const C = COLORS;
 
 interface DashboardStats {
   total_institutions: number;
