@@ -326,6 +326,7 @@ export default function AdminInstitutionsPage() {
 
     try {
       setLoading(true);
+      setUploadResult(null);
       const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
       const res = await fetch(`${API_BASE}/api/institutions/upload-excel`, {
         method: 'POST',
@@ -337,11 +338,16 @@ export default function AdminInstitutionsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل رفع الملف');
 
-      alert(data.message + '\n\nتم إنشاء ' + data.data.created + ' مؤسسة');
+      setUploadResult({
+        message: data.message,
+        created: data.data?.created ?? 0,
+        skipped: data.data?.skipped ?? 0,
+        errors: data.data?.errors ?? [],
+      });
       await load();
       await loadCountries();
     } catch (e: any) {
-      alert(e.message);
+      setUploadResult({ message: e.message || 'حدث خطأ', created: 0, skipped: 0, errors: [] });
     } finally {
       setLoading(false);
       if (e.target) (e.target as HTMLInputElement).value = '';
@@ -355,7 +361,8 @@ export default function AdminInstitutionsPage() {
     screens:  allInstitutions.filter(i => i.screen_active).length,
   }), [allInstitutions]);
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const [totalPages, setTotalPages] = useState(0);
+  const [uploadResult, setUploadResult] = useState<{ message: string; created: number; skipped: number; errors: string[] } | null>(null);
 
   const inputStyle: React.CSSProperties = {
     padding: '10px 14px', border: `1.5px solid ${C.teal}30`,
@@ -427,6 +434,24 @@ export default function AdminInstitutionsPage() {
         <StatCard value={stats.verified} label="موثّقة"             color="#7c3aed"     icon="🔰" />
         <StatCard value={stats.screens}  label="شاشات نشطة"        color={C.softGreen} icon="📺" />
       </div>
+
+      {/* ── Upload Result ── */}
+      {uploadResult && (
+        <div style={{
+          background: uploadResult.created > 0 ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.08)',
+          border: `1px solid ${uploadResult.created > 0 ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.25)'}`,
+          borderRadius: 16, padding: '16px 20px', marginBottom: 24,
+          color: uploadResult.created > 0 ? '#22c55e' : '#f59e0b',
+          fontSize: '0.9rem', fontWeight: 600, direction: 'rtl',
+        }}>
+          <div style={{ marginBottom: 6 }}>{uploadResult.message}</div>
+          {uploadResult.errors.length > 0 && (
+            <div style={{ marginTop: 8, fontSize: '0.82rem', opacity: 0.85 }}>
+              {uploadResult.errors.map((err, i) => <div key={i}>• {err}</div>)}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Filters ── */}
       <div style={{ background: 'white', borderRadius: 18, padding: '20px 24px', marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>

@@ -660,11 +660,16 @@ const stopSpaceSound = () => {
           }
           .auth-navbar h1 {
             color: #FFD700;
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             font-weight: 900;
             margin: 0;
-            letter-spacing: 0.5px;
-            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+            letter-spacing: 1px;
+            text-shadow: 0 0 30px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2);
+            animation: authGlow 3s ease-in-out infinite;
+          }
+          @keyframes authGlow {
+            0%,100% { text-shadow: 0 0 30px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2); }
+            50%      { text-shadow: 0 0 40px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.35); }
           }
           .auth-container {
             display: flex;
@@ -681,6 +686,7 @@ const stopSpaceSound = () => {
             padding: 40px;
             width: 380px;
             text-align: center;
+            box-shadow: 0 0 40px rgba(255,215,0,0.15);
           }
           .auth-box h2 { color: #FFD700; margin-bottom: 8px; }
           .auth-box p  { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
@@ -1713,12 +1719,12 @@ const stopSpaceSound = () => {
           gap: 6px;
         }
         .q-action-group .q-expand-btn {
-          position: static;
-          top: unset; left: unset;
+          position: static !important;
+          top: unset !important; left: unset !important;
         }
         .q-action-group .quad-plus-btn {
-          position: static;
-          top: unset; left: unset;
+          position: static !important;
+          top: unset !important; left: unset !important;
         }
         /* Backdrop خلف الربع المكبَّر */
         .expand-backdrop {
@@ -2025,14 +2031,8 @@ const stopSpaceSound = () => {
           {/* ─ شريط علوي: البادج + المشاهدين + أزرار الإجراءات ─ */}
           <div className="q1-topbar">
             <div className="q1-badge-group">
-              {liveLecture ? (
+              {displayLecture ? (
                 <span className="badge-live" style={{ background: '#e03030', color: 'white' }}><span className="badge-live-dot" />بث مباشر</span>
-              ) : displayLecture ? (
-                displayLecture.stream_type === 'external' || parseExternalVideoUrl(displayLecture.stream_url || '') ? (
-                  <span className="badge-recorded">🎥 بث خارجي</span>
-                ) : (
-                  <span className="badge-recorded">🎬 محاضرة مسجّلة</span>
-                )
               ) : (
                 <span className="q1-no-stream">📺 لا يوجد بث حالياً</span>
               )}
