@@ -1840,6 +1840,21 @@ const stopSpaceSound = () => {
           direction: rtl;
           z-index: 10;
         }
+        .q1-center-group {
+          display: flex; align-items: center; gap: 10px;
+          flex: 1; justify-content: center;
+          overflow: hidden;
+        }
+        .q1-title-row {
+          display: flex; align-items: center; gap: 10px;
+          max-width: 100%;
+        }
+        .q1-title-text {
+          color: rgba(255,255,255,0.9);
+          font-size: 0.88rem; font-weight: 700;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
         .q1-badge-group {
           display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
         }
@@ -2069,15 +2084,8 @@ const stopSpaceSound = () => {
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
-          {/* ─ شريط علوي: بادج البث + أزرار الإجراءات ─ */}
+          {/* ─ شريط علوي: عنوان + بادج البث + أزرار الإجراءات ─ */}
           <div className="q1-topbar">
-            <div className="q1-badge-group">
-              {displayLecture ? (
-                <span className="badge-live-dot-only" title="بث مباشر"><span className="badge-live-dot" /></span>
-              ) : (
-                <span className="q1-no-stream">📺</span>
-              )}
-            </div>
             <div className="q1-action-group">
               <button
                 onClick={() => setShowVideoModal(true)}
@@ -2092,22 +2100,23 @@ const stopSpaceSound = () => {
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
             </div>
+            <div className="q1-center-group">
+              {displayLecture && (
+                <div className="q1-title-row">
+                  <span className="q1-title-text">{displayLecture.title}</span>
+                  {displayLecture ? (
+                    <span className="badge-live-dot-only" title="بث مباشر"><span className="badge-live-dot" /></span>
+                  ) : null}
+                </div>
+              )}
+            </div>
+            <div className="q1-badge-group">
+              <span className="q1-no-stream">📺</span>
+            </div>
           </div>
 
           {/* ─ منطقة الفيديو ─ */}
           <div className="q1-video-wrap">
-            {/* بث مباشر أحمر فوق الفيديو */}
-            {liveLecture && (
-              <div className="q1-live-overlay">
-                <span className="q1-live-badge">
-                  <span className="q1-live-dot" />
-                  بث مباشر
-                </span>
-                <span className="q1-institution-name-overlay">
-                  {institution?.name_ar || institution?.name}
-                </span>
-              </div>
-            )}
             {displayLecture ? (
               liveLecture && displayLecture.cf_live_input_id ? (
                 <iframe
@@ -2214,13 +2223,6 @@ const stopSpaceSound = () => {
             <div className="q1-info-bar">
               <div className="q1-title">{displayLecture.title}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                {liveLecture ? (
-                  <span style={{ background: '#e03030', color: 'white', padding: '2px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 800 }}>● بث حيّ مباشر</span>
-                ) : displayLecture?.stream_type === 'external' || (displayLecture?.stream_url && parseExternalVideoUrl(displayLecture.stream_url)) ? (
-                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '2px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>🎥 خارجي</span>
-                ) : displayLecture ? (
-                  <span style={{ background: 'rgba(78,141,156,0.9)', color: 'white', padding: '2px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700 }}>🎬 مسجّلة</span>
-                ) : null}
                 {liveLecture && displayLecture.started_at && (
                   <span className="q1-time">🕐 بدأ: {new Date(displayLecture.started_at).toLocaleTimeString('ar-EG')}</span>
                 )}

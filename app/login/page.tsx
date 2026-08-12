@@ -156,25 +156,28 @@ export default function LoginPage() {
            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
          </div>
 
-         {/* زر Google */}
-         <button
-           type="button"
-           onClick={() => {
-              window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=489531170664-o83f2l22il51i77i1sqjnm62iiid2pl6.apps.googleusercontent.com&redirect_uri=https://hadmaj.com/api/auth/google&response_type=id_token&scope=profile+email';
-           }}
-           style={{
-             width: '100%',
-             padding: '13px',
-             background: 'rgba(255,255,255,0.95)',
-             border: 'none',
-             borderRadius: 14,
-             color: '#3c4043',
-             fontSize: '0.97rem',
-             fontWeight: 700,
-             cursor: 'pointer',
-             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-             transition: 'all 0.2s',
-             boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+          {/* زر Google */}
+          <button
+            type="button"
+            onClick={() => {
+              const nonce = typeof crypto !== 'undefined' && crypto.randomUUID
+                ? crypto.randomUUID()
+                : Math.random().toString(36).slice(2) + Date.now().toString(36);
+              window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=489531170664-o83f2l22il51i77i1sqjnm62iiid2pl6.apps.googleusercontent.com&redirect_uri=https://hadmaj.com/api/auth/google&response_type=id_token&scope=profile+email&nonce=${nonce}`;
+            }}
+            style={{
+              width: '100%',
+              padding: '13px',
+              background: 'rgba(255,255,255,0.95)',
+              border: 'none',
+              borderRadius: 14,
+              color: '#3c4043',
+              fontSize: '0.97rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
              marginBottom: 20,
            }}
            onMouseEnter={e => {

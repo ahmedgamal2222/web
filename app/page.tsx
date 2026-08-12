@@ -1750,14 +1750,6 @@ export default function HomePage() {
         </div>
 
         <GalaxyLogo />
-
-        <p style={{
-          color: '#4E8D9C', marginTop: 28, fontSize: '0.82rem',
-          letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 600,
-          animation: 'fadeDots 2s ease-in-out infinite',
-        }}>
-          جاري إطلاق المجرة الحضارية
-        </p>
       </div>
     );
   }
