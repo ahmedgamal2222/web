@@ -1539,10 +1539,11 @@ const stopSpaceSound = () => {
         }
         .badge-live-dot-only {
           display: inline-flex; align-items: center; justify-content: center;
-          width: 32px; height: 32px; border-radius: 50%;
-          background: #e03030;
-          box-shadow: 0 0 0 0 rgba(224, 48, 48, 0.7);
+          width: 40px; height: 40px; border-radius: 50%;
+          background: radial-gradient(circle, #ff3b3b 0%, #c62828 100%);
+          box-shadow: 0 0 0 0 rgba(224, 48, 48, 0.8), 0 0 20px rgba(224, 48, 48, 0.4), 0 0 40px rgba(224, 48, 48, 0.2);
           animation: livePulseRing 2s infinite;
+          pointer-events: none;
         }
         .badge-live-dot-only .badge-live-dot {
           width: 10px; height: 10px;
@@ -1831,6 +1832,7 @@ const stopSpaceSound = () => {
         .q1-layout {
           display: flex; flex-direction: column;
           width: 100%; height: 100%;
+          position: relative;
         }
         .q1-topbar {
           display: flex; align-items: center;
@@ -1861,7 +1863,12 @@ const stopSpaceSound = () => {
           text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
         .q1-badge-group {
-          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 20;
+          pointer-events: none;
         }
         .q1-viewers-pill {
           background: rgba(255,255,255,0.1);
