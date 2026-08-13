@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, fetchPulse, updatePulse, deletePulse, screenConnect, API_BASE } from '@/lib/api';
 import type { PulseItem } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
@@ -275,41 +275,43 @@ export default function ScreenPage() {
       }
     };
 
-    const loadPulse = () => {
-      fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
-    };
-
     loadData();
     // تحديث النبض كل 30 ثانية
     const pulseInterval = setInterval(() => {
-      fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
+      loadPulse();
     }, 30000);
 
-    // نبض الشاشة كل 5 دقائق لتسجيل النشاط ومكافآت الإعلانات
-    const heartbeatInterval = setInterval(() => {
-      fetch(`${API_BASE}/api/screen/heartbeat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ institution_id: Number(resolvedId) }),
-      }).catch(() => {});
-    }, 5 * 60 * 1000);
-    // Send initial heartbeat immediately
+  // نبض الشاشة كل 5 دقائق لتسجيل النشاط ومكافآت الإعلانات
+  const heartbeatInterval = setInterval(() => {
     fetch(`${API_BASE}/api/screen/heartbeat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ institution_id: Number(resolvedId) }),
     }).catch(() => {});
+  }, 5 * 60 * 1000);
+  // Send initial heartbeat immediately
+  if (Number.isFinite(Number(resolvedId))) {
+    fetch(`${API_BASE}/api/screen/heartbeat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ institution_id: Number(resolvedId) }),
+    }).catch(() => {});
+  }
 
     return () => { clearInterval(pulseInterval); clearInterval(heartbeatInterval); };
   }, [authenticated, resolvedId]);
 
+  const loadPulse = useCallback(() => {
+    fetchPulse({ limit: 50 }).then(r => setPulse(r.data)).catch(() => {});
+  }, []);
+
   // Fetch balance for institution owner
   useEffect(() => {
-    if (!authenticated || !resolvedId || resolvedId === 'tv') return;
+    if (!authenticated || !resolvedId || resolvedId === 'tv' || resolvedId === 'default') return;
     const sid = localStorage.getItem('sessionId') || '';
     fetch(`${API_BASE}/api/ads/credits/balance`, { headers: { 'X-Session-ID': sid } })
       .then(r => r.json())
-      .then(d => { if (d.success) setBalance(d.balance); })
+      .then(d => { if (d?.success) setBalance(d.balance); })
       .catch(() => {});
   }, [authenticated, resolvedId]);
 
@@ -911,13 +913,9 @@ const stopSpaceSound = () => {
         .lecture-info {
           position: absolute;
           bottom: 12px; left: 12px; right: 12px;
-          background: rgba(0,0,0,0.78);
-          backdrop-filter: blur(6px);
           color: white;
           padding: 12px 16px;
-          border-radius: 12px;
           font-size: 0.95rem;
-          border: 1px solid rgba(255,255,255,0.1);
           line-height: 1.5;
         }
         /* ربع المجرة */
@@ -1464,21 +1462,16 @@ const stopSpaceSound = () => {
           animation: livePulse 1.8s ease-in-out infinite;
         }
         .q1-live-dot {
-          width: 9px;
-          height: 9px;
           background: white;
           border-radius: 50%;
           animation: blink 1s infinite;
         }
         .q1-institution-name-overlay {
           background: rgba(0,0,0,0.75);
-          backdrop-filter: blur(8px);
           color: #FFD700;
           padding: 5px 14px;
-          border-radius: 20px;
           font-size: 0.82rem;
           font-weight: 700;
-          border: 1px solid rgba(255,215,0,0.3);
           max-width: 300px;
           overflow: hidden;
           text-overflow: ellipsis;
