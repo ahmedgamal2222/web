@@ -1756,7 +1756,13 @@ export default function HomePage() {
           </div>
         </div>
 
+      {siteSettings?.logo_url ? (
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none' }}>
+          <img src={siteSettings.logo_url} alt={siteSettings.site_name || 'المجرة الحضارية'} width={54} height={54} style={{ borderRadius: 10, objectFit: 'contain' }} />
+        </Link>
+      ) : (
         <GalaxyLogo />
+      )}
       </div>
     );
   }

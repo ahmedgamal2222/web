@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
@@ -34,27 +35,11 @@ interface SocialLink {
   _key?: string;
 }
 
-interface SiteSettings {
-  id: number;
-  site_name: string;
-  site_tagline: string;
-  logo_url: string | null;
-  primary_color: string;
-  secondary_color: string;
-  background_color: string;
-  text_color: string;
-  navbar_links: string;
-  social_links: string;
-  footer_text: string;
-  custom_css: string | null;
-  updated_at: string;
-}
-
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'navbar' | 'colors' | 'social' | 'general'>('navbar');
 
@@ -77,6 +62,7 @@ export default function AdminSettingsPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NavbarLink>({ label: '', href: '', icon: '🔗', visible: true, _key: '' });
   const [newLink, setNewLink] = useState<NavbarLink>({ label: '', href: '', icon: '🔗', visible: true, _key: crypto.randomUUID() });
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -94,7 +80,6 @@ export default function AdminSettingsPage() {
       });
       const data = await res.json();
       if (data.success && data.settings) {
-        setSettings(data.settings);
         setForm({
           site_name: data.settings.site_name || '',
           site_tagline: data.settings.site_tagline || '',
@@ -109,21 +94,50 @@ export default function AdminSettingsPage() {
           social_links: typeof data.settings.social_links === 'string' ? data.settings.social_links : JSON.stringify(data.settings.social_links || []),
         });
         try {
-          setNavbarLinks(JSON.parse(data.settings.navbar_links || '[]').map((l: any, i: number) => ({ ...l, _key: l._key || `nav-${i}-${Date.now()}` })));
+          setNavbarLinks(JSON.parse(data.settings.navbar_links || '[]').map((l: NavbarLink, i: number) => ({ ...l, _key: l._key || `nav-${i}-${Date.now()}` })));
         } catch { setNavbarLinks([]); }
         try {
-          setSocialLinks(JSON.parse(data.settings.social_links || '[]').map((s: any, i: number) => ({ ...s, _key: s._key || `soc-${i}-${Date.now()}` })));
+          setSocialLinks(JSON.parse(data.settings.social_links || '[]').map((s: SocialLink, i: number) => ({ ...s, _key: s._key || `soc-${i}-${Date.now()}` })));
         } catch { setSocialLinks([]); }
       }
-    } catch (e: any) {
-      setMessage({ type: 'error', text: e.message || 'فشل تحميل الإعدادات' });
+    } catch (e: unknown) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'فشل تحميل الإعدادات' });
     } finally {
       setLoading(false);
     }
   };
 
-  const updateField = (field: string, value: any) => {
+  const updateField = (field: string, value: string | number | boolean) => {
     setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    setMessage(null);
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+      const sid = localStorage.getItem('sessionId') || '';
+      const res = await fetch(`${API_BASE}/api/upload/logo`, {
+        method: 'POST',
+        headers: { 'X-Session-ID': sid },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!data.success && !data.url) throw new Error(data.error || 'فشل رفع الشعار');
+      const url = data.url || data.data?.url || '';
+      if (url) {
+        updateField('logo_url', url);
+        setMessage({ type: 'success', text: 'تم رفع الشعار بنجاح' });
+      }
+    } catch (err: unknown) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'فشل رفع الشعار' });
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
   };
 
   const handleSave = async () => {
@@ -145,8 +159,8 @@ export default function AdminSettingsPage() {
       if (!data.success) throw new Error(data.error || 'فشل الحفظ');
       setMessage({ type: 'success', text: 'تم حفظ الإعدادات بنجاح' });
       loadSettings();
-    } catch (e: any) {
-      setMessage({ type: 'error', text: e.message || 'فشل الحفظ' });
+    } catch (e: unknown) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'فشل الحفظ' });
     } finally {
       setSaving(false);
     }
@@ -158,7 +172,7 @@ export default function AdminSettingsPage() {
     setNewLink({ label: '', href: '', icon: '🔗', visible: true, _key: crypto.randomUUID() });
   };
 
-  const updateNavbarLink = (index: number, field: string, value: any) => {
+  const updateNavbarLink = (index: number, field: string, value: string | number | boolean) => {
     setNavbarLinks(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));
   };
 
@@ -182,10 +196,6 @@ export default function AdminSettingsPage() {
     setNewLink({ label: '', href: '', icon: '🔗', visible: true, _key: crypto.randomUUID() });
   };
 
-  const updateSocialLink = (index: number, field: string, value: any) => {
-    setSocialLinks(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));
-  };
-
   const removeSocialLink = (index: number) => {
     setSocialLinks(prev => prev.filter((_, i) => i !== index));
   };
@@ -200,6 +210,8 @@ export default function AdminSettingsPage() {
       </div>
     );
   }
+
+  const visibleNavLinks = navbarLinks.filter(l => l.visible !== false);
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text, direction: 'rtl', fontFamily: "'Tajawal', 'Cairo', sans-serif" }}>
@@ -222,12 +234,12 @@ export default function AdminSettingsPage() {
             {/* Tabs */}
             <div style={{ display: 'flex', gap: 8, background: C.card, padding: 6, borderRadius: 12, border: `1px solid ${C.border}` }}>
               {[
-                { key: 'navbar', label: '🔗 الناف بار', icon: '🔗' },
-                { key: 'colors', label: '🎨 الألوان', icon: '🎨' },
-                { key: 'social', label: '📱 السوشيال', icon: '📱' },
-                { key: 'general', label: '📝 عام', icon: '📝' },
+                { key: 'navbar' as const, label: '🔗 الناف بار', icon: '🔗' },
+                { key: 'colors' as const, label: '🎨 الألوان', icon: '🎨' },
+                { key: 'social' as const, label: '📱 السوشيال', icon: '📱' },
+                { key: 'general' as const, label: '📝 عام', icon: '📝' },
               ].map(tab => (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key as any)} style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: 'none', background: activeTab === tab.key ? C.teal : 'transparent', color: activeTab === tab.key ? 'white' : C.muted, cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.2s' }}>
+                <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: 'none', background: activeTab === tab.key ? C.teal : 'transparent', color: activeTab === tab.key ? 'white' : C.muted, cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.2s' }}>
                   {tab.label}
                 </button>
               ))}
@@ -255,6 +267,7 @@ export default function AdminSettingsPage() {
                         <div style={{ fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.label}</div>
                         <div style={{ fontSize: '0.75rem', color: C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.href}</div>
                       </div>
+                      {link.visible === false && <span style={{ fontSize: '0.7rem', color: C.red, background: 'rgba(239,68,68,0.1)', padding: '2px 8px', borderRadius: 4 }}>مخفي</span>}
                       <button onClick={() => { setEditingIndex(index); setEditForm(link); }} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.teal}50`, background: 'transparent', color: C.teal, cursor: 'pointer', fontSize: '0.8rem' }}>✏️</button>
                       <button onClick={() => removeNavbarLink(index)} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.red}50`, background: 'transparent', color: C.red, cursor: 'pointer', fontSize: '0.8rem' }}>🗑️</button>
                     </div>
@@ -370,8 +383,23 @@ export default function AdminSettingsPage() {
                     <input value={form.site_tagline} onChange={e => updateField('site_tagline', e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: '0.95rem', outline: 'none' }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>رابط الشعار</label>
-                    <input value={form.logo_url} onChange={e => updateField('logo_url', e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: '0.95rem', outline: 'none' }} />
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>الشعار</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                      <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
+                      <button onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} style={{ padding: '10px 20px', borderRadius: 8, border: `1px solid ${C.teal}50`, background: 'transparent', color: C.teal, cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                        {uploadingLogo ? '⏳ جاري الرفع...' : '📁 رفع من الجهاز'}
+                      </button>
+                      {form.logo_url && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Image src={form.logo_url} alt="Logo" width={48} height={48} style={{ borderRadius: 8, objectFit: 'contain', border: `1px solid ${C.border}` }} unoptimized />
+                          <button onClick={() => updateField('logo_url', '')} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.red}50`, background: 'transparent', color: C.red, cursor: 'pointer', fontSize: '0.8rem' }}>🗑️ حذف</button>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                      <label style={{ fontSize: '0.75rem', color: C.muted }}>أو أدخل رابط الشعار يدوياً:</label>
+                      <input value={form.logo_url} onChange={e => updateField('logo_url', e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: '0.95rem', outline: 'none', marginTop: 6 }} />
+                    </div>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>نص الفوتر</label>
@@ -389,42 +417,73 @@ export default function AdminSettingsPage() {
 
           {/* Preview Panel */}
           <div style={{ position: 'sticky', top: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Navbar Preview */}
+            {/* Navbar Preview - Realistic */}
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px 24px' }}>
               <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: 800, color: C.gold }}>👁 معاينة الناف بار</h3>
-              <div style={{ background: form.background_color || '#0a0a1a', borderRadius: 12, padding: 16, border: `1px solid ${C.border}`, direction: 'rtl', fontFamily: "'Tajawal', sans-serif" }}>
-                {/* Logo */}
-                {form.logo_url && (
-                  <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                    <img src={form.logo_url} alt="Logo" style={{ maxWidth: 60, maxHeight: 60, borderRadius: 8, objectFit: 'contain' }} />
+              <div style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${C.border}`, direction: 'rtl', fontFamily: "'Tajawal', sans-serif" }}>
+                {/* Realistic navbar matching app/page.tsx */}
+                <header style={{
+                  position: 'relative',
+                  top: 0, left: 0, right: 0,
+                  zIndex: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 24px',
+                  height: 68,
+                  background: `linear-gradient(180deg, ${form.background_color || '#0a0a1a'} 0%, ${form.background_color || '#0a0a1a'} 65%, transparent 100%)`,
+                  backdropFilter: 'blur(22px)',
+                  WebkitBackdropFilter: 'blur(22px)',
+                  borderBottom: `1px solid ${form.secondary_color || C.teal}33`,
+                  boxShadow: `0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 ${form.primary_color || C.gold}15`,
+                }}>
+                  {/* Logo */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                    {form.logo_url ? (
+                      <Image src={form.logo_url} alt="Logo" width={40} height={40} style={{ borderRadius: 8, objectFit: 'contain' }} unoptimized />
+                    ) : (
+                      <div style={{ width: 40, height: 40, borderRadius: 8, background: `linear-gradient(135deg, ${form.primary_color || C.gold}, ${form.secondary_color || C.teal})`, display: 'flex', alignItems: 'center', justifyContentContent: 'center', color: '#fff', fontWeight: 900, fontSize: '1.1rem' }}>🌌</div>
+                    )}
+                    {form.site_name && (
+                      <span style={{ fontSize: '1rem', fontWeight: 900, color: form.primary_color || C.gold, whiteSpace: 'nowrap' }}>{form.site_name}</span>
+                    )}
                   </div>
-                )}
-                {/* Site Name */}
-                <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: form.primary_color || C.gold }}>{form.site_name || 'اسم الموقع'}</div>
-                  <div style={{ fontSize: '0.8rem', color: form.secondary_color || C.teal, marginTop: 4 }}>{form.site_tagline || 'وصف الموقع'}</div>
-                </div>
-                {/* Navbar */}
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', padding: '12px 0', borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
-                  {navbarLinks.filter(l => l.visible !== false).map((link, i) => (
-                    <div key={link._key || i} style={{ padding: '6px 14px', borderRadius: 20, background: `${form.primary_color || C.gold}15`, color: form.primary_color || C.gold, fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      {link.icon} {link.label}
-                    </div>
-                  ))}
-                </div>
-                {/* Social */}
-                {socialLinks.filter(s => s.visible !== false).length > 0 && (
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
-                    {socialLinks.filter(s => s.visible !== false).map((social, i) => (
-                      <div key={social._key || i} style={{ width: 32, height: 32, borderRadius: '50%', background: `${form.primary_color || C.gold}20`, color: form.primary_color || C.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                        {social.icon}
+
+                  {/* Nav Links */}
+                  <nav style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {visibleNavLinks.length === 0 && (
+                      <span style={{ fontSize: '0.75rem', color: C.muted, padding: '4px 12px' }}>لا توجد روابط</span>
+                    )}
+                    {visibleNavLinks.map((link, i) => (
+                      <div key={link._key || i} style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '6px 12px',
+                        background: `${form.primary_color || C.gold}08`,
+                        border: `1px solid ${form.primary_color || C.gold}25`,
+                        borderRadius: 40,
+                        color: `${form.primary_color || C.gold}cc`,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        <span style={{ fontSize: '0.8rem' }}>{link.icon}</span>
+                        <span>{link.label}</span>
                       </div>
                     ))}
-                  </div>
-                )}
-                {/* Footer */}
-                <div style={{ textAlign: 'center', marginTop: 16, paddingTop: 12, borderTop: `1px solid ${C.border}`, fontSize: '0.75rem', color: C.muted }}>
-                  {form.footer_text}
+                  </nav>
+
+                  {/* Right side - user area placeholder */}
+                  <div style={{ width: 80, flexShrink: 0 }} />
+                </header>
+              </div>
+            </div>
+
+            {/* Footer Preview */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px 24px' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: 800, color: C.gold }}>👣 معاينة الفوتر</h3>
+              <div style={{ background: form.background_color || '#0a0a1a', borderRadius: 12, padding: 20, border: `1px solid ${C.border}`, textAlign: 'center' }}>
+                <div style={{ fontSize: '0.8rem', color: C.muted, borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+                  {form.footer_text || '© 2026 المجرة الحضارية'}
                 </div>
               </div>
             </div>

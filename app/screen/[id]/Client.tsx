@@ -2095,7 +2095,7 @@ const stopSpaceSound = () => {
       <div className={`quadrant${expandedQuadrant === 1 ? ' expanded' : ''}${liveLecture ? ' q-live-border' : ''}`}>
         <div className="q1-layout">
 
-          {/* ─ شريط علوي: أزرار + بادج بث شرطي ─ */}
+          {/* ─ شريط علوي: أزرار + بادج بث دائماً عند وجود فيديو ─ */}
           <div className="q1-topbar">
             <div className="q1-action-group">
               <button
@@ -2111,7 +2111,7 @@ const stopSpaceSound = () => {
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
             </div>
-            {liveLecture && (
+            {displayLecture && (
               <div className="q1-badge-group">
                 <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}>
                   <span className="badge-live-dot" />بث مباشر
@@ -2392,7 +2392,7 @@ const stopSpaceSound = () => {
                       <span className="feed-icon">{item.icon}</span>
                       <span className="feed-title" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'white' }}>{item.title}</span>
                       {item.subtitle && <span className="feed-subtitle" style={{ fontSize: '0.78rem', color: '#FFD700', opacity: 0.8 }}>{item.subtitle}</span>}
-                      {item.is_featured && <span style={{ fontSize: '0.7rem', color: '#FFD700' }}>⭐</span>}
+                      {Number(item.is_featured) === 1 && <span style={{ fontSize: '0.7rem', color: '#FFD700' }}>⭐</span>}
                     </div>
                     {showActions && (
                       <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4, zIndex: 5, animation: 'fadeIn 0.2s ease' }}>
