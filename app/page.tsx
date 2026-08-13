@@ -213,8 +213,6 @@ function TopBar({
     <>
       <header className="topbar" style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px',
         height: 76,
         background: `linear-gradient(180deg, ${siteSettings?.background_color || 'rgba(5,4,20,0.97)'} 0%, ${siteSettings?.background_color || 'rgba(5,4,20,0.85)'} 65%, transparent 100%)`,
         backdropFilter: 'blur(22px)',
@@ -222,50 +220,62 @@ function TopBar({
         borderBottom: `1px solid ${secondaryColor}33`,
         boxShadow: `0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 ${primaryColor}15`,
       }}>
-        {logoContent}
+        {/* Logo on the right */}
+        <div style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+          {logoContent}
+        </div>
 
-        <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {/* Nav links centered */}
+        <nav className="topbar-nav" style={{ 
+          position: 'absolute', 
+          left: '50%', 
+          top: '50%', 
+          transform: 'translate(-50%, -50%)',
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 6,
+          whiteSpace: 'nowrap',
+        }}>
           {visibleLinks.length === 0 && (
             <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', padding: '4px 12px' }}>لا توجد روابط</span>
           )}
           {visibleLinks.map((link: NavbarLink) => {
             const href = link.href || '#';
             const isExternal = href.startsWith('http://') || href.startsWith('https://');
+            const linkKey = href + (link.label || '');
             return (
               <Link
-                key={href + (link.label || '')}
+                key={linkKey}
                 href={href}
                 target={isExternal ? '_blank' : undefined}
                 rel={isExternal ? 'noopener noreferrer' : undefined}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '7px 14px',
-                background: `${primaryColor}08`,
-                border: `1px solid ${primaryColor}25`,
-                borderRadius: 40,
-                color: `${primaryColor}cc`,
-                fontSize: '0.82rem',
-                textDecoration: 'none',
-                fontWeight: 600,
-                transition: 'all 0.2s',
-                letterSpacing: '0.01em',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLAnchorElement).style.color = primaryColor;
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = `${primaryColor}50`;
-                (e.currentTarget as HTMLAnchorElement).style.background = `${primaryColor}18`;
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLAnchorElement).style.color = `${primaryColor}cc`;
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = `${primaryColor}25`;
-                (e.currentTarget as HTMLAnchorElement).style.background = `${primaryColor}08`;
-              }}
-            >
-              <span style={{ fontSize: '0.9rem' }}>{link.icon}</span>
-              <span className="topbar-nav-label">{link.label}</span>
-            </Link>
-          ))}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '7px 14px',
+                  background: 'transparent',
+                  borderRadius: 40,
+                  color: `${primaryColor}cc`,
+                  fontSize: '0.82rem',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  transition: 'all 0.2s',
+                  letterSpacing: '0.01em',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = primaryColor;
+                  (e.currentTarget as HTMLAnchorElement).style.background = `${primaryColor}12`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = `${primaryColor}cc`;
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                }}
+              >
+                <span style={{ fontSize: '0.9rem' }}>{link.icon}</span>
+                <span className="topbar-nav-label">{link.label}</span>
+              </Link>
+            );
+          })}
         </nav>
       </header>
 
