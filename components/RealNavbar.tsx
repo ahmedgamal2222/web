@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchSiteSettings } from '@/lib/api';
 import type { SiteSettings } from '@/lib/api';
@@ -22,12 +22,20 @@ export interface SiteNavbarConfig {
   height?: number;
 }
 
+const DEFAULT_LINKS: NavbarLink[] = [
+  { id: 'default-1', label: 'الرئيسية', url: '/', icon: '🏠', visible: true },
+  { id: 'default-2', label: 'الانطلاقات', url: '/events', icon: '🚀', visible: true },
+  { id: 'default-3', label: 'الشاشة الحضارية', url: '/screen/default', icon: '📺', visible: true },
+  { id: 'default-4', label: 'نبض المجرة', url: '/pulse', icon: '💫', visible: true },
+  { id: 'default-5', label: 'المؤسسات', url: '/institutions', icon: '🏛️', visible: true },
+];
+
 const DEFAULT_CONFIG: SiteNavbarConfig = {
   backgroundColor: '#0a0a1a',
   logoType: 'text',
   logoText: 'المجرة الحضارية',
   logoImageUrl: '',
-  links: [],
+  links: DEFAULT_LINKS,
   height: 72,
 };
 
@@ -39,32 +47,43 @@ interface RealNavbarProps {
 
 export default function RealNavbar({ config, activePath, initialSettings }: RealNavbarProps) {
   const [settings, setSettings] = useState<SiteSettings | null>(initialSettings || null);
-  const [loading, setLoading] = useState(!initialSettings);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const data = await fetchSiteSettings();
-      if (!cancelled && data) setSettings(data);
-      setLoading(false);
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
+    let timeoutId: ReturnType<typeof setTimeout>;
 
-  if (loading) {
-    return (
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 100, height: DEFAULT_CONFIG.height,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px', background: DEFAULT_CONFIG.backgroundColor,
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        <div style={{ width: 120, height: 32, background: 'rgba(255,255,255,0.04)', borderRadius: 8 }} />
-        <div style={{ width: 200, height: 32, background: 'rgba(255,255,255,0.04)', borderRadius: 8 }} />
-      </header>
-    );
-  }
+    async function load() {
+      try {
+        const data = await fetchSiteSettings();
+        if (!cancelled) {
+          if (data) {
+            setSettings(data);
+          } else {
+            setError(true);
+          }
+        }
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    // Always try to fetch fresh settings in background
+    load();
+
+    // Timeout fallback: if fetch takes > 3s, stop loading and use what we have
+    timeoutId = setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   const siteSettings = settings || {};
   const primaryColor = siteSettings.primary_color || '#FFD700';
@@ -73,8 +92,10 @@ export default function RealNavbar({ config, activePath, initialSettings }: Real
 
   let navbarLinks: NavbarLink[] = [];
   try {
-    navbarLinks = siteSettings.navbar_links ? JSON.parse(siteSettings.navbar_links) : [];
-  } catch {}
+    navbarLinks = siteSettings.navbar_links ? JSON.parse(siteSettings.navbar_links) : DEFAULT_LINKS;
+  } catch {
+    navbarLinks = DEFAULT_LINKS;
+  }
 
   const visibleLinks = navbarLinks.filter((l: NavbarLink) => l.visible !== false);
 
