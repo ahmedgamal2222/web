@@ -228,12 +228,15 @@ function TopBar({
           {visibleLinks.length === 0 && (
             <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', padding: '4px 12px' }}>لا توجد روابط</span>
           )}
-          {visibleLinks.map((link: NavbarLink) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              target={link.href.startsWith('http://') || link.href.startsWith('https://') ? '_blank' : undefined}
-              rel={link.href.startsWith('http://') || link.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
+          {visibleLinks.map((link: NavbarLink) => {
+            const href = link.href || '#';
+            const isExternal = href.startsWith('http://') || href.startsWith('https://');
+            return (
+              <Link
+                key={href + (link.label || '')}
+                href={href}
+                target={isExternal ? '_blank' : undefined}
+                rel={isExternal ? 'noopener noreferrer' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '7px 14px',
