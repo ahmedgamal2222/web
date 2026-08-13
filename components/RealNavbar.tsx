@@ -34,11 +34,12 @@ const DEFAULT_CONFIG: SiteNavbarConfig = {
 interface RealNavbarProps {
   config?: Partial<SiteNavbarConfig>;
   activePath?: string;
+  initialSettings?: SiteSettings | null;
 }
 
-export default function RealNavbar({ config, activePath }: RealNavbarProps) {
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function RealNavbar({ config, activePath, initialSettings }: RealNavbarProps) {
+  const [settings, setSettings] = useState<SiteSettings | null>(initialSettings || null);
+  const [loading, setLoading] = useState(!initialSettings);
 
   useEffect(() => {
     let cancelled = false;

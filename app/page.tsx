@@ -198,7 +198,7 @@ function TopBar({
 
   return (
     <>
-      <RealNavbar config={{ height: 76 }} />
+      <RealNavbar config={{ height: 76 }} initialSettings={siteSettings} />
 
       <div className="topbar-right" style={{ position: 'absolute', top: 0, left: 32, height: 76, display: 'flex', alignItems: 'center', gap: 10, zIndex: 41 }}>
         {user ? (
