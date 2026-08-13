@@ -207,7 +207,13 @@ function TopBar({
       borderBottom: `1px solid ${secondaryColor}33`,
       boxShadow: `0 2px 40px rgba(0,0,0,0.6), inset 0 -1px 0 ${primaryColor}15`,
     }}>
-      <GalaxyLogo />
+      {siteSettings?.logo_url ? (
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none' }}>
+          <img src={siteSettings.logo_url} alt={siteSettings?.site_name || 'المجرة الحضارية'} width={54} height={54} style={{ borderRadius: 10, objectFit: 'contain' }} />
+        </Link>
+      ) : (
+        <GalaxyLogo />
+      )}
 
       {/* ── Global Nav ── */}
       <nav className="topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -215,8 +221,8 @@ function TopBar({
           <Link
             key={link.href}
             href={link.href}
-            target={link.href.startsWith('https://') ? '_blank' : undefined}
-            rel={link.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
+            target={link.href.startsWith('http://') || link.href.startsWith('https://') ? '_blank' : undefined}
+            rel={link.href.startsWith('http://') || link.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '7px 14px',
