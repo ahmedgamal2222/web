@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import AdminNavbarEditor from '@/components/AdminNavbarEditor';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
@@ -247,69 +248,7 @@ export default function AdminSettingsPage() {
 
             {/* Navbar Tab */}
             {activeTab === 'navbar' && (
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '24px 28px' }}>
-                <h2 style={{ margin: '0 0 20px', fontSize: '1.2rem', fontWeight: 800 }}>🔗 عناصر الناف بار</h2>
-                <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: C.muted }}>اسحب العناصر لإعادة ترتيبها، أو انقر لتعديلها</p>
-
-                {/* Current Items */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-                  {navbarLinks.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: 24, color: C.muted, fontSize: '0.9rem' }}>لا توجد عناصر في الناف بار</div>
-                  )}
-                  {navbarLinks.map((link, index) => (
-                    <div key={link._key || index} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: C.bg, borderRadius: 10, border: `1px solid ${C.border}`, transition: 'all 0.2s' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <button onClick={() => moveNavbarLink(index, 'up')} disabled={index === 0} style={{ background: 'transparent', border: 'none', color: index === 0 ? C.border : C.teal, cursor: index === 0 ? 'not-allowed' : 'pointer', fontSize: '0.7rem', padding: 2 }}>▲</button>
-                        <button onClick={() => moveNavbarLink(index, 'down')} disabled={index === navbarLinks.length - 1} style={{ background: 'transparent', border: 'none', color: index === navbarLinks.length - 1 ? C.border : C.teal, cursor: index === navbarLinks.length - 1 ? 'not-allowed' : 'pointer', fontSize: '0.7rem', padding: 2 }}>▼</button>
-                      </div>
-                      <span style={{ fontSize: '1.2rem' }}>{link.icon}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.label}</div>
-                        <div style={{ fontSize: '0.75rem', color: C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.href}</div>
-                      </div>
-                      {link.visible === false && <span style={{ fontSize: '0.7rem', color: C.red, background: 'rgba(239,68,68,0.1)', padding: '2px 8px', borderRadius: 4 }}>مخفي</span>}
-                      <button onClick={() => { setEditingIndex(index); setEditForm(link); }} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.teal}50`, background: 'transparent', color: C.teal, cursor: 'pointer', fontSize: '0.8rem' }}>✏️</button>
-                      <button onClick={() => removeNavbarLink(index)} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.red}50`, background: 'transparent', color: C.red, cursor: 'pointer', fontSize: '0.8rem' }}>🗑️</button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add New */}
-                <div style={{ padding: '16px', background: C.bg, borderRadius: 10, border: `1px dashed ${C.border}` }}>
-                  <h3 style={{ margin: '0 0 12px', fontSize: '0.95rem', fontWeight: 700 }}>➕ إضافة رابط جديد</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <input value={newLink.icon} onChange={e => setNewLink({ ...newLink, icon: e.target.value })} placeholder="أيقونة" style={{ width: 60, padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.card, color: C.text, fontSize: '0.85rem', textAlign: 'center' }} />
-                      <input value={newLink.label} onChange={e => setNewLink({ ...newLink, label: e.target.value })} placeholder="اسم الرابط" style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.card, color: C.text, fontSize: '0.85rem' }} />
-                    </div>
-                    <input value={newLink.href} onChange={e => setNewLink({ ...newLink, href: e.target.value })} placeholder="الرابط (مثال: /events)" style={{ padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.card, color: C.text, fontSize: '0.85rem' }} />
-                    <button onClick={addNavbarLink} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: `linear-gradient(135deg, ${C.teal}, #3a7a8a)`, color: 'white', fontWeight: 700, cursor: 'pointer' }}>➕ إضافة للناف بار</button>
-                  </div>
-                </div>
-
-                {/* Edit Modal */}
-                {editingIndex !== null && (
-                  <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setEditingIndex(null)}>
-                    <div style={{ background: C.card, borderRadius: 20, padding: 28, maxWidth: 500, width: '100%', border: `1px solid ${C.border}` }} onClick={e => e.stopPropagation()}>
-                      <h3 style={{ margin: '0 0 20px', color: C.gold, fontSize: '1.1rem', fontWeight: 800 }}>✏️ تعديل الرابط</h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        <div style={{ display: 'flex', gap: 10 }}>
-                          <input value={editForm.icon} onChange={e => setEditForm({ ...editForm, icon: e.target.value })} placeholder="أيقونة" style={{ width: 60, padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: '0.9rem', textAlign: 'center' }} />
-                          <input value={editForm.label} onChange={e => setEditForm({ ...editForm, label: e.target.value })} placeholder="اسم الرابط" style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: '0.9rem' }} />
-                        </div>
-                        <input value={editForm.href} onChange={e => setEditForm({ ...editForm, href: e.target.value })} placeholder="الرابط" style={{ padding: '10px 12px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: '0.9rem' }} />
-                        <div style={{ display: 'flex', gap: 10 }}>
-                          <button onClick={() => { updateNavbarLink(editingIndex, 'visible', !editForm.visible); setEditingIndex(null); }} style={{ padding: '10px 20px', borderRadius: 8, border: `1px solid ${editForm.visible ? C.green : C.red}50`, background: 'transparent', color: editForm.visible ? C.green : C.red, cursor: 'pointer', fontWeight: 600 }}>
-                            {editForm.visible ? '✓ مرئي' : '✗ مخفي'}
-                          </button>
-                          <button onClick={() => setEditingIndex(null)} style={{ padding: '10px 20px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer' }}>إلغاء</button>
-                          <button onClick={() => { updateNavbarLink(editingIndex, 'label', editForm.label); updateNavbarLink(editingIndex, 'href', editForm.href); updateNavbarLink(editingIndex, 'icon', editForm.icon); setEditingIndex(null); }} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: C.teal, color: 'white', fontWeight: 700, cursor: 'pointer' }}>💾 حفظ</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <AdminNavbarEditor onSaved={loadSettings} />
             )}
 
             {/* Colors Tab */}

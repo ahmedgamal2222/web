@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, fetchPulse, screenConnect, API_BASE } from '@/lib/api';
+import { verifyScreen, screenActivate, fetchInstitution, fetchEvents, fetchNews, fetchLectures, fetchGalaxyData, checkLectureRecording, fetchAgreements, fetchPulse, updatePulse, deletePulse, screenConnect, API_BASE } from '@/lib/api';
 import type { PulseItem } from '@/lib/api';
 import GalaxyCanvas from '@/components/GalaxyCanvas';
 import type { GalaxyData } from '@/lib/types';
@@ -1139,8 +1139,8 @@ const stopSpaceSound = () => {
         /* ─── بث مباشر أحمر فوق الفيديو ─── */
         .q1-live-overlay {
           position: absolute;
-          top: 12px;
-           left: 56px;
+          top: 28px;
+           left: 363px;
           z-index: 20;
           display: flex;
           align-items: center;
@@ -1157,21 +1157,16 @@ const stopSpaceSound = () => {
           animation: livePulse 1.8s ease-in-out infinite;
         }
         .q1-live-dot {
-          width: 9px;
-          height: 9px;
           background: white;
           border-radius: 50%;
           animation: blink 1s infinite;
         }
         .q1-institution-name-overlay {
-          background: rgba(0,0,0,0.75);
-          backdrop-filter: blur(8px);
+          
           color: #FFD700;
           padding: 5px 14px;
-          border-radius: 20px;
           font-size: 0.82rem;
           font-weight: 700;
-          border: 1px solid rgba(255,215,0,0.3);
           max-width: 300px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -2078,16 +2073,13 @@ const stopSpaceSound = () => {
           {institution?.name_ar || institution?.name ? (
             <>
               <span className="institution-name">{institution?.name_ar || institution?.name}</span>
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>— الشاشة الحضارية</span>
-            </>
+<span style={{ fontSize: '0.85rem' }}>— الشاشة الحضارية</span>            </>
           ) : null}
           {balance !== null && Number(balance) > 0 && (
             <span style={{
-              background: 'rgba(255,215,0,0.15)',
-              border: '1px solid rgba(255,215,0,0.4)',
+              
               color: '#FFD700',
               padding: '3px 12px',
-              borderRadius: 20,
               fontSize: '0.78rem',
               fontWeight: 800,
               whiteSpace: 'nowrap',
@@ -2389,7 +2381,7 @@ const stopSpaceSound = () => {
                       style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(0,0,0,0.4)', color: 'white', fontSize: '0.85rem', outline: 'none', resize: 'vertical' }}
                     />
                     <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                      <button onClick={async (e) => { e.stopPropagation(); await updatePulse(item.id, { content: editingText }); setEditingPulseId(null); setSelectedPulseId(null); loadPulse(); }} style={{ padding: '4px 14px', borderRadius: 6, border: 'none', background: '#4E8D9C', color: 'white', fontSize: '0.78rem', cursor: 'pointer' }}>💾 حفظ</button>
+                      <button onClick={async (e) => { e.stopPropagation(); try { await updatePulse(item.id, { content: editingText }); setEditingPulseId(null); setSelectedPulseId(null); loadPulse(); } catch (err) { console.error('Failed to update pulse:', err); } }} style={{ padding: '4px 14px', borderRadius: 6, border: 'none', background: '#4E8D9C', color: 'white', fontSize: '0.78rem', cursor: 'pointer' }}>💾 حفظ</button>
                       <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(null); }} style={{ padding: '4px 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#aaa', fontSize: '0.78rem', cursor: 'pointer' }}>إلغاء</button>
                     </div>
                   </div>
@@ -2404,7 +2396,7 @@ const stopSpaceSound = () => {
                     {showActions && (
                       <div style={{ position: 'absolute', top: 4, left: 4, display: 'flex', gap: 4, zIndex: 5, animation: 'fadeIn 0.2s ease' }}>
                         <button onClick={(e) => { e.stopPropagation(); setEditingPulseId(item.id); setEditingText(item.content); }} style={{ background: 'rgba(78,141,156,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(78,141,156,0.4)', borderRadius: 8, color: '#4E8D9C', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>✏️</button>
-                        <button onClick={(e) => { e.stopPropagation(); if (confirm('حذف هذا العنصر؟')) { deletePulse(item.id).then(() => { setPulse(pulse.filter(p => p.id !== item.id)); setSelectedPulseId(null); }); } }} style={{ background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 8, color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>🗑️</button>
+                        <button onClick={async (e) => { e.stopPropagation(); if (!confirm('حذف هذا العنصر؟')) return; try { const ok = await deletePulse(item.id); if (ok) { setPulse(pulse.filter(p => p.id !== item.id)); setSelectedPulseId(null); } } catch (err) { console.error('Failed to delete pulse:', err); } }} style={{ background: 'rgba(239,68,68,0.25)', backdropFilter: 'blur(8px)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 8, color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 3, transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>🗑️</button>
                       </div>
                     )}
                   </>
