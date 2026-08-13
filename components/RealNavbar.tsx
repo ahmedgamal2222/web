@@ -48,41 +48,23 @@ interface RealNavbarProps {
 export default function RealNavbar({ config, activePath, initialSettings }: RealNavbarProps) {
   const [settings, setSettings] = useState<SiteSettings | null>(initialSettings || null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout>;
 
     async function load() {
       try {
         const data = await fetchSiteSettings();
-        if (!cancelled) {
-          if (data) {
-            setSettings(data);
-          } else {
-            setError(true);
-          }
-        }
+        if (!cancelled && data) setSettings(data);
       } catch {
-        if (!cancelled) setError(true);
+        // keep existing settings on error
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    // Always try to fetch fresh settings in background
     load();
-
-    // Timeout fallback: if fetch takes > 3s, stop loading and use what we have
-    timeoutId = setTimeout(() => {
-      if (!cancelled) setLoading(false);
-    }, 3000);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const siteSettings = settings || {};
