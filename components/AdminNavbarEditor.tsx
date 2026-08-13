@@ -65,13 +65,17 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
     setMessage(null);
     try {
       const sid = localStorage.getItem('sessionId') || '';
-      const body = {
+      const body: Record<string, unknown> = {
         site_name: siteName,
         site_tagline: siteTagline,
-        logo_url: logoType === 'image' ? logoUrl : null,
         background_color: navbarBg,
         navbar_links: JSON.stringify(links.map(l => ({ id: l.id, label: l.label, url: l.url, visible: l.visible, icon: l.icon }))),
       };
+
+      if (logoType === 'image' && logoUrl) {
+        body.logo_url = logoUrl;
+      }
+
       const res = await fetch(`${API_BASE}/api/site-settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Session-ID': sid },
