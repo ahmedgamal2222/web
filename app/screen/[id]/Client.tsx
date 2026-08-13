@@ -1527,14 +1527,13 @@ const stopSpaceSound = () => {
         }
         .badge-live-dot-only {
           display: inline-flex; align-items: center; justify-content: center;
-          width: 40px; height: 40px; border-radius: 50%;
+         border-radius: 50%;
           background: radial-gradient(circle, #ff3b3b 0%, #c62828 100%);
           box-shadow: 0 0 0 0 rgba(224, 48, 48, 0.8), 0 0 20px rgba(224, 48, 48, 0.4), 0 0 40px rgba(224, 48, 48, 0.2);
           animation: livePulseRing 2s infinite;
           pointer-events: none;
         }
         .badge-live-dot-only .badge-live-dot {
-          width: 10px; height: 10px;
           animation: blink 1s infinite;
         }
         .badge-recorded {
@@ -1917,9 +1916,7 @@ const stopSpaceSound = () => {
           display: block; border: none;
         }
         .q1-info-bar {
-          background: rgba(6,6,18,0.97);
-          backdrop-filter: blur(10px);
-          border-top: 1px solid rgba(255,215,0,0.22);
+         
           padding: 10px 16px 12px;
           flex-shrink: 0;
           direction: rtl;
