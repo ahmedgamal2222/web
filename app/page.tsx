@@ -192,7 +192,11 @@ function TopBar({
   const secondaryColor = siteSettings?.secondary_color || '#4E8D9C';
   let navbarLinks: NavbarLink[] = [];
   try {
-    navbarLinks = siteSettings?.navbar_links ? JSON.parse(siteSettings.navbar_links) : [];
+    const raw = siteSettings?.navbar_links ? JSON.parse(siteSettings.navbar_links) : [];
+    navbarLinks = raw.map((l: any) => ({
+      ...l,
+      href: l.href || l.url || '',
+    }));
   } catch {}
 
   const logoContent = (() => {
@@ -207,12 +211,24 @@ function TopBar({
     return <GalaxyLogo />;
   })();
 
-  const visibleLinks = navbarLinks.filter((l: any) => l.visible !== false);
+  let visibleLinks = navbarLinks.filter((l: any) => l.visible !== false && l.href && l.href.trim() !== '');
+
+  const align = (siteSettings as any)?.navbar_align || 'center';
+
+  if (!siteSettings && visibleLinks.length === 0) {
+    visibleLinks = [
+      { href: '/', label: 'الرئيسية', icon: '🏠', visible: true },
+      { href: '/events', label: 'الانطلاقات', icon: '🚀', visible: true },
+      { href: '/screen/default', label: 'الشاشة الحضارية', icon: '📺', visible: true },
+      { href: '/pulse', label: 'نبض المجرة', icon: '💫', visible: true },
+      { href: '/institutions', label: 'المؤسسات', icon: '🏛️', visible: true },
+    ];
+  }
 
   return (
     <>
       <header className="topbar" style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40,
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50,
         height: 76,
         background: `linear-gradient(180deg, ${siteSettings?.background_color || 'rgba(5,4,20,0.97)'} 0%, ${siteSettings?.background_color || 'rgba(5,4,20,0.85)'} 65%, transparent 100%)`,
         backdropFilter: 'blur(22px)',
@@ -225,22 +241,23 @@ function TopBar({
           {logoContent}
         </div>
 
-        {/* Nav links centered */}
+        {/* Nav links */}
         <nav className="topbar-nav" style={{ 
           position: 'absolute', 
-          left: '50%', 
           top: '50%', 
-          transform: 'translate(-50%, -50%)',
+          ...(align === 'center' ? { left: '50%', transform: 'translate(-50%, -50%)' } : align === 'right' ? { right: 32, left: 'auto', transform: 'translateY(-50%)' } : { left: 32, transform: 'translateY(-50%)' }),
           display: 'flex', 
           alignItems: 'center', 
           gap: 6,
           whiteSpace: 'nowrap',
+          zIndex: 42,
         }}>
           {visibleLinks.length === 0 && (
             <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', padding: '4px 12px' }}>لا توجد روابط</span>
           )}
           {visibleLinks.map((link: NavbarLink) => {
             const href = link.href || '#';
+            if (!href || href === '#') return null;
             const isExternal = href.startsWith('http://') || href.startsWith('https://');
             const linkKey = href + (link.label || '');
             return (
@@ -279,7 +296,7 @@ function TopBar({
         </nav>
       </header>
 
-      <div className="topbar-right" style={{ position: 'absolute', top: 0, left: 32, height: 76, display: 'flex', alignItems: 'center', gap: 10, zIndex: 41 }}>
+      <div className="topbar-right" style={{ position: 'absolute', top: 0, left: 32, height: 76, display: 'flex', alignItems: 'center', gap: 10, zIndex: 60 }}>
         {user ? (
           <UserMenu user={user} onLogout={onLogout} />
         ) : (

@@ -31,6 +31,7 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
   const [logoUrl, setLogoUrl] = useState('');
   const [logoType, setLogoType] = useState<'text' | 'image'>('text');
   const [navbarBg, setNavbarBg] = useState('#0a0a1a');
+  const [navbarAlign, setNavbarAlign] = useState<'left' | 'center' | 'right'>('center');
   const [links, setLinks] = useState<NavbarLink[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NavbarLink>({ label: '', url: '', visible: true, icon: '🔗' });
@@ -48,6 +49,7 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
       setLogoUrl(data.logo_url || '');
       setLogoType(data.logo_url ? 'image' : 'text');
       setNavbarBg(data.background_color || '#0a0a1a');
+      setNavbarAlign((data as any).navbar_align || 'center');
       try {
         const parsed = JSON.parse(data.navbar_links || '[]').map((l: NavbarLink, i: number) => ({ ...l, id: l.id || `nav-${i}-${Date.now()}` }));
         setLinks(parsed);
@@ -69,6 +71,7 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
         site_name: siteName,
         site_tagline: siteTagline,
         background_color: navbarBg,
+        navbar_align: navbarAlign,
         navbar_links: JSON.stringify(links.map(l => ({ id: l.id, label: l.label, url: l.url, visible: l.visible, icon: l.icon }))),
       };
 
@@ -122,9 +125,13 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
   };
 
   const addLink = () => {
-    if (!newLink.label || !newLink.url) return;
+    if (!newLink.label || !newLink.url || !newLink.url.trim()) {
+      setMessage({ type: 'error', text: 'يرجى إدخال اسم الرابط والرابط' });
+      return;
+    }
     setLinks(prev => [...prev, { ...newLink }]);
     setNewLink({ label: '', url: '', visible: true, icon: '🔗', id: crypto.randomUUID() });
+    setMessage(null);
   };
 
   const updateLink = (index: number, field: string, value: string | number | boolean) => {
@@ -210,6 +217,33 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
         </div>
       </div>
 
+      {/* Navbar Links Position */}
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: C.teal, marginBottom: 6 }}>تمركز روابط الناف بار</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(['left', 'center', 'right'] as const).map(pos => (
+            <button
+              key={pos}
+              onClick={() => setNavbarAlign(pos)}
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                borderRadius: 10,
+                border: `1px solid ${navbarAlign === pos ? C.teal : C.border}`,
+                background: navbarAlign === pos ? C.teal : 'transparent',
+                color: navbarAlign === pos ? 'white' : C.muted,
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                transition: 'all 0.2s',
+              }}
+            >
+              {pos === 'left' ? 'يسار' : pos === 'center' ? 'وسط' : 'يمين'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Links Management */}
       <div style={{ marginBottom: 24 }}>
         <h3 style={{ margin: '0 0 16px', fontSize: '1rem', fontWeight: 700 }}>🔗 عناصر الناف بار</h3>
@@ -270,7 +304,17 @@ export default function AdminNavbarEditor({ onSaved }: AdminNavbarEditorProps) {
                   {editForm.visible ? '✓ مرئي' : '✗ مخفي'}
                 </button>
                 <button onClick={() => setEditingIndex(null)} style={{ padding: '10px 20px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer' }}>إلغاء</button>
-                <button onClick={() => { updateLink(editingIndex, 'label', editForm.label); updateLink(editingIndex, 'url', editForm.url); updateLink(editingIndex, 'icon', editForm.icon); setEditingIndex(null); }} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: C.teal, color: 'white', fontWeight: 700, cursor: 'pointer' }}>💾 حفظ</button>
+                <button onClick={() => { 
+                  if (!editForm.url || !editForm.url.trim()) {
+                    setMessage({ type: 'error', text: 'يرجى إدخال رابط صالح' });
+                    return;
+                  }
+                  updateLink(editingIndex, 'label', editForm.label); 
+                  updateLink(editingIndex, 'url', editForm.url); 
+                  updateLink(editingIndex, 'icon', editForm.icon); 
+                  setEditingIndex(null); 
+                  setMessage(null);
+                }} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: C.teal, color: 'white', fontWeight: 700, cursor: 'pointer' }}>💾 حفظ</button>
               </div>
             </div>
           </div>
