@@ -2113,8 +2113,8 @@ const stopSpaceSound = () => {
             </div>
             {displayLecture && (
               <div className="q1-badge-group">
-                <span className="badge-live" style={{ background: '#e03030', color: 'white', direction: 'rtl' }}>
-                  <span className="badge-live-dot" />بث مباشر
+                <span className="badge-live-dot-only" title="بث مباشر">
+                  <span className="badge-live-dot" />
                 </span>
               </div>
             )}
