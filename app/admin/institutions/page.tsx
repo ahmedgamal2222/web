@@ -354,6 +354,43 @@ export default function AdminInstitutionsPage() {
     }
   }
 
+  async function handleAdminEmailsUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setLoading(true);
+      setAdminEmailResult(null);
+      const sid = typeof window !== 'undefined' ? localStorage.getItem('sessionId') || '' : '';
+      const res = await fetch(`${API_BASE}/api/institutions/upload-admin-emails`, {
+        method: 'POST',
+        headers: {
+          'X-Session-ID': sid,
+        },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'فشل رفع الملف');
+
+      setAdminEmailResult({
+        message: data.message,
+        created: data.data?.created ?? 0,
+        upgraded: data.data?.upgraded ?? 0,
+        skipped: data.data?.skipped ?? 0,
+        errors: data.data?.errors ?? [],
+      });
+      await load();
+    } catch (e: any) {
+      setAdminEmailResult({ message: e.message || 'حدث خطأ', created: 0, upgraded: 0, skipped: 0, errors: [] });
+    } finally {
+      setLoading(false);
+      if (e.target) (e.target as HTMLInputElement).value = '';
+    }
+  }
+
   const stats = useMemo(() => ({
     total:    allInstitutions.length,
     active:   allInstitutions.filter(i => i.status === 'active').length,
@@ -363,6 +400,7 @@ export default function AdminInstitutionsPage() {
 
   const [totalPages, setTotalPages] = useState(0);
   const [uploadResult, setUploadResult] = useState<{ message: string; created: number; skipped: number; errors: string[] } | null>(null);
+  const [adminEmailResult, setAdminEmailResult] = useState<{ message: string; created: number; upgraded: number; skipped: number; errors: string[] } | null>(null);
 
   const inputStyle: React.CSSProperties = {
     padding: '10px 14px', border: `1.5px solid ${C.teal}30`,
@@ -403,6 +441,20 @@ export default function AdminInstitutionsPage() {
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={handleExcelUpload}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <label style={{
+            background: `linear-gradient(135deg, #dc2626, #991b1b)`, color: 'white',
+            border: 'none', borderRadius: 40, padding: '10px 22px',
+            cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            📧 ترقية مديري المؤسسات
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleAdminEmailsUpload}
               style={{ display: 'none' }}
             />
           </label>
@@ -448,6 +500,24 @@ export default function AdminInstitutionsPage() {
           {uploadResult.errors.length > 0 && (
             <div style={{ marginTop: 8, fontSize: '0.82rem', opacity: 0.85 }}>
               {uploadResult.errors.map((err, i) => <div key={i}>• {err}</div>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Admin Emails Upload Result ── */}
+      {adminEmailResult && (
+        <div style={{
+          background: adminEmailResult.created > 0 ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.08)',
+          border: `1px solid ${adminEmailResult.created > 0 ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.25)'}`,
+          borderRadius: 16, padding: '16px 20px', marginBottom: 24,
+          color: adminEmailResult.created > 0 ? '#22c55e' : '#f59e0b',
+          fontSize: '0.9rem', fontWeight: 600, direction: 'rtl',
+        }}>
+          <div style={{ marginBottom: 6 }}>{adminEmailResult.message}</div>
+          {adminEmailResult.errors.length > 0 && (
+            <div style={{ marginTop: 8, fontSize: '0.82rem', opacity: 0.85 }}>
+              {adminEmailResult.errors.map((err, i) => <div key={i}>• {err}</div>)}
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import SupportIcon from '@/components/SupportIcon';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://hadmaj-api.info1703.workers.dev';
 
@@ -44,6 +45,8 @@ export default function AdminDashboard() {
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
   const [recentUsers, setRecentUsers]       = useState<any[]>([]);
   const [recentServices, setRecentServices] = useState<any[]>([]);
+  const [financials, setFinancials] = useState<any>(null);
+  const [financialLoading, setFinancialLoading] = useState(true);
 
   useEffect(() => {
     // التحقق من تسجيل الدخول وصلاحيات الأدمن
@@ -82,7 +85,8 @@ export default function AdminDashboard() {
 
       const [institutionsRes, requestsRes, usersRes, agreementsRes, servicesRes,
              campaignsRes, marketplaceRes, saasRes,
-             recentReqRes, recentUsersRes, recentSvcRes] = await Promise.all([
+             recentReqRes, recentUsersRes, recentSvcRes,
+             financialsRes] = await Promise.all([
         fetch(`${API_BASE}/api/institutions?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/institution-requests?status=pending&limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/users?limit=1`, { headers: authHeaders }),
@@ -91,10 +95,10 @@ export default function AdminDashboard() {
         fetch(`${API_BASE}/api/campaigns?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/marketplace?limit=1`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/saas?limit=1`, { headers: authHeaders }),
-        // بيانات حقيقية للبطاقات
         fetch(`${API_BASE}/api/institution-requests?status=pending&limit=3`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/users?limit=3`, { headers: authHeaders }),
         fetch(`${API_BASE}/api/services?limit=3&status=all`, { headers: authHeaders }),
+        fetch(`${API_BASE}/api/admin/financials`, { headers: authHeaders }),
       ]);
 
       const institutions = await institutionsRes.json();
@@ -108,6 +112,7 @@ export default function AdminDashboard() {
       const recentReq    = await recentReqRes.json();
       const recentUsr    = await recentUsersRes.json();
       const recentSvc    = await recentSvcRes.json();
+      const financialsData = await financialsRes.json();
 
       // حساب الشاشات النشطة من جدول المؤسسات
       let activeScreens = 0;
@@ -153,10 +158,15 @@ export default function AdminDashboard() {
         }))
       );
 
+      if (financialsData.success) {
+        setFinancials(financialsData.data);
+      }
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+      setFinancialLoading(false);
     }
   };
 
@@ -165,9 +175,202 @@ export default function AdminDashboard() {
       <div className="loading-page">
         <div className="spinner" />
         جاري التحميل...
+    </div>
+  );
+}
+
+function FinancialSection({ data, loading }: { data: any; loading: boolean }) {
+  if (loading) {
+    return (
+      <div style={{
+        background: 'white', borderRadius: 20, padding: '20px',
+        boxShadow: `0 4px 14px ${COLORS.darkNavy}12`,
+        gridColumn: '1 / -1',
+        textAlign: 'center', padding: '40px', color: COLORS.teal,
+      }}>
+        <div className="spinner" style={{ margin: '0 auto 12px' }} />
+        جاري تحميل المؤشرات المالية...
       </div>
     );
   }
+
+  if (!data) return null;
+
+  const totals = data.totals || {};
+  const byType = data.by_type || [];
+  const institutions = data.institutions || [];
+  const recent = data.recent_transactions || [];
+
+  const typeLabels: Record<string, string> = {
+    free_grant: 'رصيد مجاني',
+    purchase: 'شراء',
+    ad_spend: 'إنفاق إعلاني',
+    credit_add: 'تعبئة يدوية',
+    refund: 'استرداد',
+    screen_24h_bonus: 'مكافأة 24 ساعة',
+    screen_10d_bonus: 'مكافأة 10 أيام',
+    screen_hourly_bonus: 'مكافأة ساعية',
+    screen_daily_bonus: 'مكافأة يومية',
+    gift_credit: 'هدية',
+  };
+
+  const typeColors: Record<string, string> = {
+    free_grant: '#4E8D9C',
+    purchase: '#85C79A',
+    ad_spend: '#ef4444',
+    credit_add: '#22c55e',
+    refund: '#f59e0b',
+    screen_24h_bonus: '#8b5cf6',
+    screen_10d_bonus: '#6366f1',
+    screen_hourly_bonus: '#06b6d4',
+    screen_daily_bonus: '#f97316',
+    gift_credit: '#ec4899',
+  };
+
+  return (
+    <div style={{
+      background: 'white', borderRadius: 20, padding: '20px',
+      boxShadow: `0 4px 14px ${COLORS.darkNavy}12`,
+      gridColumn: '1 / -1',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <span style={{ fontSize: '1.4rem' }}>💰</span>
+        <h3 style={{ color: COLORS.darkNavy, margin: 0, fontSize: '1rem', fontWeight: 700 }}>
+          المؤشرات المالية والحركة النقدية
+        </h3>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 20 }}>
+        <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700 }}>إجمالي الرصيد الممنوح</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#16a34a' }}>${(totals.total_credits_granted || 0).toFixed(2)}</div>
+        </div>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 700 }}>إجمالي الإنفاق الإعلاني</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#ef4444' }}>${(totals.total_spend || 0).toFixed(2)}</div>
+        </div>
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: 700 }}>صافي الرصيد في النظام</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#3b82f6' }}>${(totals.net_balance || 0).toFixed(2)}</div>
+        </div>
+        <div style={{ background: '#fdf4ff', border: '1px solid #e9d5ff', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 700 }}>المؤسسات النشطة</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#8b5cf6' }}>{totals.active_institutions || 0}</div>
+        </div>
+      </div>
+
+      {/* Breakdown by type */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: COLORS.darkNavy, marginBottom: 10 }}>توزيع الحركة المالية حسب النوع</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {byType.map((t: any) => (
+            <div key={t.type} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: `${typeColors[t.type] || COLORS.teal}12`,
+              border: `1px solid ${typeColors[t.type] || COLORS.teal}30`,
+              borderRadius: 10, padding: '6px 12px',
+            }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: '50%',
+                background: typeColors[t.type] || COLORS.teal,
+              }} />
+              <span style={{ fontSize: '0.78rem', color: COLORS.darkNavy, fontWeight: 600 }}>{typeLabels[t.type] || t.type}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: typeColors[t.type] || COLORS.teal }}>
+                ${(t.total || 0).toFixed(2)}
+              </span>
+              <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>({t.count})</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top Institutions */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: COLORS.darkNavy, marginBottom: 10 }}>🏆 أفضل المؤسسات برصيد</div>
+          {institutions.slice(0, 5).map((inst: any) => (
+            <div key={inst.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '8px 10px', borderRadius: 10, marginBottom: 6,
+              background: '#f8fafc', border: '1px solid #f1f5f9',
+            }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: COLORS.darkNavy, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {inst.name}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{inst.country}{inst.city ? `، ${inst.city}` : ''}</div>
+              </div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#16a34a' }}>${inst.balance?.toFixed(2)}</div>
+            </div>
+          ))}
+        </div>
+        <div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: COLORS.darkNavy, marginBottom: 10 }}>📉 أكثر المؤسسات إنفاقاً</div>
+          {(data.top_spenders || []).slice(0, 5).map((inst: any) => (
+            <div key={inst.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '8px 10px', borderRadius: 10, marginBottom: 6,
+              background: '#f8fafc', border: '1px solid #f1f5f9',
+            }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: COLORS.darkNavy, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {inst.name_ar || inst.name}
+                </div>
+              </div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ef4444' }}>${inst.total_spent?.toFixed(2)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: COLORS.darkNavy, marginBottom: 10 }}>آخر العمليات المالية</div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+            <thead>
+              <tr style={{ background: `${COLORS.darkNavy}08`, borderBottom: `2px solid ${COLORS.teal}20` }}>
+                {['المؤسسة', 'النوع', 'المبلغ', 'الوصف', 'التاريخ'].map(h => (
+                  <th key={h} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: '0.78rem', color: COLORS.darkNavy, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {recent.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 20, color: '#9ca3af' }}>لا توجد عمليات</td></tr>
+              ) : recent.map((t: any) => (
+                <tr key={t.id} style={{ borderBottom: `1px solid ${COLORS.teal}10` }}>
+                  <td style={{ padding: '8px 12px', fontSize: '0.82rem', fontWeight: 600, color: COLORS.darkNavy }}>
+                    {t.institution_name || '—'}
+                  </td>
+                  <td style={{ padding: '8px 12px' }}>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: 6, fontSize: '0.7rem', fontWeight: 700,
+                      background: `${typeColors[t.type] || COLORS.teal}18`,
+                      color: typeColors[t.type] || COLORS.teal,
+                    }}>
+                      {typeLabels[t.type] || t.type}
+                    </span>
+                  </td>
+                  <td style={{ padding: '8px 12px', fontSize: '0.85rem', fontWeight: 800, color: t.amount >= 0 ? '#16a34a' : '#ef4444' }}>
+                    {t.amount >= 0 ? '+' : ''}{t.amount.toFixed(2)}
+                  </td>
+                  <td style={{ padding: '8px 12px', fontSize: '0.78rem', color: '#666', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {t.description || '—'}
+                  </td>
+                  <td style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>
+                    {new Date(t.created_at).toLocaleDateString('ar-EG')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="admin-page">
@@ -347,7 +550,7 @@ export default function AdminDashboard() {
         <StatCard
           title="تذاكر الدعم"
           value="🎫"
-          icon="🎫"
+          icon={<SupportIcon size={32} color="#6366F1" secondaryColor="#4E8D9C" />}
           color="#6366F1"
           link="/admin/support"
         />
@@ -401,6 +604,9 @@ export default function AdminDashboard() {
 
         {/* التواصل */}
         <ContactSection />
+
+        {/* المؤشرات المالية */}
+        <FinancialSection data={financials} loading={financialLoading} />
       </div>
     </div>
   );
@@ -674,7 +880,7 @@ function StatCard({ title, value, icon, color, link }: any) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.35rem',
           }}>
-            {icon}
+            {typeof icon === 'string' ? icon : React.cloneElement(icon as React.ReactElement, { size: 28 })}
           </div>
         </div>
         <div style={{ fontSize: '2.1rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>

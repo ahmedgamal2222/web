@@ -1036,7 +1036,7 @@ export function AdCreateModal({ institutionId, onClose, onSuccess }: {
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
               <span style={{ fontSize: '1rem', flexShrink: 0 }}>💡</span>
-              <span>كل مؤسسة تحصل على <b>$50 رصيد مجاني</b>. الاستهداف العالمي <b>+$5/يوم</b>.</span>
+              <span>كل مؤسسة تحصل على <b>$100 رصيد مجاني</b>. الاستهداف العالمي <b>+$5/يوم</b>.</span>
             </div>
             <div style={{
               background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.18)',

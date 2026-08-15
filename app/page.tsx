@@ -8,6 +8,7 @@ import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
 import GalaxyLogo from '@/components/GalaxyLogo';
+import SupportIcon from '@/components/SupportIcon';
 
 const GalaxyCanvas = dynamic(() => import('@/components/GalaxyCanvas'), { ssr: false });
 
@@ -1967,11 +1968,7 @@ export default function HomePage() {
             e.currentTarget.style.boxShadow = '0 4px 24px rgba(99,102,241,0.4), 0 0 40px rgba(78,141,156,0.2)';
           }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            <path d="M12 7v2" />
-            <path d="M12 13h.01" />
-          </svg>
+          <SupportIcon size={28} color="#ffffff" secondaryColor="#85C79A" />
         </div>
       </Link>
       <style>{`
