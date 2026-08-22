@@ -7,7 +7,7 @@ import { fetchGalaxyData, fetchInstitution, fetchInstitutionAgreements, API_BASE
 import AgreementDetails from '@/components/AgreementDetails';
 import Image from 'next/image';
 import Link from 'next/link';
-import GalaxyLogo from '@/components/GalaxyLogo';
+import GalaxyLogo, { GALAXY_BRAND_STYLE } from '@/components/GalaxyLogo';
 import SupportIcon from '@/components/SupportIcon';
 
 const GalaxyCanvas = dynamic(() => import('@/components/GalaxyCanvas'), { ssr: false });
@@ -204,8 +204,9 @@ function TopBar({
     const logoUrl = siteSettings?.logo_url || '';
     if (logoUrl) {
       return (
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none', flexShrink: 0 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', userSelect: 'none', flexShrink: 0 }}>
           <img src={logoUrl} alt={siteSettings?.site_name || 'المجرة الحضارية'} width={54} height={54} style={{ borderRadius: 10, objectFit: 'contain' }} />
+          <span style={GALAXY_BRAND_STYLE}>{siteSettings?.site_name || 'المجرة الحضارية'}</span>
         </Link>
       );
     }
