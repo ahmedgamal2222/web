@@ -79,6 +79,9 @@ export default function GalaxyCanvas({
 
   // Refs for external focus/zoom
   const focusTargetRef = useRef<{ x: number; y: number; z: number } | null>(null);
+  // Home camera state captured before focusing — used to restore the original view
+  const focusHomeRef   = useRef<{ tx: number; ty: number; tz: number; theta: number; phi: number; radius: number } | null>(null);
+  const restoreHomeRef = useRef(false);
   const starPosRef     = useRef<Array<{ x: number; y: number; z: number }>>([]);
   const idToIdxRef     = useRef<Map<number, number>>(new Map());
   const focusBeaconRef    = useRef<THREE.Mesh | null>(null);
@@ -759,8 +762,49 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
         }
       }
 
-      // Auto rotate — pause while focusing on a star
-      if (autoRotate && !focusTargetRef.current) sph.theta -= 0.0003;
+      // سجّل وضع الكاميرا الأصلي قبل أول حركة تركيز (تُستخدم للاستعادة لاحقاً)
+      if (focusTargetRef.current && !focusHomeRef.current) {
+        focusHomeRef.current = {
+          tx: camTarget.x,
+          ty: camTarget.y,
+          tz: camTarget.z,
+          theta: sph.theta,
+          phi: sph.phi,
+          radius: sph.radius,
+        };
+      }
+
+      // Auto rotate — pause while focusing on a star or restoring the home view
+      if (autoRotate && !focusTargetRef.current && !restoreHomeRef.current) sph.theta -= 0.0003;
+
+      // Return camera smoothly to the original home position
+      if (restoreHomeRef.current && focusHomeRef.current) {
+        const home = focusHomeRef.current;
+        const t    = 0.06;
+        camTarget.x += (home.tx - camTarget.x) * t;
+        camTarget.y += (home.ty - camTarget.y) * t;
+        camTarget.z += (home.tz - camTarget.z) * t;
+        sph.radius  += (home.radius - sph.radius) * t;
+        // أقصر مسار للتدوير بين الزوايا
+        let dTheta = ((home.theta - sph.theta + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+        sph.theta += dTheta * t;
+        let dPhi = ((home.phi - sph.phi + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+        sph.phi += dPhi * t;
+
+        const dist = Math.sqrt(
+          (home.tx - camTarget.x) ** 2 +
+          (home.ty - camTarget.y) ** 2 +
+          (home.tz - camTarget.z) ** 2
+        );
+        if (dist < 0.3 && Math.abs(sph.radius - home.radius) < 0.5 && Math.abs(dTheta) < 0.001 && Math.abs(dPhi) < 0.001) {
+          camTarget.set(home.tx, home.ty, home.tz);
+          sph.theta  = home.theta;
+          sph.phi    = home.phi;
+          sph.radius = home.radius;
+          restoreHomeRef.current = false;
+          focusHomeRef.current   = null;
+        }
+      }
 
       // Smooth zoom to focused star
       if (focusTargetRef.current) {
@@ -798,6 +842,9 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
 
     // ── Cleanup ───────────────────────────────────────────────
     return () => {
+      focusTargetRef.current = null;
+      restoreHomeRef.current = false;
+      focusHomeRef.current   = null;
       cancelAnimationFrame(animId);
       renderer.domElement.removeEventListener('webglcontextlost', onContextLost);
       renderer.domElement.removeEventListener('webglcontextrestored', onContextRestored);
@@ -827,14 +874,22 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
   }, [data, autoRotate, highlightStarId, backgroundStarsCount]);
 
   // React to focusStarId changes: zoom camera + show ring beacon + name label
+  // وعند إلغاء التركيز (undefined) تعود الكاميرا بسلاسة إلى الوضع الأصلي
   useEffect(() => {
-    if (focusStarId === undefined) return;
+    if (focusStarId === undefined) {
+      // استعادة الوضع الأصلي للكاميرا
+      restoreHomeRef.current = true;
+      if (focusBeaconRef.current) focusBeaconRef.current.visible = false;
+      if (focusLabelRef.current) focusLabelRef.current.style.display = 'none';
+      return;
+    }
     const idx = idToIdxRef.current.get(focusStarId);
     if (idx === undefined) return;
     const pos = starPosRef.current[idx];
     if (!pos) return;
 
-    // Smooth camera zoom to star
+    // إيقاف أي استعادة قيد التنفيذ والتركيز على النجم
+    restoreHomeRef.current = false;
     focusTargetRef.current = { ...pos };
 
     // Move ring to star position

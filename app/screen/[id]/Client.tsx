@@ -1849,14 +1849,6 @@ const stopSpaceSound = () => {
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
-        .q1-badge-group {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 20;
-          pointer-events: none;
-        }
         .q1-viewers-pill {
           background: rgba(255,255,255,0.1);
           border: 1px solid rgba(255,255,255,0.18);
@@ -2054,6 +2046,14 @@ const stopSpaceSound = () => {
           50%      { box-shadow: 0 0 22px rgba(255,68,68,0.85), 0 0 40px rgba(255,68,68,0.22); }
         }
 
+        /* ── زر اللوكيشن عند التفعيل (التركيز على نجم المؤسسة) ── */
+        .q2-location-btn.active {
+          border-color: #4fc3f7;
+          color: #4fc3f7;
+          background: rgba(79,195,247,0.16);
+          box-shadow: 0 0 0 3px rgba(79,195,247,0.22), 0 6px 24px rgba(79,195,247,0.4);
+        }
+
 
       `}</style>
 
@@ -2100,14 +2100,7 @@ const stopSpaceSound = () => {
                 {expandedQuadrant === 1 ? '⊡' : '⊞'}
               </button>
             </div>
-            {displayLecture && (
-              <div className="q1-badge-group">
-                <span className="badge-live-dot-only" title="بث مباشر">
-                  <span className="badge-live-dot" />
-                </span>
-              </div>
-            )}
-          </div>
+            </div>
 
           {/* ─ منطقة الفيديو ─ */}
           <div className="q1-video-wrap">
@@ -2192,23 +2185,39 @@ const stopSpaceSound = () => {
                 <span style={{ fontSize: '0.85rem', opacity: 0.5 }}>سيبدأ البث قريباً</span>
               </div>
             )}
-            {/* ─── زر تشغيل/كتم الصوت ─── */}
+            {/* ─── مؤشر البث المباشر + زر تشغيل/كتم الصوت ─── */}
             {displayLecture && (
-              <button
-                className={`volume-toggle${!isVideoMuted ? ' vol-on' : ''}`}
-                onClick={toggleVideoMute}
-                title={isVideoMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 18,
+                  right: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  zIndex: 30,
+                }}
               >
-                <span className="vol-icon">{isVideoMuted ? '🔇' : '🔊'}</span>
-                {!isVideoMuted ? (
-                  <span className="vol-bars" aria-hidden="true">
-                    <span className="vol-bar" />
-                    <span className="vol-bar" />
-                    <span className="vol-bar" />
-                    <span className="vol-bar" />
-                  </span>
-                ) : null}
-              </button>
+                <span className="badge-live-dot-only" title="بث مباشر">
+                  <span className="badge-live-dot" />
+                </span>
+                <button
+                  className={`volume-toggle${!isVideoMuted ? ' vol-on' : ''}`}
+                  onClick={toggleVideoMute}
+                  title={isVideoMuted ? 'تشغيل الصوت' : 'كتم الصوت'}
+                  style={{ position: 'static' }}
+                >
+                  <span className="vol-icon">{isVideoMuted ? '🔇' : '🔊'}</span>
+                  {!isVideoMuted ? (
+                    <span className="vol-bars" aria-hidden="true">
+                      <span className="vol-bar" />
+                      <span className="vol-bar" />
+                      <span className="vol-bar" />
+                      <span className="vol-bar" />
+                    </span>
+                  ) : null}
+                </button>
+              </div>
             )}
           </div>
 
@@ -2260,12 +2269,12 @@ const stopSpaceSound = () => {
           {expandedQuadrant === 2 ? '⊡' : '⊞'}
         </button>
         <button
-          className="q2-location-btn"
+          className={`q2-location-btn${focusStarId !== undefined ? ' active' : ''}`}
           onClick={() => {
             const id = Number(resolvedId);
             setFocusStarId(prev => prev === id ? undefined : id);
           }}
-          title="الذهاب إلى موقع المؤسسة في المجرة"
+          title={focusStarId !== undefined ? 'استعادة الوضع الأصلي' : 'الذهاب إلى موقع المؤسسة في المجرة'}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />

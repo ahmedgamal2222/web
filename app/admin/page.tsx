@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { cloneElement, useEffect, useState } from 'react';
+import type { ReactElement } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SupportIcon from '@/components/SupportIcon';
@@ -880,7 +881,7 @@ function StatCard({ title, value, icon, color, link }: any) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.35rem',
           }}>
-            {typeof icon === 'string' ? icon : React.cloneElement(icon as React.ReactElement, { size: 28 })}
+            {typeof icon === 'string' ? icon : cloneElement(icon as ReactElement<any>, { size: 28 })}
           </div>
         </div>
         <div style={{ fontSize: '2.1rem', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
