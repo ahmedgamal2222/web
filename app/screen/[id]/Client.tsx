@@ -647,7 +647,7 @@ const stopSpaceSound = () => {
               const c = ytCoverRef.current;
               if (c) c.style.opacity = '0';
               ytCoverTimerRef.current = undefined;
-            }, 2500);
+            }, 6500);
           } else if (e.data === 0) {
             advance(); // 0 = YT.PlayerState.ENDED
           }
@@ -2187,11 +2187,18 @@ const stopSpaceSound = () => {
                       <div style={{ fontSize: '0.92rem', fontWeight: 700, letterSpacing: '0.5px' }}>جاري التشغيل...</div>
                     </div>
                   </div>
+                  {/* حجب دائم لطبقة العنوان في الأسفل-يسار (تظهر عند بداية التشغيل وأي توقّف/تكرار) */}
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0,
+                    width: '45%', height: '82px',
+                    background: 'linear-gradient(to top, rgba(5,5,15,0.93) 0%, rgba(5,5,15,0.55) 45%, transparent 100%)',
+                    zIndex: 19, pointerEvents: 'none',
+                  }} />
                   {/* إخفاء شعار القناة الدائم (العلامة المائية) في الزاوية السفلية اليمنى */}
                   <div style={{
-                    position: 'absolute', bottom: 6, right: 6,
-                    width: 100, height: 100,
-                    background: 'radial-gradient(circle, rgba(5,5,15,0.92) 42%, transparent 72%)',
+                    position: 'absolute', bottom: 0, right: 0,
+                    width: 150, height: 150,
+                    background: 'radial-gradient(circle, rgba(5,5,15,0.94) 45%, rgba(5,5,15,0.4) 72%, transparent 100%)',
                     zIndex: 19, pointerEvents: 'none',
                   }} />
                 </div>
