@@ -121,6 +121,7 @@ export default function ScreenPage() {
   const playlistTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const ytPlayerRef = useRef<any>(null);
   const ytContainerRef = useRef<HTMLDivElement>(null);
+  const ytCoverRef = useRef<HTMLDivElement>(null);
   const isVideoMutedRef = useRef(true);
   const ytDestroyedRef = useRef(false);
   const [ytApiReady, setYtApiReady] = useState(false);
@@ -586,6 +587,14 @@ const stopSpaceSound = () => {
     const inner = document.createElement('div');
     container.appendChild(inner);
 
+    // إظهار غطاء يخفي مقدمة YouTube (العنوان + شعار القناة + زر التشغيل)
+    // حتى البدء الفعلي للتشغيل، ثم يُخفى في onStateChange (PLAYING)
+    const cover = ytCoverRef.current;
+    if (cover) {
+      cover.style.opacity = '1';
+      cover.style.pointerEvents = 'none';
+    }
+
     const advance = () => {
       // حماية من الاستدعاء المزدوج أو أثناء التدمير
       if (ytDestroyedRef.current || advanced) return;
@@ -627,7 +636,13 @@ const stopSpaceSound = () => {
           }
         },
         onStateChange: (e: any) => {
-          if (e.data === 0) advance(); // 0 = YT.PlayerState.ENDED
+          if (e.data === 1) {
+            // بدأ التشغيل الفعلي — إخفاء الغطاء بسلاسة
+            const c = ytCoverRef.current;
+            if (c) c.style.opacity = '0';
+          } else if (e.data === 0) {
+            advance(); // 0 = YT.PlayerState.ENDED
+          }
         },
         onError: () => {
           // تخطي الفيديو المعطوب والانتقال للتالي
@@ -2143,6 +2158,32 @@ const stopSpaceSound = () => {
                     position: 'absolute', bottom: 0, left: 0, right: 0, height: 64,
                     background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%)',
                     zIndex: 16, pointerEvents: 'none',
+                  }} />
+                  {/* غطاء يخفي مقدمة YouTube (عنوان الفيديو + شعار القناة + زر التشغيل)
+                      ويُخفى بسلاسة فور بدء التشغيل عبر onStateChange */}
+                  <div
+                    ref={ytCoverRef}
+                    style={{
+                      position: 'absolute', inset: 0,
+                      zIndex: 18,
+                      background: 'radial-gradient(ellipse at center, #1a1a3a 0%, #05050f 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      pointerEvents: 'none',
+                      transition: 'opacity 0.5s ease',
+                      opacity: 1,
+                    }}
+                  >
+                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.85)' }}>
+                      <div style={{ fontSize: '2.2rem', marginBottom: 12, animation: 'adStarPulse 1.6s ease-in-out infinite' }}>✦</div>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 700, letterSpacing: '0.5px' }}>جاري التشغيل...</div>
+                    </div>
+                  </div>
+                  {/* إخفاء شعار القناة الدائم (العلامة المائية) في الزاوية السفلية اليمنى */}
+                  <div style={{
+                    position: 'absolute', bottom: 6, right: 6,
+                    width: 100, height: 100,
+                    background: 'radial-gradient(circle, rgba(5,5,15,0.92) 42%, transparent 72%)',
+                    zIndex: 19, pointerEvents: 'none',
                   }} />
                 </div>
               ) : currentDisplayEmbed ? (
