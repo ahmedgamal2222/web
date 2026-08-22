@@ -806,8 +806,8 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
         }
       }
 
-      // Smooth zoom to focused star
-      if (focusTargetRef.current) {
+      // Smooth zoom to focused star (لا تعمل أثناء الاستعادة الوضع الأصلي)
+      if (focusTargetRef.current && !restoreHomeRef.current) {
         const ft = focusTargetRef.current;
         const t  = 0.08;
         const dx = ft.x - camTarget.x;
@@ -877,8 +877,10 @@ renderer.domElement.addEventListener('touchend', onTouchEndClick, { passive: fal
   // وعند إلغاء التركيز (undefined) تعود الكاميرا بسلاسة إلى الوضع الأصلي
   useEffect(() => {
     if (focusStarId === undefined) {
-      // استعادة الوضع الأصلي للكاميرا
-      restoreHomeRef.current = true;
+      // إنهاء أي حركة تقريب معلّقة أولاً حتى لا تتعارض مع الاستعادة
+      focusTargetRef.current = null;
+      // بدء الاستعادة فقط إذا كانت هناك محاولة تركيز سابقة (تم تسجيل الوضع الأصلي)
+      if (focusHomeRef.current) restoreHomeRef.current = true;
       if (focusBeaconRef.current) focusBeaconRef.current.visible = false;
       if (focusLabelRef.current) focusLabelRef.current.style.display = 'none';
       return;
