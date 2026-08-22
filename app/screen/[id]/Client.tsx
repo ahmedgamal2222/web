@@ -122,6 +122,7 @@ export default function ScreenPage() {
   const ytPlayerRef = useRef<any>(null);
   const ytContainerRef = useRef<HTMLDivElement>(null);
   const ytCoverRef = useRef<HTMLDivElement>(null);
+  const ytCoverTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isVideoMutedRef = useRef(true);
   const ytDestroyedRef = useRef(false);
   const [ytApiReady, setYtApiReady] = useState(false);
@@ -594,6 +595,8 @@ const stopSpaceSound = () => {
       cover.style.opacity = '1';
       cover.style.pointerEvents = 'none';
     }
+    // إلغاء أي مؤقّت اخفاء سابق عند إنشاء مشغل جديد
+    if (ytCoverTimerRef.current) { clearTimeout(ytCoverTimerRef.current); ytCoverTimerRef.current = undefined; }
 
     const advance = () => {
       // حماية من الاستدعاء المزدوج أو أثناء التدمير
@@ -637,9 +640,14 @@ const stopSpaceSound = () => {
         },
         onStateChange: (e: any) => {
           if (e.data === 1) {
-            // بدأ التشغيل الفعلي — إخفاء الغطاء بسلاسة
-            const c = ytCoverRef.current;
-            if (c) c.style.opacity = '0';
+            // بدأ التشغيل — لكن بطاقة العنوان وشعار القناة تظهر لمدة عدة ثوانٍ بعدها،
+            // لذا نُبقي الغطاء معتماً لفترة ثم نخفيه بسلاسة
+            if (ytCoverTimerRef.current) clearTimeout(ytCoverTimerRef.current);
+            ytCoverTimerRef.current = setTimeout(() => {
+              const c = ytCoverRef.current;
+              if (c) c.style.opacity = '0';
+              ytCoverTimerRef.current = undefined;
+            }, 2500);
           } else if (e.data === 0) {
             advance(); // 0 = YT.PlayerState.ENDED
           }
@@ -653,6 +661,7 @@ const stopSpaceSound = () => {
 
     return () => {
       ytDestroyedRef.current = true;
+      if (ytCoverTimerRef.current) { clearTimeout(ytCoverTimerRef.current); ytCoverTimerRef.current = undefined; }
       if (ytPlayerRef.current) {
         try { ytPlayerRef.current.destroy(); } catch {}
         ytPlayerRef.current = null;
