@@ -1768,13 +1768,19 @@ export default function HomePage() {
           </div>
         </div>
 
-      {siteSettings?.logo_url ? (
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none' }}>
-          <img src={siteSettings.logo_url} alt={siteSettings.site_name || 'المجرة الحضارية'} width={54} height={54} style={{ borderRadius: 10, objectFit: 'contain' }} />
-        </Link>
-      ) : (
-        <GalaxyLogo />
-      )}
+      {/* الشعار مع اسم "المجرة الحضارية" بالخط الذهبي أسفله */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+        {siteSettings?.logo_url ? (
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none' }}>
+            <img src={siteSettings.logo_url} alt={siteSettings.site_name || 'المجرة الحضارية'} width={64} height={64} style={{ borderRadius: 16, objectFit: 'contain' }} />
+          </Link>
+        ) : (
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none' }}>
+            <img src="/logo.png" alt="المجرة الحضارية" width={64} height={64} style={{ borderRadius: 16, objectFit: 'contain' }} />
+          </Link>
+        )}
+        <span style={GALAXY_BRAND_STYLE}>{siteSettings?.site_name || 'المجرة الحضارية'}</span>
+      </div>
       </div>
     );
   }
