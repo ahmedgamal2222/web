@@ -1776,7 +1776,7 @@ export default function HomePage() {
           </Link>
         ) : (
           <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', userSelect: 'none' }}>
-            <img src="/logo.png" alt="المجرة الحضارية" width={64} height={64} style={{ borderRadius: 16, objectFit: 'contain' }} />
+            <img src="/logohadmaj.png" alt="المجرة الحضارية" width={64} height={64} style={{ borderRadius: 16, objectFit: 'contain' }} />
           </Link>
         )}
         <span style={GALAXY_BRAND_STYLE}>{siteSettings?.site_name || 'المجرة الحضارية'}</span>
