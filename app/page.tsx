@@ -385,7 +385,8 @@ function QuickActions({ user }: { user: any }) {
   if (user.role === 'institution_admin') {
     actions.push(
       { icon: '🏛️', label: 'مؤسستي', href: `/institutions/${user.institution_id}`, color: COLORS.teal },
-      { icon: '�', label: 'إدارة الموظفين', href: `/institutions/${user.institution_id}/employees`, color: '#4CAF50' },
+      { icon: '👥', label: 'إدارة الموظفين', href: `/institutions/${user.institution_id}/employees`, color: '#4CAF50' },
+      { icon: '🎁', label: 'دعوة المؤسسات', href: '/referrals', color: '#ff8f8f' },
     );
   }
 

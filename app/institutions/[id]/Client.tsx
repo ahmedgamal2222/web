@@ -1716,6 +1716,14 @@ function SidebarNav({ institutionId, isOwner, isAdmin }: { institutionId: string
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.82'; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
           ><span>👥</span><span>إدارة الموظفين</span></Link>
+          <Link href="/referrals" style={{
+            display: 'flex', alignItems: 'center', gap: 9, padding: '10px 13px', borderRadius: 13,
+            textDecoration: 'none', background: 'linear-gradient(135deg, #ff6b6b, #ff8f8f)',
+            color: '#1a0d0d', fontSize: '0.8rem', fontWeight: 700, transition: 'opacity 0.2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.82'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+          ><span>🎁</span><span>دعوة المؤسسات</span></Link>
         </div>
       )}
     </div>
