@@ -144,6 +144,7 @@ export default function InstitutionRequestPage() {
           projects_count: formData.projects_count ? parseInt(formData.projects_count) : 0,
           beneficiaries_count: formData.beneficiaries_count ? parseInt(formData.beneficiaries_count) : 0,
           screen_email: formData.screen_email || undefined,
+          referred_by_code: (typeof window !== 'undefined' && localStorage.getItem('referralCode')) || undefined,
         }),
       });
 

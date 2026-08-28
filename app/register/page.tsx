@@ -223,6 +223,15 @@ export default function RegisterPage() {
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [field]: e.target.value }));
 
+  // التقاط رمز الدعوة من رابط المشاركة وحفظه محلياً ليُستخدم عند طلب اعتماد المؤسسة
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref && ref.trim()) localStorage.setItem('referralCode', ref.trim());
+    } catch (_) {}
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.email.trim().toLowerCase() !== form.confirmEmail.trim().toLowerCase()) {

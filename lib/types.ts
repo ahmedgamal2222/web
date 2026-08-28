@@ -113,6 +113,7 @@ export interface Institution {
   screen_active: boolean;
   screen_password?: string;
   screen_last_active?: string;
+  referral_code?: string;
   created_by?: number;
   created_at: string;
   updated_at: string;

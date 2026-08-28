@@ -910,3 +910,47 @@ export async function fetchAdCredits(institutionId: number | string): Promise<{ 
   );
   return res;
 }
+
+// ============================================================
+// 🤝 Referrals (دعوة المؤسسات والمكافآت)
+// ============================================================
+
+export interface ReferralData {
+  success: boolean;
+  error?: string;
+  institution_id?: number;
+  institution_name?: string | null;
+  code?: string;
+  link?: string;
+  reward?: number;
+  invited_count?: number;
+  total_reward?: number;
+  balance?: number;
+  referrals?: Array<{
+    new_institution_id: number;
+    new_institution_name: string | null;
+    reward: number;
+    status: string;
+    created_at: string;
+  }>;
+}
+
+export async function fetchMyReferral(): Promise<ReferralData> {
+  const session = getSessionId();
+  if (!session) return { success: false, error: 'غير مصرح' };
+  try {
+    const res = await fetch(`${API_BASE}/api/referrals/my`, {
+      headers: { 'X-Session-ID': session },
+    });
+    if (!res.ok) return { success: false, error: 'تعذّر جلب بيانات الدعوة' };
+    return await res.json();
+  } catch {
+    return { success: false, error: 'تعذّر الاتصال بالخادم' };
+  }
+}
+
+// دالة مساعدة: قراءة واسترجاع رمز الدعوة المخزّن محلياً
+export function getStoredReferralCode(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('referralCode') || '';
+}

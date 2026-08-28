@@ -454,6 +454,7 @@ export default function ProfilePage() {
               ? <Link href={`/institutions/${profile.institution_id}`} style={{ padding: '9px 18px', background: 'rgba(78,141,156,0.12)', border: '1px solid rgba(78,141,156,0.25)', borderRadius: 40, color: C.teal, textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🏢 مؤسستي</Link>
               : <Link href="/my-institution-request" style={{ padding: '9px 18px', background: 'rgba(245,200,66,.1)', border: '1px solid rgba(245,200,66,.25)', borderRadius: 40, color: '#f5c842', textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🏛️ طلبات اعتماد</Link>
             }
+            <Link href="/referrals" style={{ padding: '9px 18px', background: 'rgba(255,107,107,0.1)', border: '1px solid rgba(255,107,107,0.25)', borderRadius: 40, color: '#ff8f8f', textDecoration: 'none', fontSize: '.86rem', fontWeight: 600, fontFamily: 'inherit' }}>🎁 دعوة المؤسسات</Link>
           </div>
         </div>
 

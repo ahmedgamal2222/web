@@ -50,11 +50,28 @@ CREATE TABLE IF NOT EXISTS institutions (
   screen_active BOOLEAN DEFAULT FALSE,
   screen_password TEXT,
   screen_last_active DATETIME,
-  
+
+  -- نظام الدعوات (Referrals)
+  referral_code TEXT UNIQUE, -- رمز دعوة فريد لكل مؤسسة
+
   -- الطابع الزمني
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- جدول سجل الإحالات والمكافآت بين المؤسسات
+CREATE TABLE IF NOT EXISTS institution_referrals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  referrer_institution_id INTEGER,   -- المؤسسة الداعية
+  referrer_code TEXT,                 -- الرمز المستخدم
+  new_institution_id INTEGER,         -- المؤسسة المُدعاة (المُعتمدة)
+  new_institution_name TEXT,
+  reward REAL DEFAULT 0,              -- قيمة المكافأة بالرصيد الإعلاني
+  status TEXT DEFAULT 'pending',      -- pending | credited
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  credited_at DATETIME
+);
+
 
 -- جدول الاتفاقيات بين المؤسسات
 CREATE TABLE IF NOT EXISTS agreements (
@@ -335,6 +352,10 @@ CREATE INDEX idx_institutions_type ON institutions(type);
 CREATE INDEX idx_institutions_country ON institutions(country);
 CREATE INDEX idx_institutions_city ON institutions(city);
 CREATE INDEX idx_institutions_weight ON institutions(weight);
+
+CREATE INDEX idx_institutions_refcode ON institutions(referral_code);
+CREATE INDEX idx_referrals_referrer ON institution_referrals(referrer_institution_id);
+
 
 CREATE INDEX idx_agreements_from ON agreements(from_id);
 CREATE INDEX idx_agreements_to ON agreements(to_id);
