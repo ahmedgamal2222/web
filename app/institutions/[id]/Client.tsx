@@ -1382,14 +1382,6 @@ function AnnouncementsSection({ events, news, institutionId, isOwner, isAdmin }:
               }}>📢 إعلان جديد</button>
             )}
             {canCreate && (
-              <Link href={`/news/create${institutionId ? `?institution_id=${institutionId}&category=announcement` : ''}`} style={{
-                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 30,
-                background: `linear-gradient(135deg, ${C.teal}, ${C.navy})`, color: C.mint,
-                textDecoration: 'none', fontSize: '0.78rem', fontWeight: 700,
-                boxShadow: `0 3px 10px rgba(78,141,156,0.22)`,
-              }}>📢 إعلان</Link>
-            )}
-            {canCreate && (
               <button onClick={() => setShowVideoModal(true)} style={{
                 display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 30,
                 background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`, color: C.mint,

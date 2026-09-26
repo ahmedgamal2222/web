@@ -189,6 +189,8 @@ export default function AdminInstitutionsPage() {
   const [cityList,      setCityList]      = useState<string[]>([]);
   const [selected, setSelected]         = useState<Institution | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds]   = useState<number[]>([]);
+  const [bulkLoading, setBulkLoading]   = useState(false);
   const PAGE_SIZE = 30;
 
   useEffect(() => {
@@ -201,24 +203,28 @@ export default function AdminInstitutionsPage() {
     loadCountries();
   }, [page, filterType, filterStatus, filterScreen, filterCountry, filterCity, filterWeightMin, filterWeightMax]);
 
+  // بناء رابط القائمة بنفس الفلاتر الحالية (يُستخدم للتحميل + لتحديد كل النتائج)
+  function buildListUrl(pageNum: number, limit: number) {
+    const url = new URL(`${API_BASE}/api/institutions`);
+    url.searchParams.set('page',  String(pageNum));
+    url.searchParams.set('limit', String(limit));
+    if (filterType   !== 'all') url.searchParams.set('type',   filterType);
+    if (filterStatus !== 'all') url.searchParams.set('status', filterStatus);
+    if (filterScreen === 'active')   url.searchParams.set('screen_active', 'true');
+    if (filterScreen === 'inactive') url.searchParams.set('screen_active', 'false');
+    if (filterCountry !== 'all') url.searchParams.set('country', filterCountry);
+    if (filterCity    !== 'all') url.searchParams.set('city', filterCity);
+    if (filterWeightMin) url.searchParams.set('weight_min', filterWeightMin);
+    if (filterWeightMax) url.searchParams.set('weight_max', filterWeightMax);
+    if (search.trim()) url.searchParams.set('q', search.trim());
+    return url;
+  }
+
   async function load() {
     setLoading(true);
     setError('');
     try {
-      const url = new URL(`${API_BASE}/api/institutions`);
-      url.searchParams.set('page',  String(page));
-      url.searchParams.set('limit', String(PAGE_SIZE));
-      if (filterType   !== 'all') url.searchParams.set('type',   filterType);
-      if (filterStatus !== 'all') url.searchParams.set('status', filterStatus);
-      if (filterScreen === 'active')   url.searchParams.set('screen_active', 'true');
-      if (filterScreen === 'inactive') url.searchParams.set('screen_active', 'false');
-      if (filterCountry !== 'all') url.searchParams.set('country', filterCountry);
-      if (filterCity    !== 'all') url.searchParams.set('city', filterCity);
-      if (filterWeightMin) url.searchParams.set('weight_min', filterWeightMin);
-      if (filterWeightMax) url.searchParams.set('weight_max', filterWeightMax);
-      if (search.trim()) url.searchParams.set('q', search.trim());
-
-      const res  = await fetch(url.toString(), { headers: getAuthHeaders() });
+      const res  = await fetch(buildListUrl(page, PAGE_SIZE).toString(), { headers: getAuthHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل جلب المؤسسات');
       setInstitutions(data.data || []);
@@ -232,7 +238,7 @@ export default function AdminInstitutionsPage() {
 
   async function loadCountries() {
     try {
-      const res = await fetch(`${API_BASE}/api/institutions?limit=9999`, { headers: getAuthHeaders() });
+      const res = await fetch(buildListUrl(1, 9999).toString(), { headers: getAuthHeaders() });
       const d = await res.json();
       const all: Institution[] = d.data || [];
       setAllInstitutions(all);
@@ -314,6 +320,79 @@ export default function AdminInstitutionsPage() {
       alert(e.message);
     } finally {
       setActionLoading(null);
+    }
+  }
+
+  // ── تحديد متعدد + أوامر جماعية (تفعيل / إيقاف / حذف) ─────────────────
+  function toggleSelect(id: number) {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }
+
+  function toggleSelectAllPage() {
+    const pageIds = institutions.map(i => i.id);
+    setSelectedIds(prev => {
+      const allSelected = pageIds.length > 0 && pageIds.every(id => prev.includes(id));
+      return allSelected
+        ? prev.filter(id => !pageIds.includes(id))
+        : Array.from(new Set([...prev, ...pageIds]));
+    });
+  }
+
+  // تحديد كل النتائج المطابقة للفلاتر الحالية (كل الصفحات وليس الصفحة المعروضة فقط)
+  async function selectAllFiltered() {
+    setBulkLoading(true);
+    try {
+      const res = await fetch(buildListUrl(1, 9999).toString(), { headers: getAuthHeaders() });
+      const d = await res.json();
+      const ids: number[] = (d.data || []).map((i: Institution) => i.id);
+      if (ids.length === 0) { alert('لا توجد نتائج مطابقة للتحديد'); return; }
+      setSelectedIds(ids);
+    } catch (e: any) {
+      alert(e.message || 'فشل تحديد النتائج');
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  function chunkArray<T>(arr: T[], size: number): T[][] {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  }
+
+  async function runBulkAction(action: 'active' | 'inactive' | 'delete') {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+
+    const label = action === 'delete' ? 'حذف' : action === 'active' ? 'تفعيل' : 'إيقاف';
+    const msg = action === 'delete'
+      ? `⚠️ هل تريد حذف ${ids.length} مؤسسة نهائياً؟\nسيتم حذف جميع بياناتها المرتبطة (أخبار، فعاليات، اتفاقيات، إعلانات...). لا يمكن التراجع.`
+      : `هل تريد ${label} ${ids.length} مؤسسة؟`;
+    if (!confirm(msg)) return;
+
+    setBulkLoading(true);
+    try {
+      let done = 0;
+      // تقسيم الطلب إلى دفعات حتى تبقى العملية سريعة وآمنة
+      for (const part of chunkArray(ids, 200)) {
+        const res = await fetch(`${API_BASE}/api/institutions/${action === 'delete' ? 'bulk-delete' : 'bulk-status'}`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(action === 'delete' ? { ids: part } : { ids: part, status: action }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message || `فشل ${label} المؤسسات`);
+        done += part.length;
+      }
+      setSelectedIds([]);
+      setSelected(null);
+      await load();
+      await loadCountries();
+      alert(`✅ تم ${label} ${done} مؤسسة بنجاح`);
+    } catch (e: any) {
+      alert(e.message || `فشل ${label} المؤسسات`);
+    } finally {
+      setBulkLoading(false);
     }
   }
 
@@ -662,6 +741,47 @@ export default function AdminInstitutionsPage() {
         </div>
       )}
 
+      {/* ── Bulk Actions Bar (يظهر عند تحديد مؤسسات) ── */}
+      {selectedIds.length > 0 && (
+        <div style={{
+          background: `linear-gradient(135deg, ${C.darkNavy}, ${C.teal})`,
+          borderRadius: 16, padding: '14px 20px', marginBottom: 16,
+          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+          color: 'white', boxShadow: `0 8px 24px ${C.darkNavy}35`,
+        }}>
+          <span style={{ fontWeight: 800, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+            ✅ تم تحديد {selectedIds.length} مؤسسة
+          </span>
+
+          <button onClick={() => runBulkAction('active')} disabled={bulkLoading}
+            style={{ padding: '7px 16px', borderRadius: 30, border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(34,197,94,0.25)', color: '#dcfce7', fontWeight: 700, fontSize: '0.83rem', cursor: bulkLoading ? 'default' : 'pointer', opacity: bulkLoading ? 0.6 : 1, fontFamily: 'inherit' }}>
+            ▶ تفعيل المحدد
+          </button>
+
+          <button onClick={() => runBulkAction('inactive')} disabled={bulkLoading}
+            style={{ padding: '7px 16px', borderRadius: 30, border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(245,158,11,0.25)', color: '#fef3c7', fontWeight: 700, fontSize: '0.83rem', cursor: bulkLoading ? 'default' : 'pointer', opacity: bulkLoading ? 0.6 : 1, fontFamily: 'inherit' }}>
+            ⏸ إيقاف المحدد
+          </button>
+
+          <button onClick={() => runBulkAction('delete')} disabled={bulkLoading}
+            style={{ padding: '7px 16px', borderRadius: 30, border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(239,68,68,0.3)', color: '#fee2e2', fontWeight: 700, fontSize: '0.83rem', cursor: bulkLoading ? 'default' : 'pointer', opacity: bulkLoading ? 0.6 : 1, fontFamily: 'inherit' }}>
+            🗑 حذف المحدد
+          </button>
+
+          <button onClick={selectAllFiltered} disabled={bulkLoading}
+            style={{ padding: '7px 16px', borderRadius: 30, border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.12)', color: 'white', fontWeight: 700, fontSize: '0.83rem', cursor: bulkLoading ? 'default' : 'pointer', opacity: bulkLoading ? 0.6 : 1, fontFamily: 'inherit' }}>
+            🗂 تحديد كل النتائج ({total})
+          </button>
+
+          <button onClick={() => setSelectedIds([])} disabled={bulkLoading}
+            style={{ padding: '7px 16px', borderRadius: 30, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.85)', fontWeight: 700, fontSize: '0.83rem', cursor: bulkLoading ? 'default' : 'pointer', opacity: bulkLoading ? 0.6 : 1, fontFamily: 'inherit' }}>
+            ✕ إلغاء التحديد
+          </button>
+
+          {bulkLoading && <span style={{ fontSize: '0.82rem', opacity: 0.9 }}>⏳ جاري التنفيذ...</span>}
+        </div>
+      )}
+
       {/* ── Main Layout: Table + Detail Panel ── */}
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
@@ -677,6 +797,15 @@ export default function AdminInstitutionsPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
                 <thead>
                   <tr style={{ background: `${C.darkNavy}08`, borderBottom: `2px solid ${C.teal}20` }}>
+                    <th style={{ padding: '13px 12px', textAlign: 'center', width: 42 }}>
+                      <input
+                        type="checkbox"
+                        checked={institutions.length > 0 && institutions.every(i => selectedIds.includes(i.id))}
+                        onChange={toggleSelectAllPage}
+                        title="تحديد الكل في الصفحة"
+                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: C.teal }}
+                      />
+                    </th>
                     {['المؤسسة', 'النوع', 'الدولة', 'الحالة', 'الشاشة', 'موثّقة', 'إجراءات'].map(h => (
                       <th key={h} style={{ padding: '13px 16px', textAlign: 'right', fontWeight: 700, fontSize: '0.83rem', color: C.darkNavy, whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
@@ -685,7 +814,7 @@ export default function AdminInstitutionsPage() {
                 <tbody>
                   {institutions.length === 0 ? (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '50px', color: '#9ca3af' }}>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '50px', color: '#9ca3af' }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>🌌</div>
                         لا توجد مؤسسات مطابقة
                       </td>
@@ -705,6 +834,15 @@ export default function AdminInstitutionsPage() {
                         }}
                         onClick={() => setSelected(isSelected ? null : inst)}
                       >
+                        {/* Select */}
+                        <td style={{ padding: '12px 12px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(inst.id)}
+                            onChange={() => toggleSelect(inst.id)}
+                            style={{ width: 16, height: 16, cursor: 'pointer', accentColor: C.teal }}
+                          />
+                        </td>
                         {/* Institution Name */}
                         <td style={{ padding: '12px 16px' }}>
                           <div>
