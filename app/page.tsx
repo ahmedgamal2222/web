@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import GalaxyLogo, { GALAXY_BRAND_STYLE } from '@/components/GalaxyLogo';
 import SupportIcon from '@/components/SupportIcon';
+import MajarraEventBanner from '@/components/MajarraEventBanner';
 
 const GalaxyCanvas = dynamic(() => import('@/components/GalaxyCanvas'), { ssr: false });
 
@@ -1926,6 +1927,9 @@ export default function HomePage() {
       />
 
       {user && <QuickActions user={user} />}
+
+      {/* بانر إعلان فعاليات المجرة الحضارية — 12 / 12 */}
+      <MajarraEventBanner />
 
       {/* {galaxyData && <StatsBar data={galaxyData} />} */}
 
